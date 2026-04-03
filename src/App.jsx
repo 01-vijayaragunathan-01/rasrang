@@ -5,6 +5,7 @@ import Footer from "./common/Footer";
 import Home from "./pages/Home";
 import Events from "./pages/Events";
 import Gallery from "./pages/Gallery";
+import Contributors from "./pages/Contributors";
 import Particles from "./pages/home/Particles";
 
 export default function App() {
@@ -51,7 +52,8 @@ export default function App() {
             items={[
               { label: 'Home', href: '/#home', rotation: -4, hoverStyles: { bgColor: theme.colors.interactive, textColor: theme.colors.textTitle } },
               { label: 'Events', href: '/events', rotation: 4, hoverStyles: { bgColor: theme.colors.interactive, textColor: theme.colors.textTitle } },
-              { label: 'Gallery', href: '/gallery', rotation: -4, hoverStyles: { bgColor: theme.colors.interactive, textColor: theme.colors.textTitle } }
+              { label: 'Gallery', href: '/gallery', rotation: -4, hoverStyles: { bgColor: theme.colors.interactive, textColor: theme.colors.textTitle } },
+              { label: 'Team', href: '/contributors', rotation: 4, hoverStyles: { bgColor: theme.colors.interactive, textColor: theme.colors.textTitle } }
             ]}
           />
         </div>
@@ -62,6 +64,7 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/events" element={<Events />} />
             <Route path="/gallery" element={<Gallery />} />
+            <Route path="/contributors" element={<Contributors />} />
             {/* Add a fallback to Home if route not found */}
             <Route path="*" element={<Home />} />
           </Routes>
