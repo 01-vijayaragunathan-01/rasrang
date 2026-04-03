@@ -36,6 +36,19 @@ export default function App() {
   return (
     <Router>
       <div className="bg-black min-h-screen text-white relative selection:bg-amber-500/30">
+        <div className="fixed inset-0 z-0 pointer-events-none">
+          <video
+            className="w-full h-full object-cover opacity-60"
+            src="/Assets/galaxy.mp4" // Ensure galaxy.mp4 is in your public folder
+            autoPlay
+            muted
+            loop
+            playsInline
+          />
+          {/* Subtle logo-themed glow overlay */}
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black opacity-80" />
+          <div className="absolute inset-0 shadow-[inset_0_0_100px_rgba(0,0,0,0.9)]" />
+        </div>
         {/* --- Asset Imports --- */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -62,7 +75,7 @@ export default function App() {
         </main>
 
         {/* --- Global Footer --- */}
-        
+
         <Footer />
       </div>
     </Router>
