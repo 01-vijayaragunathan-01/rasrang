@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Particles from "./Particles";
 import { useTheme } from "../../context/ThemeContext";
 
@@ -12,117 +12,119 @@ export default function Hero() {
     }, []);
 
     return (
-        <section id="home" className="relative w-full h-screen overflow-hidden flex items-center justify-center">
+        <section id="home" className="relative w-full min-h-screen overflow-hidden flex items-center justify-center pt-20 pb-12 lg:py-0">
             {/* Particles Background */}
             <div className="absolute inset-0 z-0 bg-transparent">
               <Particles
-                particleColors={["#ffffff"]}
-                particleCount={500}
+                particleColors={["#ffffff", theme.colors.primary, theme.colors.secondary]}
+                particleCount={400}
                 particleSpread={10}
                 speed={0.1}
-                particleBaseSize={150}
+                particleBaseSize={120}
                 moveParticlesOnHover
-                alphaParticles={false}
+                alphaParticles={true}
                 disableRotation={false}
-                pixelRatio={7}
               />
             </div>
 
+            {/* Main Content - Modern Poster Grid */}
+            <div className={`relative z-30 w-full max-w-7xl mx-auto px-6 transition-all duration-1000 ${loaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"}`}>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-4 items-center">
+                    
+                    {/* LEFT WING: Context (Takes up 3 columns on desktop) */}
+                    <div className="order-2 lg:order-1 lg:col-span-3 flex flex-col items-center lg:items-start text-center lg:text-left gap-6">
+                        
+                        {/* Event Date Block */}
+                        <div>
+                            <p className="text-[10px] tracking-[0.4em] uppercase mb-2 opacity-70" style={{ color: theme.colors.textSubtitle }}>
+                                Save The Date
+                            </p>
+                            <span 
+                                className="text-4xl md:text-5xl tracking-widest uppercase font-black"
+                                style={{ color: theme.colors.accent, textShadow: `0 0 20px ${theme.colors.primary}40` }}
+                            >
+                                APR 09
+                                <br />& 10
+                            </span>
+                        </div>
 
+                        {/* Divider Line (Left Aligned) */}
+                        <div className="h-px w-16" style={{ background: theme.colors.primary }} />
 
-            {/* Main Content */}
-            <div className={`relative z-30 text-center px-6 transition-all duration-1000 ${loaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
+                        {/* Body Copy */}
+                        <p className="text-sm leading-relaxed tracking-wide opacity-80 max-w-[280px]" style={{ color: theme.colors.textDescription }}>
+                            A grand celebration of art, music, dance & theatre — where every performance tells a story etched in light.
+                        </p>
+                    </div>
 
+                    {/* CENTER: The Main Visual / Logo (Takes up 6 columns on desktop) */}
+                    <div className="order-1 lg:order-2 lg:col-span-6 flex justify-center group relative perspective-1000">
+                        {/* Soft Glow Behind Logo */}
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-[60%] blur-[100px] rounded-full" 
+                             style={{ background: theme.colors.primaryGlow, opacity: 0.5 }} />
+                        
+                        <img
+                            src="/Assets/rasrang.png" 
+                            alt="RasRang Logo"
+                            // Scaling it slightly larger so it breaks its container slightly, adding depth
+                            className="h-[clamp(12rem,40vw,32rem)] w-auto object-contain relative z-10 transition-all duration-700 hover:scale-105 hover:drop-shadow-[0_0_30px_rgba(157,1,233,0.5)]"
+                        />
+                    </div>
 
+                    {/* RIGHT WING: Action & Details (Takes up 3 columns on desktop) */}
+                    <div className="order-3 lg:order-3 lg:col-span-3 flex flex-col items-center lg:items-end text-center lg:text-right gap-6">
+                        
+                        {/* Poster Detail: Coordinates/Location or Subtitle */}
+                        <p className="text-[10px] md:text-xs tracking-[0.3em] uppercase opacity-70" style={{ color: theme.colors.textSubtitle }}>
+                            Where Culture Meets the Stars <br/> Edition 2026
+                        </p>
 
-                {/* Main Title */}
-                <div className="flex justify-center mb-2 group cursor-pointer transition-all duration-300">
-                    <img
-                        src="/Assets/rasrang.png" 
-                        alt="RasRang Logo"
-                        className="h-[clamp(10rem,40vw,25rem)] w-auto object-contain animate-pulse-grow transition-all duration-500 group-hover:drop-shadow-[0_0_20px_rgba(250,204,21,0.4)]"
-                    />
-                </div>
+                        <div className="flex flex-col gap-4 w-full max-w-[240px]">
+                            {/* Explore Events - Primary Button */}
+                            <a
+                                href="#events"
+                                className="w-full py-4 text-xs font-black tracking-[0.25em] uppercase text-center transition-all duration-300 hover:-translate-y-1 rounded-sm"
+                                style={{
+                                    color: theme.colors.textTitle,
+                                    background: `linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.secondary})`,
+                                    boxShadow: `0 0 20px ${theme.colors.primary}30`
+                                }}
+                            >
+                                Explore Events
+                            </a>
 
-                {/* Event Dates moved below logo */}
-                <div className="mb-8">
-                    <span 
-                        className="text-xl md:text-3xl tracking-[0.1em] uppercase"
-                        style={{ 
-                            fontFamily: "'round_8four', sans-serif",
-                            color: theme.colors.primary,
-                            textShadow: `0 0 15px ${theme.colors.primaryGlow}`
-                        }}
-                    >
-                        April 9 & 10
-                    </span>
-                </div>
+                            {/* Past Memories - Secondary Border Button */}
+                            <a
+                                href="#past-events"
+                                className="w-full py-4 text-xs font-black tracking-[0.25em] uppercase text-center transition-all duration-300 hover:-translate-y-1 hover:bg-white/5 rounded-sm border"
+                                style={{ 
+                                    color: theme.colors.textTitle,
+                                    borderColor: theme.colors.primary,
+                                }}
+                            >
+                                Past Memories
+                            </a>
+                        </div>
 
-                {/* Subtitle */}
-                <p
-                    className="text-sm md:text-base tracking-[0.35em] uppercase mb-3"
-                    style={{ fontFamily: "'Courier New', monospace", color: theme.colors.textSubtitle }}
-                >
-                    Where Culture Meets the Stars
-                </p>
+                        {/* Modern Poster Detail: Fake Barcode or Ticket ID */}
+                        <div className="mt-4 opacity-50 flex flex-col items-center lg:items-end hidden sm:flex">
+                             <div className="flex gap-1 h-8">
+                                 {[...Array(12)].map((_, i) => (
+                                     <div key={i} className={`bg-white ${i % 3 === 0 ? 'w-1' : 'w-0.5'} h-full opacity-40`} />
+                                 ))}
+                             </div>
+                             <span className="text-[8px] tracking-[0.5em] mt-2 text-white">RSRNG-26</span>
+                        </div>
 
-                {/* Decorative line */}
-                <div className="flex items-center justify-center gap-3 my-8">
-                    <div className="h-px w-24" style={{ background: `linear-gradient(to right, transparent, ${theme.colors.highlight}, ${theme.colors.accent})` }} />
-                    <svg className="w-4 h-4" style={{ color: theme.colors.primary }} viewBox="0 0 16 16" fill="currentColor">
-                        <path d="M8 0L9.8 6.2L16 8L9.8 9.8L8 16L6.2 9.8L0 8L6.2 6.2Z" />
-                    </svg>
-                    <div className="h-px w-24" style={{ background: `linear-gradient(to left, transparent, ${theme.colors.highlight}, ${theme.colors.accent})` }} />
-                </div>
-
-                {/* Body Copy */}
-                <p
-                    className="max-w-xl mx-auto text-sm leading-relaxed tracking-wide mb-12"
-                    style={{ fontFamily: "'Georgia', serif", color: theme.colors.textDescription }}
-                >
-                    A grand celebration of art, music, dance & theatre — where every performance
-                    tells a story etched in light and memory.
-                </p>
-
-                {/* CTA Buttons */}
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-                    {/* Explore Events - Vibrant Gradient Button */}
-                    <a
-                        href="#events"
-                        className="relative px-10 py-4 text-xs font-black italic tracking-[0.25em] uppercase transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_25px_rgba(227,30,110,0.5)] rounded-sm"
-                        style={{
-                            fontFamily: "'Inter', sans-serif",
-                            color: theme.colors.textTitle,
-                            background: `linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.secondary})`
-                        }}
-                    >
-                        <span className="relative z-10">
-                            Explore Events
-                        </span>
-                    </a>
-
-                    {/* Past Memories - Secondary Border Button */}
-                    <a
-                        href="#past-events"
-                        className="relative px-10 py-4 text-xs font-black italic tracking-[0.25em] uppercase transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_25px_rgba(227,30,110,0.5)] rounded-sm border"
-                        style={{ 
-                            fontFamily: "'Inter', sans-serif", 
-                            color: theme.colors.textTitle,
-                            borderColor: theme.colors.primary,
-                            backgroundColor: "transparent"
-                        }}
-                    >
-                        <span className="relative z-10">
-                            Past Memories
-                        </span>
-                    </a>
+                    </div>
                 </div>
             </div>
 
-            {/* Scroll Cue */}
-            <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-2 animate-bounce">
-                <span className="text-[9px] tracking-[0.4em] uppercase" style={{ fontFamily: "'Courier New', monospace", color: theme.colors.textMuted }}>Scroll</span>
-                <div className="w-px h-8" style={{ background: `linear-gradient(to bottom, ${theme.colors.primaryGlow}, transparent)` }} />
+            {/* Scroll Cue (kept at absolute bottom) */}
+            <div className="absolute bottom-6 lg:bottom-10 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-2 animate-bounce">
+                <span className="text-[9px] tracking-[0.4em] uppercase" style={{ color: theme.colors.textMuted }}>Scroll</span>
+                <div className="w-px h-8" style={{ background: `linear-gradient(to bottom, ${theme.colors.primary}, transparent)` }} />
             </div>
         </section>
     );

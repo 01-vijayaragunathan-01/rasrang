@@ -12,6 +12,7 @@ export const APP_THEME = {
     // Typography Hierarchy
     textTitle: "#F8FAFC",
     textSubtitle: "#AF94D2",
+    textMuted: "#AF94D2",
     textDescription: "#AF94D2",
   }
 };
