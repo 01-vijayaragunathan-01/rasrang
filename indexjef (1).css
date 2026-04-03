@@ -1,0 +1,108 @@
+@import "tailwindcss";
+
+/* ========================================
+   RETRO FILM ROLL — GLOBAL STYLES
+   ======================================== */
+
+/* 1. Projector Flicker / Jitter Animation */
+@keyframes flicker {
+  0% { opacity: 0.97; transform: translateX(1px); }
+  20% { opacity: 1; transform: translateX(-1px); }
+  40% { opacity: 0.95; transform: translateY(1px); }
+  60% { opacity: 0.99; transform: translateY(-1px); }
+  80% { opacity: 0.96; }
+  100% { opacity: 1; }
+}
+
+.film-strip-active {
+  animation: flicker 0.2s infinite;
+}
+
+/* 2. Film Leader Countdown — spinning circle animation */
+@keyframes countdown-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.countdown-ring {
+  animation: countdown-spin 1s linear infinite;
+}
+
+/* 3. Light Leak Flash on Hover */
+@keyframes light-leak {
+  0% { opacity: 0; transform: translateX(-100%) skewX(-15deg); }
+  30% { opacity: 0.7; }
+  100% { opacity: 0; transform: translateX(200%) skewX(-15deg); }
+}
+
+.light-leak-flash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  overflow: hidden;
+}
+
+.light-leak-flash::after {
+  content: '';
+  position: absolute;
+  top: -20%;
+  left: -50%;
+  width: 60%;
+  height: 140%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 180, 50, 0.3),
+    rgba(255, 220, 100, 0.5),
+    rgba(255, 180, 50, 0.3),
+    transparent
+  );
+  opacity: 0;
+  transform: translateX(-100%) skewX(-15deg);
+}
+
+.group:hover .light-leak-flash::after {
+  animation: light-leak 0.6s ease-out forwards;
+}
+
+/* 4. Scroll Progress Bar */
+.scroll-progress-track {
+  position: absolute;
+  bottom: 24px;
+  left: 5%;
+  right: 5%;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  z-index: 30;
+  overflow: hidden;
+}
+
+/* 5. Film countdown overlay styling */
+.countdown-frame {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: ui-monospace, Consolas, monospace;
+  color: rgba(255, 200, 80, 0.9);
+  text-shadow: 0 0 20px rgba(255, 180, 50, 0.5);
+}
+
+/* 6. Global body reset */
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* 7. Smooth scrolling for snap behavior on touch */
+@media (pointer: coarse) {
+  .film-snap-container {
+    scroll-snap-type: x mandatory;
+  }
+  .film-snap-item {
+    scroll-snap-align: center;
+  }
+}
