@@ -28,9 +28,9 @@ export default function Hero() {
             </div>
 
             {/* Main Content - Modern Poster Grid */}
-            <div className={`relative z-30 w-full max-w-7xl mx-auto px-6 transition-all duration-1000 ${loaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"}`}>
+            <div className={`relative z-30 w-full max-w-[1600px] 2xl:max-w-[1800px] mx-auto px-6 lg:px-12 xl:px-16 transition-all duration-1000 ${loaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"}`}>
                 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-4 items-center">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
                     
                     {/* LEFT WING: Context (Takes up 3 columns on desktop) */}
                     <div className="order-2 lg:order-1 lg:col-span-3 flex flex-col items-center lg:items-start text-center lg:text-left gap-6">
@@ -41,7 +41,7 @@ export default function Hero() {
                                 Save The Date
                             </p>
                             <span 
-                                className="text-4xl md:text-5xl tracking-widest uppercase font-black"
+                                className="text-3xl md:text-4xl xl:text-5xl tracking-widest uppercase font-black leading-tight"
                                 style={{ color: theme.colors.accent, textShadow: `0 0 20px ${theme.colors.primary}40` }}
                             >
                                 APR 09
@@ -67,8 +67,8 @@ export default function Hero() {
                         <img
                             src="/Assets/rasrang.png" 
                             alt="RasRang Logo"
-                            // Scaling it slightly larger so it breaks its container slightly, adding depth
-                            className="h-[clamp(12rem,40vw,32rem)] w-auto object-contain relative z-10 transition-all duration-700 hover:scale-105 hover:drop-shadow-[0_0_30px_rgba(157,1,233,0.5)]"
+                            // Upscaled the logo to be heroic again
+                            className="h-[clamp(16rem,36vw,28rem)] w-auto object-contain relative z-10 transition-all duration-700 hover:scale-105 hover:drop-shadow-[0_0_30px_rgba(157,1,233,0.5)]"
                         />
                     </div>
 
@@ -80,7 +80,7 @@ export default function Hero() {
                             Where Culture Meets the Stars <br/> Edition 2026
                         </p>
 
-                        <div className="flex flex-col gap-4 w-full max-w-[240px]">
+                        <div className="flex flex-col gap-4 w-full max-w-[200px] items-end px-1.5 lg:px-0">
                             {/* Explore Events - Primary Button */}
                             <a
                                 href="#events"
