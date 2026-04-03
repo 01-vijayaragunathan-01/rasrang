@@ -79,7 +79,7 @@ export default function Events() {
           </p>
           <h2 className="text-5xl md:text-7xl font-black text-white"
             style={{ fontFamily: "'Playfair Display', serif" }}>
-            Events <span className="text-amber-400">&</span> Competitions
+            Events <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500">&</span> Competitions
           </h2>
           <p className="text-stone-500 mt-6 max-w-xl mx-auto text-sm leading-relaxed"
             style={{ fontFamily: "'Georgia', serif" }}>

@@ -19,7 +19,7 @@ export default function Gallery() {
       <div className="relative max-w-7xl mx-auto px-6">
         <div className="text-center mb-20">
           <p style={{ fontFamily: "'Cinzel', serif" }} className="text-[#8B6914] text-xs tracking-[0.5em] uppercase mb-4">✦ Visual Archives ✦</p>
-          <h2 style={{ fontFamily: "'Cinzel', serif" }} className="text-5xl md:text-7xl font-black text-white uppercase">The <span className="text-[#C9A84C]">Gallery</span></h2>
+          <h2 style={{ fontFamily: "'Cinzel', serif" }} className="text-5xl md:text-7xl font-black text-white uppercase">The <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500">Gallery</span></h2>
           <p style={{ fontFamily: "'IM Fell English', serif" }} className="text-stone-500 mt-5 text-xl italic">Moments frozen in celestial light.</p>
         </div>
 
