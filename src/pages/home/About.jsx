@@ -1,0 +1,252 @@
+import { useState, useEffect } from "react";
+import { motion, useMotionValue, useTransform, useMotionTemplate } from "framer-motion";
+import { useTheme } from "../../context/ThemeContext";
+
+export default function About() {
+    const { theme } = useTheme();
+    
+    // --- 1. COUNTDOWN LOGIC ---
+    const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+
+    useEffect(() => {
+        const targetDate = new Date("April 9, 2026 09:00:00").getTime();
+        const interval = setInterval(() => {
+            const now = new Date().getTime();
+            const difference = targetDate - now;
+            if (difference > 0) {
+                setTimeLeft({
+                    days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+                    hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+                    minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
+                    seconds: Math.floor((difference % (1000 * 60)) / 1000),
+                });
+            } else {
+                clearInterval(interval);
+            }
+        }, 1000);
+        return () => clearInterval(interval);
+    }, []);
+
+    // --- 2. 3D TICKET PHYSICS ---
+    const ticketX = useMotionValue(0);
+    const ticketY = useMotionValue(0);
+    const rotateX = useTransform(ticketY, [-200, 200], [20, -20]);
+    const rotateY = useTransform(ticketX, [-200, 200], [-20, 20]);
+    
+    // Holographic glare effect for the ticket
+    const glareX = useTransform(ticketX, [-200, 200], ["-100%", "200%"]);
+    const glareY = useTransform(ticketY, [-200, 200], ["-100%", "200%"]);
+
+    function handleTicketMove(event) {
+        const rect = event.currentTarget.getBoundingClientRect();
+        ticketX.set(event.clientX - rect.left - rect.width / 2);
+        ticketY.set(event.clientY - rect.top - rect.height / 2);
+    }
+    function handleTicketLeave() {
+        ticketX.set(0);
+        ticketY.set(0);
+    }
+
+    // --- 3. CONSTELLATION MAP DATA ---
+    const colleges = [
+        { name: "Engineering & Tech", x: "15%", y: "40%" },
+        { name: "Medical & Health", x: "35%", y: "70%" },
+        { name: "Arts & Science", x: "50%", y: "20%" },
+        { name: "Management", x: "70%", y: "60%" },
+        { name: "Hotel Management", x: "85%", y: "35%" },
+    ];
+
+    return (
+        <section id="about" className="relative w-full py-24 overflow-hidden" style={{ backgroundColor: theme.colors.bg }}>
+            
+            {/* Animated Cultural Background */}
+            <div className="absolute inset-0 z-0 opacity-20 pointer-events-none flex items-center justify-center overflow-hidden">
+                <motion.div 
+                    animate={{ rotate: 360 }} 
+                    transition={{ duration: 150, repeat: Infinity, ease: "linear" }}
+                    className="w-[150vw] h-[150vw] sm:w-[100vw] sm:h-[100vw] absolute opacity-30"
+                    style={{
+                        background: `radial-gradient(circle, transparent 30%, ${theme.colors.primary}40 60%, transparent 70%)`,
+                        backgroundImage: `repeating-conic-gradient(from 0deg, transparent 0deg 15deg, ${theme.colors.accent}10 15deg 30deg)`
+                    }}
+                />
+                {/* Flowing Silk Glows */}
+                <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-b from-transparent via-[#E31E6E] to-transparent opacity-10 blur-[150px]" />
+                <div className="absolute bottom-0 left-0 w-1/2 h-full bg-gradient-to-t from-transparent via-[#E4BD8D] to-transparent opacity-10 blur-[150px]" />
+            </div>
+
+            <div className="max-w-7xl mx-auto px-6 relative z-10 space-y-32">
+                
+                {/* =========================================
+                    PART 1: INTRO & 3D FESTIVAL TICKET
+                ========================================== */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                    {/* Left: Text Context */}
+                    <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="flex flex-col gap-6">
+                        <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full border bg-white/5 w-fit" style={{ borderColor: `${theme.colors.primary}50` }}>
+                            <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: theme.colors.glow }} />
+                            <span className="text-[10px] md:text-xs tracking-[0.2em] uppercase font-bold" style={{ color: theme.colors.textMuted }}>
+                                SRM Trichy Campus Exclusive
+                            </span>
+                        </div>
+
+                        <h2 className="text-4xl md:text-5xl lg:text-6xl font-black uppercase leading-tight tracking-wide" style={{ color: theme.colors.textTitle }}>
+                            The Ultimate <br />
+                            <span style={{ color: "transparent", WebkitTextStroke: `1px ${theme.colors.accent}` }}>Convergence</span>
+                        </h2>
+
+                        <p className="text-base leading-relaxed max-w-lg" style={{ color: theme.colors.textDescription }}>
+                            RasRang is the heartbeat of the entire SRM Trichy Campus. Secure your festival pass to access 30+ events, electrifying pro-shows, and a cultural phenomenon spanning two unforgettable nights.
+                        </p>
+                    </motion.div>
+
+                    {/* Right: 3D Holographic Festival Ticket */}
+                    <div className="flex justify-center perspective-1000" onMouseMove={handleTicketMove} onMouseLeave={handleTicketLeave}>
+                        <motion.div
+                            style={{ rotateX, rotateY, z: 50 }}
+                            className="relative w-[320px] h-[180px] md:w-[400px] md:h-[220px] rounded-2xl overflow-hidden group cursor-pointer"
+                            whileHover={{ scale: 1.05 }}
+                            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                        >
+                            {/* Ticket Background */}
+                            <div className="absolute inset-0 bg-gradient-to-br from-[#1E1B4B] to-[#0A0520] border border-white/20 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)]" />
+                            
+                            {/* Ticket Content */}
+                            <div className="relative z-10 w-full h-full p-6 flex flex-col justify-between">
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <h4 className="text-3xl font-normal tracking-widest text-white uppercase" style={{ fontFamily: '"Round 8 Four", sans-serif', color: theme.colors.accent }}>RasRang '26</h4>
+                                        <p className="text-[10px] tracking-[0.3em] uppercase mt-1 opacity-80" style={{ color: theme.colors.textTitle }}>VIP Festival Pass</p>
+                                    </div>
+                                    <div className="w-10 h-10 border border-white/30 rounded-full flex items-center justify-center transform rotate-12" style={{ borderColor: theme.colors.accent }}>
+                                        {/* Music Note Icon */}
+                                        <svg className="w-4 h-4" style={{ color: theme.colors.accent }} fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                
+                                <div className="flex justify-between items-end border-t border-white/10 pt-4 mt-4">
+                                    <div>
+                                        <p className="text-[8px] uppercase tracking-widest text-white/50 mb-1">Dates</p>
+                                        <p className="text-sm text-white font-mono">APR 09-10</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-[8px] uppercase tracking-widest text-white/50 mb-1">Admit</p>
+                                        <p className="text-sm font-black text-white">ONE (1) STUDENT</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Holographic Shimmer Effect */}
+                            <motion.div 
+                                className="absolute inset-0 z-20 pointer-events-none mix-blend-color-dodge opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                                style={{
+                                    background: `linear-gradient(105deg, transparent 20%, ${theme.colors.primary}80 25%, ${theme.colors.secondary}80 50%, transparent 55%)`,
+                                    backgroundSize: "200% 200%",
+                                    x: glareX, y: glareY,
+                                }}
+                            />
+                        </motion.div>
+                    </div>
+                </div>
+
+                {/* =========================================
+                    PART 2: COUNTDOWN & MYSTERY LINEUP
+                ========================================== */}
+                <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center">
+                    
+                    <h3 className="text-2xl font-black uppercase tracking-[0.3em] mb-8" style={{ color: theme.colors.accent }}>
+                        The Curtains Open In
+                    </h3>
+
+                    {/* Timer */}
+                    <div className="flex justify-center gap-4 md:gap-8 mb-12">
+                        {Object.entries(timeLeft).map(([label, value]) => (
+                            <div key={label} className="flex flex-col items-center">
+                                <div className="w-16 h-16 md:w-24 md:h-24 bg-[#1E1B4B]/80 backdrop-blur-md border border-white/10 rounded-lg flex items-center justify-center shadow-[0_0_30px_rgba(157,1,233,0.1)]">
+                                    <span className="text-2xl md:text-4xl font-black text-white">{value.toString().padStart(2, '0')}</span>
+                                </div>
+                                <span className="text-[10px] md:text-xs uppercase tracking-[0.2em] mt-3" style={{ color: theme.colors.accent }}>{label}</span>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Mystery Lineup Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                        {[1, 2, 3].map((item) => (
+                            <div key={item} className="h-40 bg-[#1E1B4B]/40 border border-white/5 rounded-xl flex flex-col items-center justify-center relative overflow-hidden group">
+                                <div className="absolute inset-0 backdrop-blur-xl z-10" />
+                                {/* Fake blurred content behind */}
+                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full blur-2xl opacity-40 group-hover:opacity-80 transition-opacity duration-500" />
+                                
+                                <div className="relative z-20 flex flex-col items-center">
+                                    {/* Star / Stage Icon */}
+                                    <svg className="w-8 h-8 opacity-80 mb-2" style={{ color: theme.colors.accent }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                                    </svg>
+                                    <p className="text-xs uppercase tracking-widest text-white/90 font-bold" style={{ color: theme.colors.textTitle }}>Main Stage Act</p>
+                                    <p className="text-[9px] uppercase tracking-widest text-white/50 mt-1">Unlocks in {item * 5} Days</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </motion.div>
+
+                {/* =========================================
+                    PART 3: COSMIC CONSTELLATION MAP
+                ========================================== */}
+                <div className="relative w-full h-[400px] border border-white/10 rounded-3xl overflow-hidden flex items-center justify-center group"
+                     style={{ background: `radial-gradient(circle at center, ${theme.colors.bg}, #0B061A)` }}>
+                    <h3 className="absolute top-8 text-center text-sm uppercase tracking-[0.4em] z-20" style={{ color: theme.colors.accent }}>The Grand Stages</h3>
+                    
+                    {/* Glowing Light Beams */}
+                    <svg className="absolute inset-0 w-full h-full z-10 pointer-events-none opacity-60">
+                        <defs>
+                            <linearGradient id="beamGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stopColor={theme.colors.accent} stopOpacity="0" />
+                                <stop offset="50%" stopColor={theme.colors.accent} stopOpacity="0.8" />
+                                <stop offset="100%" stopColor={theme.colors.accent} stopOpacity="0" />
+                            </linearGradient>
+                        </defs>
+                        <line x1="15%" y1="40%" x2="35%" y2="70%" stroke="url(#beamGrad)" strokeWidth="2" strokeDasharray="10 5" className="animate-pulse" />
+                        <line x1="35%" y1="70%" x2="50%" y2="20%" stroke="url(#beamGrad)" strokeWidth="2" strokeDasharray="10 5" className="animate-pulse" style={{ animationDelay: '0.2s' }} />
+                        <line x1="50%" y1="20%" x2="70%" y2="60%" stroke="url(#beamGrad)" strokeWidth="2" strokeDasharray="10 5" className="animate-pulse" style={{ animationDelay: '0.4s' }} />
+                        <line x1="70%" y1="60%" x2="85%" y2="35%" stroke="url(#beamGrad)" strokeWidth="2" strokeDasharray="10 5" className="animate-pulse" style={{ animationDelay: '0.6s' }} />
+                        <line x1="15%" y1="40%" x2="50%" y2="20%" stroke="url(#beamGrad)" strokeWidth="2" strokeDasharray="10 5" className="animate-pulse" style={{ animationDelay: '0.8s' }} />
+                    </svg>
+
+                    {/* Interactive College Nodes */}
+                    {colleges.map((college, idx) => (
+                        <motion.div 
+                            key={idx}
+                            initial={{ scale: 0 }}
+                            whileInView={{ scale: 1 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: idx * 0.2, type: "spring" }}
+                            className="absolute z-20"
+                            style={{ left: college.x, top: college.y }}
+                        >
+                            {/* The Star/Stage Node */}
+                            <div className="relative group/node cursor-pointer">
+                                <div className="w-3 h-3 rounded-full relative z-10" style={{ backgroundColor: theme.colors.accent, boxShadow: `0 0 20px ${theme.colors.accent}` }} />
+                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full animate-ping opacity-30" style={{ backgroundColor: theme.colors.accent }} />
+                                
+                                {/* Tooltip on Hover */}
+                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 opacity-0 group-hover/node:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap">
+                                    <div className="bg-[#1E1B4B] border border-white/20 px-4 py-2 rounded-lg text-center shadow-xl">
+                                        <p className="text-xs uppercase tracking-widest text-white font-bold">{college.name}</p>
+                                        <p className="text-[9px] uppercase tracking-widest" style={{ color: theme.colors.accent }}>Connected</p>
+                                    </div>
+                                    {/* Tooltip triangle arrow */}
+                                    <div className="w-2 h-2 bg-[#1E1B4B] border-b border-r border-white/20 rotate-45 mx-auto -mt-1.5" />
+                                </div>
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
+
+            </div>
+        </section>
+    );
+}
