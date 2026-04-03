@@ -1,41 +1,24 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Navbar from "./common/Navbar";
+import BubbleMenu from "./common/BubbleMenu";
+import { useTheme } from "./context/ThemeContext";
 import Footer from "./common/Footer";
 import Home from "./pages/Home";
 import Events from "./pages/Events";
 import Gallery from "./pages/Gallery";
 
-// --- Design Overlays Component ---
-const DesignOverlays = () => (
-  <>
-    <style>{`
-      .film-grain {
-        position: fixed; inset: 0;
-        background-image: url("https://upload.wikimedia.org/wikipedia/commons/7/76/1k_Noisy_Texture.png");
-        opacity: 0.04; pointer-events: none; z-index: 100;
-      }
-      .crt-lines {
-        position: fixed; inset: 0;
-        background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
-        background-size: 100% 4px;
-        pointer-events: none; z-index: 99; opacity: 0.2;
-      }
-      .vignette {
-        position: fixed; inset: 0;
-        background: radial-gradient(circle, rgba(0,0,0,0) 40%, rgba(0,0,0,0.7) 100%);
-        pointer-events: none; z-index: 98;
-      }
-    `}</style>
-    <div className="film-grain" />
-    <div className="crt-lines" />
-    <div className="vignette" />
-  </>
-);
-
 export default function App() {
+  const { theme } = useTheme();
+
   return (
     <Router>
-      <div className="bg-black min-h-screen text-white relative selection:bg-amber-500/30">
+      <div 
+        className="min-h-screen relative" 
+        style={{ 
+            backgroundColor: theme.colors.base, 
+            color: theme.colors.textMain,
+            '--tw-selection-bg': theme.colors.primaryGlow
+        }}
+      >
         <div className="fixed inset-0 z-0 pointer-events-none">
           <video
             className="w-full h-full object-cover opacity-60"
@@ -57,11 +40,21 @@ export default function App() {
           rel="stylesheet"
         />
 
-        {/* --- Visual Polish --- */}
-        <DesignOverlays />
-
+        {/* --- Visual Polish removed --- */}
         {/* --- Fixed Navigation --- */}
-        <Navbar />
+        <div className="z-[1002] fixed top-4 left-4 right-4">
+          <BubbleMenu 
+            logo="/Assets/rasrang.png" 
+            useFixedPosition={true}
+            menuContentColor={theme.colors.base}
+            menuBg={theme.colors.primary}
+            items={[
+              { label: 'Home', href: '/#home', rotation: -4, hoverStyles: { bgColor: theme.colors.accent, textColor: theme.colors.base } },
+              { label: 'Events', href: '/events', rotation: 4, hoverStyles: { bgColor: theme.colors.highlight, textColor: theme.colors.textMain } },
+              { label: 'Gallery', href: '/gallery', rotation: -4, hoverStyles: { bgColor: theme.colors.surface, textColor: theme.colors.textMain } }
+            ]}
+          />
+        </div>
 
         {/* --- Page Routes --- */}
         <main className="relative z-10">
