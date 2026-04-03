@@ -72,14 +72,14 @@ export default function Hero() {
             {/* Main Content */}
             <div className={`relative z-30 text-center px-6 transition-all duration-1000 ${loaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
 
-           
+
                 {/* Main Title */}
                 <div className="flex justify-center mb-2">
                     <img
                         src="/Assets/rasrang.png" // Replace with the actual path to your logo asset (e.g., logo.png in the public folder)
                         alt="RasRang Logo"
                         // Scale height using clamp to match visual weight of original font title
-                        className="h-[clamp(6rem,25vw,20rem)] w-auto object-contain"
+                        className="h-[clamp(6rem,25vw,15rem)] w-auto object-contain"
                     />
                 </div>
 
@@ -93,11 +93,11 @@ export default function Hero() {
 
                 {/* Decorative line */}
                 <div className="flex items-center justify-center gap-3 my-8">
-                    <div className="h-px w-24 bg-gradient-to-r from-transparent to-amber-500/70" />
+                    <div className="h-px w-24 bg-gradient-to-l from-transparentbg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500" />
                     <svg className="w-4 h-4 text-amber-400" viewBox="0 0 16 16" fill="currentColor">
                         <path d="M8 0L9.8 6.2L16 8L9.8 9.8L8 16L6.2 9.8L0 8L6.2 6.2Z" />
                     </svg>
-                    <div className="h-px w-24 bg-gradient-to-l from-transparent to-amber-500/70" />
+                    <div className="h-px w-24 bg-gradient-to-l from-transparentbg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500" />
                 </div>
 
                 {/* Body Copy */}
@@ -110,20 +110,37 @@ export default function Hero() {
                 </p>
 
                 {/* CTA Buttons */}
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+                    {/* Explore Events - Vibrant Gradient Button */}
                     <a
                         href="#events"
-                        className="group relative px-10 py-4 bg-amber-500 text-black text-xs font-bold tracking-[0.25em] uppercase overflow-hidden hover:bg-amber-400 transition-colors duration-300"
-                        style={{ fontFamily: "'Courier New', monospace" }}
+                        className="group relative px-10 py-4 text-white text-xs font-black italic tracking-[0.25em] uppercase overflow-hidden transition-all duration-300"
+                        style={{
+                            fontFamily: "'Inter', sans-serif",
+                            background: "linear-gradient(45deg, #22d3ee, #a855f7, #ec4899)"
+                        }}
                     >
-                        <span className="relative z-10">Explore Events</span>
+                        <span className="relative z-10 group-hover:scale-110 transition-transform block">
+                            Explore Events
+                        </span>
+                        {/* Hover Overlay for brightness */}
+                        <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
                     </a>
+
+                    {/* Past Memories - Gradient Border Button */}
                     <a
                         href="#past-events"
-                        className="px-10 py-4 border border-stone-500/50 text-stone-300 text-xs tracking-[0.25em] uppercase hover:border-amber-500/60 hover:text-amber-400 transition-all duration-300"
-                        style={{ fontFamily: "'Courier New', monospace" }}
+                        className="relative px-10 py-4 text-white text-xs font-black italic tracking-[0.25em] uppercase group overflow-hidden"
+                        style={{ fontFamily: "'Inter', sans-serif" }}
                     >
-                        Past Memories
+                        {/* Animated Gradient Border */}
+                        <div className="absolute inset-0 p-[2px] bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500">
+                            <div className="w-full h-full bg-black group-hover:bg-transparent transition-colors duration-300" />
+                        </div>
+
+                        <span className="relative z-10 group-hover:text-black transition-colors duration-300">
+                            Past Memories
+                        </span>
                     </a>
                 </div>
             </div>
