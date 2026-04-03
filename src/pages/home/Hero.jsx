@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { motion, useMotionValue, useTransform, useMotionTemplate } from "framer-motion";
 import Particles from "./Particles";
 import { useTheme } from "../../context/ThemeContext";
 
@@ -11,8 +12,40 @@ export default function Hero() {
         return () => clearTimeout(t);
     }, []);
 
+    // 1. The 3D Tilt Physics
+    const x = useMotionValue(0);
+    const y = useMotionValue(0);
+
+    const rotateX = useTransform(y, [-1, 1], [15, -15]);
+    const rotateY = useTransform(x, [-1, 1], [-15, 15]);
+
+    // 2. The "Glitch" Effect (Interactive RGB Split)
+    // Maps the mouse movement to push Pink and Cyan shadows in opposite directions
+    const glitchX = useTransform(x, [-1, 1], [12, -12]);
+    const glitchY = useTransform(y, [-1, 1], [12, -12]);
+    
+    // Dynamically generates the split-color glitch filter
+    const glitchFilter = useMotionTemplate`drop-shadow(${glitchX}px ${glitchY}px 0px rgba(227,30,110,0.8)) drop-shadow(-${glitchX}px -${glitchY}px 0px rgba(34,211,238,0.8))`;
+
+    function handleMouseMove(event) {
+        const rect = event.currentTarget.getBoundingClientRect();
+        // Normalized coordinates: -1 (left/top edge) to 1 (right/bottom edge)
+        x.set(((event.clientX - rect.left) / rect.width) * 2 - 1);
+        y.set(((event.clientY - rect.top) / rect.height) * 2 - 1);
+    }
+
+    function handleMouseLeave() {
+        x.set(0);
+        y.set(0);
+    }
+
     return (
-        <section id="home" className="relative w-full min-h-screen overflow-hidden flex items-center justify-center pt-20 pb-12 lg:py-0">
+        <section 
+            id="home" 
+            className="relative w-full min-h-screen overflow-hidden flex items-center justify-center pt-20 pb-12 lg:py-0"
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+        >
             {/* Particles Background */}
             <div className="absolute inset-0 z-0 bg-transparent">
               <Particles
@@ -58,18 +91,27 @@ export default function Hero() {
                         </p>
                     </div>
 
-                    {/* CENTER: The Main Visual / Logo (Takes up 6 columns on desktop) */}
-                    <div className="order-1 lg:order-2 lg:col-span-6 flex justify-center group relative perspective-1000">
-                        {/* Soft Glow Behind Logo */}
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-[60%] blur-[100px] rounded-full" 
+                    {/* CENTER: The Main Visual / Logo */}
+                    <div className="order-1 lg:order-2 lg:col-span-6 flex justify-center items-center relative perspective-1000">
+                        {/* Soft Glow Behind Logo (Made slightly larger to fit the whole logo) */}
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[70%] h-[70%] blur-[120px] rounded-full pointer-events-none" 
                              style={{ background: theme.colors.primaryGlow, opacity: 0.5 }} />
                         
-                        <img
-                            src="/Assets/rasrang.png" 
-                            alt="RasRang Logo"
-                            // Upscaled the logo to be heroic again
-                            className="h-[clamp(16rem,36vw,28rem)] w-auto object-contain relative z-10 transition-all duration-700 hover:scale-105 hover:drop-shadow-[0_0_30px_rgba(157,1,233,0.5)]"
-                        />
+                        {/* FIX: Changed to inline-flex, removed height constraints, added p-8 to prevent shadow clipping */}
+                        <motion.div
+                            style={{ rotateX, rotateY, z: 50 }}
+                            className="relative inline-flex justify-center items-center group cursor-pointer p-8"
+                            whileHover={{ scale: 1.05 }}
+                            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                        >
+                            {/* FIX: Sizing is now directly on the image. Added glitchFilter. */}
+                            <motion.img
+                                src="/Assets/rasrang.png" 
+                                alt="RasRang Logo"
+                                style={{ filter: glitchFilter }}
+                                className="h-[clamp(14rem,30vw,26rem)] w-auto object-contain relative z-10 transition-all duration-100"
+                            />
+                        </motion.div>
                     </div>
 
                     {/* RIGHT WING: Action & Details (Takes up 3 columns on desktop) */}
