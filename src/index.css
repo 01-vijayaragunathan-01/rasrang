@@ -14,19 +14,19 @@ body {
   overflow-x: hidden;
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar — Midnight Stage */
 ::-webkit-scrollbar {
   width: 4px;
 }
 ::-webkit-scrollbar-track {
-  background: #000;
+  background: #301B66;
 }
 ::-webkit-scrollbar-thumb {
-  background: #78350f;
+  background: #9D01E9;
   border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #f59e0b;
+  background: #C53099;
 }
 
 /* Retro film flicker animation */

@@ -1,61 +1,61 @@
+import { useTheme } from "../context/ThemeContext";
+
 export default function Footer() {
   const year = new Date().getFullYear();
+  const { theme } = useTheme();
 
   return (
-    <footer id="contact" className="relative bg-black border-t border-stone-900 overflow-hidden">
-      {/* Film strip top */}
-      <div className="w-full h-5 bg-black flex border-b border-stone-900">
-        {Array.from({ length: 40 }).map((_, i) => (
-          <div key={i} className="flex-1 border-r border-stone-900 flex items-center justify-center">
-            <div className="w-1.5 h-2.5 border border-stone-800 rounded-sm" />
-          </div>
-        ))}
-      </div>
+    <footer id="contact" className="relative overflow-hidden" style={{ backgroundColor: theme.colors.base }}>
+      
+      {/* Top Glow Divider (replaces film strips) */}
+      <div className="w-full h-px" style={{ background: `linear-gradient(90deg, transparent, ${theme.colors.primary}, ${theme.colors.secondary}, transparent)` }} />
+      <div className="w-full h-px mt-px opacity-40" style={{ background: `linear-gradient(90deg, transparent, ${theme.colors.accent}, transparent)` }} />
 
       {/* Ambient glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[200px] pointer-events-none"
-        style={{ background: "radial-gradient(ellipse, rgba(251,191,36,0.04) 0%, transparent 70%)" }} />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] pointer-events-none opacity-20 blur-[100px]"
+        style={{ background: `radial-gradient(ellipse, ${theme.colors.primary}, transparent 70%)` }} />
 
       <div className="relative max-w-7xl mx-auto px-6 py-20">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
+          
           {/* Brand */}
           <div className="md:col-span-1">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-9 h-9">
-                <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-                  <circle cx="20" cy="20" r="18" stroke="#F59E0B" strokeWidth="1.5" strokeDasharray="4 2" />
-                  <circle cx="20" cy="20" r="12" fill="#F59E0B" fillOpacity="0.08" stroke="#F59E0B" strokeWidth="1" />
-                  <text x="20" y="25" textAnchor="middle" fill="#F59E0B" fontFamily="serif" fontSize="13" fontWeight="bold">R</text>
-                </svg>
-              </div>
+            <div className="flex items-center gap-4 mb-6">
+              <img src="/Assets/rasrang.png" alt="RasRang Logo" className="h-14 w-auto object-contain" />
               <div>
-                <p className="text-amber-400 text-xl font-black tracking-[0.2em]"
-                  style={{ fontFamily: "'Playfair Display', serif" }}>RASRANG</p>
-                <p className="text-stone-600 text-[9px] tracking-[0.4em]"
-                  style={{ fontFamily: "'Courier New', monospace" }}>Cultural Fest</p>
+                <p className="text-2xl font-black tracking-[0.2em] uppercase"
+                  style={{ fontFamily: "'round_8four', sans-serif", color: theme.colors.accent }}>RASRANG</p>
+                <p className="text-[9px] tracking-[0.4em] uppercase" style={{ color: theme.colors.textMuted }}>
+                  SRM Trichy &bull; Cultural Fest '26
+                </p>
               </div>
             </div>
-            <p className="text-stone-600 text-sm leading-relaxed"
-              style={{ fontFamily: "'Georgia', serif" }}>
-              Where culture meets the stars. Our annual festival celebrating art, music, dance and the human spirit.
+            <p className="text-sm leading-relaxed opacity-80" style={{ color: theme.colors.textMuted }}>
+              Where culture meets the stars. Two electrifying nights of art, music, dance &amp; theatre — the biggest cultural phenomenon on campus.
             </p>
           </div>
 
           {/* Quick Links */}
           <div>
-            <p className="text-amber-500/60 text-[10px] tracking-[0.4em] uppercase mb-6"
-              style={{ fontFamily: "'Courier New', monospace" }}>
+            <p className="text-[10px] tracking-[0.4em] uppercase mb-6 font-bold" style={{ color: theme.colors.accent }}>
               Navigation
             </p>
             <ul className="space-y-3">
-              {["Home", "Events", "Gallery", "About", "Contact"].map((link) => (
-                <li key={link}>
+              {[
+                { label: "Home", href: "/" },
+                { label: "Events", href: "/events" },
+                { label: "Gallery", href: "/gallery" },
+                { label: "About", href: "/#about" },
+              ].map((link) => (
+                <li key={link.label}>
                   <a
-                    href={`#${link.toLowerCase()}`}
-                    className="text-stone-500 text-sm hover:text-amber-400 transition-colors tracking-widest"
-                    style={{ fontFamily: "'Courier New', monospace" }}
+                    href={link.href}
+                    className="text-sm tracking-widest transition-colors duration-300 hover:translate-x-1 inline-block"
+                    style={{ color: theme.colors.textMuted }}
+                    onMouseEnter={(e) => e.target.style.color = theme.colors.accent}
+                    onMouseLeave={(e) => e.target.style.color = theme.colors.textMuted}
                   >
-                    › {link}
+                    › {link.label}
                   </a>
                 </li>
               ))}
@@ -64,23 +64,20 @@ export default function Footer() {
 
           {/* Contact */}
           <div>
-            <p className="text-amber-500/60 text-[10px] tracking-[0.4em] uppercase mb-6"
-              style={{ fontFamily: "'Courier New', monospace" }}>
+            <p className="text-[10px] tracking-[0.4em] uppercase mb-6 font-bold" style={{ color: theme.colors.accent }}>
               Get In Touch
             </p>
             <div className="space-y-4">
               {[
-                { label: "Email", value: "rasrang@college.edu" },
+                { label: "Email", value: "rasrang@srmtrichy.edu.in" },
                 { label: "Phone", value: "+91 98765 43210" },
-                { label: "Venue", value: "College Auditorium, Main Campus" },
+                { label: "Venue", value: "SRM Trichy, Main Campus" },
               ].map(({ label, value }) => (
                 <div key={label}>
-                  <p className="text-stone-700 text-[9px] tracking-[0.3em] uppercase mb-1"
-                    style={{ fontFamily: "'Courier New', monospace" }}>
+                  <p className="text-[9px] tracking-[0.3em] uppercase mb-1 font-bold" style={{ color: `${theme.colors.primary}90` }}>
                     {label}
                   </p>
-                  <p className="text-stone-400 text-sm"
-                    style={{ fontFamily: "'Georgia', serif" }}>
+                  <p className="text-sm" style={{ color: theme.colors.textMuted }}>
                     {value}
                   </p>
                 </div>
@@ -88,11 +85,24 @@ export default function Footer() {
             </div>
 
             {/* Social Icons */}
-            <div className="flex gap-4 mt-8">
+            <div className="flex gap-3 mt-8">
               {["Instagram", "YouTube", "Twitter"].map((s) => (
                 <a key={s} href="#"
-                  className="w-9 h-9 border border-stone-800 hover:border-amber-500/40 flex items-center justify-center text-stone-600 hover:text-amber-400 text-xs transition-all duration-300"
-                  style={{ fontFamily: "'Courier New', monospace" }}
+                  className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-black transition-all duration-300 border"
+                  style={{ 
+                    borderColor: `${theme.colors.primary}40`, 
+                    color: theme.colors.textMuted,
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = theme.colors.secondary;
+                    e.currentTarget.style.color = theme.colors.accent;
+                    e.currentTarget.style.boxShadow = `0 0 15px ${theme.colors.secondary}40`;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = `${theme.colors.primary}40`;
+                    e.currentTarget.style.color = theme.colors.textMuted;
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
                   title={s}
                 >
                   {s[0]}
@@ -103,30 +113,23 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-20 pt-8 border-t border-stone-900 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-stone-700 text-xs tracking-[0.25em]"
-            style={{ fontFamily: "'Courier New', monospace" }}>
+        <div className="mt-20 pt-8 flex flex-col md:flex-row items-center justify-between gap-4" 
+             style={{ borderTop: `1px solid ${theme.colors.primary}20` }}>
+          <p className="text-xs tracking-[0.25em]" style={{ color: theme.colors.textMuted, opacity: 0.5 }}>
             © {year} RASRANG. All rights reserved.
           </p>
           <div className="flex items-center gap-3">
-            <div className="h-px w-8 bg-amber-500/20" />
-            <p className="text-stone-700 text-[10px] tracking-[0.3em] uppercase"
-              style={{ fontFamily: "'Courier New', monospace" }}>
+            <div className="h-px w-8" style={{ background: `${theme.colors.secondary}40` }} />
+            <p className="text-[10px] tracking-[0.3em] uppercase" style={{ color: theme.colors.textMuted, opacity: 0.5 }}>
               Made with ✦ by the Cultural Committee
             </p>
-            <div className="h-px w-8 bg-amber-500/20" />
+            <div className="h-px w-8" style={{ background: `${theme.colors.secondary}40` }} />
           </div>
         </div>
       </div>
 
-      {/* Film strip bottom */}
-      <div className="w-full h-5 bg-black flex border-t border-stone-900">
-        {Array.from({ length: 40 }).map((_, i) => (
-          <div key={i} className="flex-1 border-r border-stone-900 flex items-center justify-center">
-            <div className="w-1.5 h-2.5 border border-stone-800 rounded-sm" />
-          </div>
-        ))}
-      </div>
+      {/* Bottom Glow Divider */}
+      <div className="w-full h-px" style={{ background: `linear-gradient(90deg, transparent, ${theme.colors.primary}40, transparent)` }} />
     </footer>
   );
 }

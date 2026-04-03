@@ -83,7 +83,7 @@ function HeadlinerCard({ headliner, theme }) {
                     <motion.div 
                         key="locked"
                         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, scale: 1.1 }} transition={{ duration: 0.8 }}
-                        className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 bg-gradient-to-t from-[#1E1B4B] to-transparent"
+                        className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 bg-gradient-to-t from-[#0A0A0A] to-transparent"
                     >
                         {/* Spotlight Icon */}
                         <div className="relative mb-6 text-white">
@@ -166,7 +166,7 @@ function EventCard({ event, theme, index }) {
                 <img src={event.image} alt={event.title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-125 group-hover:rotate-3" />
                 
                 {/* Heavy Festival Gradients */}
-                <div className="absolute inset-0 bg-gradient-to-b from-[#1E1B4B]/20 via-transparent to-[#020617] opacity-90" />
+                <div className="absolute inset-0 bg-gradient-to-b from-[#0A0A0A]/20 via-transparent to-[#020617] opacity-90" />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#9D01E9]/80 to-transparent opacity-0 group-hover:opacity-60 transition-opacity duration-500" />
                 
                 {/* Floating Date Badge (Looks like a ticket stub) */}
@@ -228,7 +228,7 @@ export default function Events() {
     const filteredEvents = EVENTS.filter(event => activeCategory === "All" || event.category === activeCategory);
 
     return (
-        <section ref={containerRef} id="events" className="relative w-full min-h-screen py-24 md:py-32 overflow-hidden" style={{ backgroundColor: theme.colors.bg }}>
+        <section ref={containerRef} id="events" className="relative w-full min-h-screen py-24 md:py-32 overflow-hidden" style={{ backgroundColor: "transparent" }}>
             
             {/* Vibrant Stage Light Ambient Backgrounds */}
             <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-[#C53099]/20 blur-[150px] rounded-full pointer-events-none" />

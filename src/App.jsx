@@ -5,6 +5,7 @@ import Footer from "./common/Footer";
 import Home from "./pages/Home";
 import Events from "./pages/Events";
 import Gallery from "./pages/Gallery";
+import Particles from "./pages/home/Particles";
 
 export default function App() {
   const { theme } = useTheme();
@@ -14,23 +15,23 @@ export default function App() {
       <div 
         className="min-h-screen relative" 
         style={{ 
-            background: `radial-gradient(circle at top, #1E1B4B, ${theme.colors.base})`, 
+            background: '#000', 
             color: theme.colors.textTitle,
         }}
       >
         <div className="fixed inset-0 z-0 pointer-events-none">
-          <video
-            className="w-full h-full object-cover opacity-60"
-            src="/Assets/galaxy.mp4" // Ensure galaxy.mp4 is in your public folder
-            autoPlay
-            muted
-            loop
-            playsInline
+          <Particles
+            particleColors={["#ffffff", theme.colors.primary, theme.colors.secondary]}
+            particleCount={400}
+            particleSpread={10}
+            speed={0.1}
+            particleBaseSize={120}
+            moveParticlesOnHover
+            alphaParticles={true}
+            disableRotation={false}
           />
-          {/* Subtle logo-themed glow overlay */}
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black opacity-80" />
-          <div className="absolute inset-0 shadow-[inset_0_0_100px_rgba(0,0,0,0.9)]" />
         </div>
+
         {/* --- Asset Imports --- */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

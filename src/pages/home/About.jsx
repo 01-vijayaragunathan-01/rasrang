@@ -57,7 +57,7 @@ export default function About() {
     ];
 
     return (
-        <section id="about" className="relative w-full py-24 overflow-hidden" style={{ backgroundColor: theme.colors.bg }}>
+        <section id="about" className="relative w-full py-24 overflow-hidden" style={{ backgroundColor: "transparent" }}>
             
             {/* Animated Cultural Background */}
             <div className="absolute inset-0 z-0 opacity-20 pointer-events-none flex items-center justify-center overflow-hidden">
@@ -109,7 +109,7 @@ export default function About() {
                             transition={{ type: "spring", stiffness: 300, damping: 20 }}
                         >
                             {/* Ticket Background */}
-                            <div className="absolute inset-0 bg-gradient-to-br from-[#1E1B4B] to-[#0A0520] border border-white/20 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)]" />
+                            <div className="absolute inset-0 bg-gradient-to-br from-[#0A0A0A] to-[#0A0520] border border-white/20 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)]" />
                             
                             {/* Ticket Content */}
                             <div className="relative z-10 w-full h-full p-6 flex flex-col justify-between">
@@ -164,7 +164,7 @@ export default function About() {
                     <div className="flex justify-center gap-4 md:gap-8 mb-12">
                         {Object.entries(timeLeft).map(([label, value]) => (
                             <div key={label} className="flex flex-col items-center">
-                                <div className="w-16 h-16 md:w-24 md:h-24 bg-[#1E1B4B]/80 backdrop-blur-md border border-white/10 rounded-lg flex items-center justify-center shadow-[0_0_30px_rgba(157,1,233,0.1)]">
+                                <div className="w-16 h-16 md:w-24 md:h-24 bg-[#0A0A0A]/80 backdrop-blur-md border border-white/10 rounded-lg flex items-center justify-center shadow-[0_0_30px_rgba(157,1,233,0.1)]">
                                     <span className="text-2xl md:text-4xl font-black text-white">{value.toString().padStart(2, '0')}</span>
                                 </div>
                                 <span className="text-[10px] md:text-xs uppercase tracking-[0.2em] mt-3" style={{ color: theme.colors.accent }}>{label}</span>
@@ -175,7 +175,7 @@ export default function About() {
                     {/* Mystery Lineup Cards */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
                         {[1, 2, 3].map((item) => (
-                            <div key={item} className="h-40 bg-[#1E1B4B]/40 border border-white/5 rounded-xl flex flex-col items-center justify-center relative overflow-hidden group">
+                            <div key={item} className="h-40 bg-[#0A0A0A]/40 border border-white/5 rounded-xl flex flex-col items-center justify-center relative overflow-hidden group">
                                 <div className="absolute inset-0 backdrop-blur-xl z-10" />
                                 {/* Fake blurred content behind */}
                                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full blur-2xl opacity-40 group-hover:opacity-80 transition-opacity duration-500" />
@@ -234,12 +234,12 @@ export default function About() {
                                 
                                 {/* Tooltip on Hover */}
                                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 opacity-0 group-hover/node:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap">
-                                    <div className="bg-[#1E1B4B] border border-white/20 px-4 py-2 rounded-lg text-center shadow-xl">
+                                    <div className="bg-[#0A0A0A] border border-white/20 px-4 py-2 rounded-lg text-center shadow-xl">
                                         <p className="text-xs uppercase tracking-widest text-white font-bold">{college.name}</p>
                                         <p className="text-[9px] uppercase tracking-widest" style={{ color: theme.colors.accent }}>Connected</p>
                                     </div>
                                     {/* Tooltip triangle arrow */}
-                                    <div className="w-2 h-2 bg-[#1E1B4B] border-b border-r border-white/20 rotate-45 mx-auto -mt-1.5" />
+                                    <div className="w-2 h-2 bg-[#0A0A0A] border-b border-r border-white/20 rotate-45 mx-auto -mt-1.5" />
                                 </div>
                             </div>
                         </motion.div>

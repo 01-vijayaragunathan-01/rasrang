@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { motion, useMotionValue, useTransform, useMotionTemplate } from "framer-motion";
-import Particles from "./Particles";
 import { useTheme } from "../../context/ThemeContext";
 
 export default function Hero() {
@@ -46,19 +45,7 @@ export default function Hero() {
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
         >
-            {/* Particles Background */}
-            <div className="absolute inset-0 z-0 bg-transparent">
-              <Particles
-                particleColors={["#ffffff", theme.colors.primary, theme.colors.secondary]}
-                particleCount={400}
-                particleSpread={10}
-                speed={0.1}
-                particleBaseSize={120}
-                moveParticlesOnHover
-                alphaParticles={true}
-                disableRotation={false}
-              />
-            </div>
+
 
             {/* Main Content - Modern Poster Grid */}
             <div className={`relative z-30 w-full max-w-[1600px] 2xl:max-w-[1800px] mx-auto px-6 lg:px-12 xl:px-16 transition-all duration-1000 ${loaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"}`}>
@@ -125,7 +112,7 @@ export default function Hero() {
                         <div className="flex flex-col gap-4 w-full max-w-[200px] items-end px-1.5 lg:px-0">
                             {/* Explore Events - Primary Button */}
                             <a
-                                href="#events"
+                                href="/events"
                                 className="w-full py-4 text-xs font-black tracking-[0.25em] uppercase text-center transition-all duration-300 hover:-translate-y-1 rounded-sm"
                                 style={{
                                     color: theme.colors.textTitle,
