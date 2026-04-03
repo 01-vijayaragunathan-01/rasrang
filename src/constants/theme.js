@@ -1,13 +1,17 @@
 export const APP_THEME = {
   colors: {
-    base: "#020617",      // Midnight Blue
-    surface: "#1e1b4b",   // Deep Purple / Navy
-    primary: "#FACC15",   // Royal Gold mapped to primary for compatibility
-    primaryGlow: 'rgba(250, 204, 21, 0.4)', // FACC15 with opacity
-    accent: "#FACC15",    // Royal Gold
-    highlight: "#DB2777", // Magenta Accent
-    textMain: '#ffffff',
-    textMuted: "#94a3b8", // Slate
-    background: "#020617", // base
+    base: "#301B66",         // Midnight Purple Background
+    surface: "#1E1B4B",      // Navy Surface
+    primary: "#9D01E9",      // Main Purple
+    primaryGlow: "rgba(157, 1, 233, 0.4)", // Primary with opacity
+    interactive: "#9D43C9",  // Purple Hover
+    highlight: "#E31E6E",    // Glow Pink
+    secondary: "#C53099",    // Magenta
+    accent: "#E4BD8D",       // Soft Peach
+    
+    // Typography Hierarchy
+    textTitle: "#F8FAFC",
+    textSubtitle: "#AF94D2",
+    textDescription: "#AF94D2",
   }
 };

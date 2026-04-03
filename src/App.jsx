@@ -14,9 +14,8 @@ export default function App() {
       <div 
         className="min-h-screen relative" 
         style={{ 
-            backgroundColor: theme.colors.base, 
-            color: theme.colors.textMain,
-            '--tw-selection-bg': theme.colors.primaryGlow
+            background: `radial-gradient(circle at top, #1E1B4B, ${theme.colors.base})`, 
+            color: theme.colors.textTitle,
         }}
       >
         <div className="fixed inset-0 z-0 pointer-events-none">
@@ -49,9 +48,9 @@ export default function App() {
             menuContentColor={theme.colors.base}
             menuBg={theme.colors.primary}
             items={[
-              { label: 'Home', href: '/#home', rotation: -4, hoverStyles: { bgColor: theme.colors.accent, textColor: theme.colors.base } },
-              { label: 'Events', href: '/events', rotation: 4, hoverStyles: { bgColor: theme.colors.highlight, textColor: theme.colors.textMain } },
-              { label: 'Gallery', href: '/gallery', rotation: -4, hoverStyles: { bgColor: theme.colors.surface, textColor: theme.colors.textMain } }
+              { label: 'Home', href: '/#home', rotation: -4, hoverStyles: { bgColor: theme.colors.interactive, textColor: theme.colors.textTitle } },
+              { label: 'Events', href: '/events', rotation: 4, hoverStyles: { bgColor: theme.colors.interactive, textColor: theme.colors.textTitle } },
+              { label: 'Gallery', href: '/gallery', rotation: -4, hoverStyles: { bgColor: theme.colors.interactive, textColor: theme.colors.textTitle } }
             ]}
           />
         </div>

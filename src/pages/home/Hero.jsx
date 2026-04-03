@@ -36,12 +36,11 @@ export default function Hero() {
 
 
                 {/* Main Title */}
-                <div className="flex justify-center mb-2">
+                <div className="flex justify-center mb-2 group cursor-pointer transition-all duration-300">
                     <img
-                        src="/Assets/rasrang.png" // Replace with the actual path to your logo asset (e.g., logo.png in the public folder)
+                        src="/Assets/rasrang.png" 
                         alt="RasRang Logo"
-                        // Scale height using clamp to match visual weight of original font title
-                        className="h-[clamp(10rem,40vw,25rem)] w-auto object-contain animate-pulse-grow"
+                        className="h-[clamp(10rem,40vw,25rem)] w-auto object-contain animate-pulse-grow transition-all duration-500 group-hover:drop-shadow-[0_0_20px_rgba(250,204,21,0.4)]"
                     />
                 </div>
 
@@ -62,7 +61,7 @@ export default function Hero() {
                 {/* Subtitle */}
                 <p
                     className="text-sm md:text-base tracking-[0.35em] uppercase mb-3"
-                    style={{ fontFamily: "'Courier New', monospace", color: theme.colors.textMuted }}
+                    style={{ fontFamily: "'Courier New', monospace", color: theme.colors.textSubtitle }}
                 >
                     Where Culture Meets the Stars
                 </p>
@@ -79,7 +78,7 @@ export default function Hero() {
                 {/* Body Copy */}
                 <p
                     className="max-w-xl mx-auto text-sm leading-relaxed tracking-wide mb-12"
-                    style={{ fontFamily: "'Georgia', serif", color: theme.colors.textMuted }}
+                    style={{ fontFamily: "'Georgia', serif", color: theme.colors.textDescription }}
                 >
                     A grand celebration of art, music, dance & theatre — where every performance
                     tells a story etched in light and memory.
@@ -90,32 +89,30 @@ export default function Hero() {
                     {/* Explore Events - Vibrant Gradient Button */}
                     <a
                         href="#events"
-                        className="group relative px-10 py-4 text-xs font-black italic tracking-[0.25em] uppercase overflow-hidden transition-all duration-300"
+                        className="relative px-10 py-4 text-xs font-black italic tracking-[0.25em] uppercase transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_25px_rgba(227,30,110,0.5)] rounded-sm"
                         style={{
                             fontFamily: "'Inter', sans-serif",
-                            color: theme.colors.textMain,
-                            background: `linear-gradient(45deg, ${theme.colors.accent}, ${theme.colors.surface}, ${theme.colors.highlight})`
+                            color: theme.colors.textTitle,
+                            background: `linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.secondary})`
                         }}
                     >
-                        <span className="relative z-10 group-hover:scale-110 transition-transform block">
+                        <span className="relative z-10">
                             Explore Events
                         </span>
-                        {/* Hover Overlay for brightness */}
-                        <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
                     </a>
 
-                    {/* Past Memories - Gradient Border Button */}
+                    {/* Past Memories - Secondary Border Button */}
                     <a
                         href="#past-events"
-                        className="relative px-10 py-4 text-xs font-black italic tracking-[0.25em] uppercase group overflow-hidden"
-                        style={{ fontFamily: "'Inter', sans-serif", color: theme.colors.textMain }}
+                        className="relative px-10 py-4 text-xs font-black italic tracking-[0.25em] uppercase transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_25px_rgba(227,30,110,0.5)] rounded-sm border"
+                        style={{ 
+                            fontFamily: "'Inter', sans-serif", 
+                            color: theme.colors.textTitle,
+                            borderColor: theme.colors.primary,
+                            backgroundColor: "transparent"
+                        }}
                     >
-                        {/* Animated Gradient Border */}
-                        <div className="absolute inset-0 p-[2px]" style={{ background: `linear-gradient(to right, ${theme.colors.accent}, ${theme.colors.surface}, ${theme.colors.highlight})` }}>
-                            <div className="w-full h-full group-hover:bg-transparent transition-colors duration-300" style={{ backgroundColor: theme.colors.background }} />
-                        </div>
-
-                        <span className="relative z-10 transition-colors duration-300" style={{ color: theme.colors.textMain }}>
+                        <span className="relative z-10">
                             Past Memories
                         </span>
                     </a>
