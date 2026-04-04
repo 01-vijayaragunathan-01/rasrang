@@ -333,47 +333,90 @@ export default function Events() {
                 onClose={() => setSelectedEvent(null)}
             >
                 {selectedEvent && (
-                    <div className="flex flex-col gap-6 text-white text-left">
-                        {/* Event Image Banner */}
-                        <div className="w-full h-48 md:h-64 border border-white/20 relative overflow-hidden -mt-4">
-                            <img 
-                                src={selectedEvent.image} 
-                                alt={selectedEvent.title} 
-                                className="w-full h-full object-cover"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-[#1E1B4B] to-transparent" />
-                            <div className="absolute bottom-4 left-4 bg-[#FACC15] text-black px-3 py-1 text-[10px] font-black uppercase tracking-widest">
-                                {selectedEvent.category}
+                    <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 text-white text-left relative min-h-0 h-full overflow-visible">
+                        
+                        {/* --- MOBILE SWIPE HANDLE --- */}
+                        <div className="lg:hidden w-12 h-1.5 bg-white/20 rounded-full mx-auto mb-2 flex-shrink-0" />
+
+                        {/* --- LEFT COL: THE PORTRAIT POSTER (1:1.42) --- */}
+                        <motion.div 
+                            initial={{ opacity: 0, x: -30 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.2 }}
+                            className="w-full lg:w-[42%] flex-shrink-0 relative group"
+                        >
+                            <div className="aspect-[1/1.42] w-full border-2 border-white/10 shadow-[0_0_30px_rgba(34,211,238,0.1)] relative overflow-hidden">
+                                <img 
+                                    src={selectedEvent.image} 
+                                    alt={selectedEvent.title} 
+                                    className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                
+                                {/* Brutalist Tag Overlay */}
+                                <div className="absolute top-4 left-4 bg-[#E31E6E] text-white px-3 py-1 text-[10px] font-black uppercase tracking-widest shadow-xl">
+                                    {selectedEvent.category}
+                                </div>
+
+                                {/* Hazard Lines Bottom Decor */}
+                                <div className="absolute bottom-0 left-0 w-full h-1 opacity-40 bg-[repeating-linear-gradient(45deg,#22D3EE,#22D3EE_5px,#000_5px,#000_10px)]" />
                             </div>
-                        </div>
+                        </motion.div>
 
-                        {/* Event Details */}
-                        <div>
-                            <h2 className="text-4xl md:text-5xl font-black uppercase italic tracking-wide text-white mb-2 font-massive">
-                                {selectedEvent.title}
-                            </h2>
-                            <p className="text-[#22D3EE] font-mono text-sm uppercase tracking-widest mb-6 font-accent">
-                                📅 Date: {selectedEvent.date} | 📍 Main Stage
-                            </p>
+                        {/* --- RIGHT COL: INTEL & REGISTRATION --- */}
+                        <motion.div 
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 }}
+                            className="flex-1 flex flex-col justify-between py-2"
+                        >
+                            <div className="space-y-6">
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-[2px] bg-[#22D3EE]" />
+                                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[#AF94D2] font-accent">Event Intel</span>
+                                    </div>
+                                    <h2 className="text-4xl md:text-6xl font-black uppercase italic leading-none tracking-tight text-white font-massive">
+                                        {selectedEvent.title}
+                                    </h2>
+                                </div>
 
-                            <p className="text-white/70 leading-relaxed mb-8 font-body">
-                                {selectedEvent.description || "Get ready for the most explosive event of the festival. Bring your A-game, gather your crew, and prepare to leave your mark on the RasRang legacy."}
-                            </p>
+                                <div className="flex items-center gap-6 py-4 border-y border-white/5">
+                                    <div className="flex flex-col">
+                                        <span className="text-[8px] uppercase font-bold text-white/30 tracking-widest mb-1">Time Dimension</span>
+                                        <span className="text-sm font-black uppercase tracking-widest text-[#22D3EE]">📅 {selectedEvent.date}</span>
+                                    </div>
+                                    <div className="w-[1px] h-8 bg-white/5" />
+                                    <div className="flex flex-col">
+                                        <span className="text-[8px] uppercase font-bold text-white/30 tracking-widest mb-1">Sector Origin</span>
+                                        <span className="text-sm font-black uppercase tracking-widest text-white">📍 MAIN STAGE</span>
+                                    </div>
+                                </div>
 
-                            {/* Tags/Rules */}
-                            <div className="flex flex-wrap gap-2 mb-8">
-                                {selectedEvent.tags?.map(tag => (
-                                    <span key={tag} className="border border-[#C53099]/50 bg-[#C53099]/10 text-white text-[10px] px-3 py-1 font-bold uppercase tracking-wider font-massive">
-                                        {tag}
+                                <p className="text-white/70 leading-relaxed font-body text-sm md:text-base border-l-2 border-[#E31E6E]/30 pl-4 py-2 italic font-medium">
+                                    {selectedEvent.description || "Get ready for the most explosive event of the festival. Bring your A-game, gather your crew, and prepare to leave your mark on the RasRang legacy."}
+                                </p>
+
+                                <div className="flex flex-wrap gap-2 pt-4">
+                                    {selectedEvent.tags?.map(tag => (
+                                        <span key={tag} className="bg-white/5 border border-white/10 text-white/60 text-[9px] px-4 py-1.5 font-bold uppercase tracking-widest rounded-sm hover:border-[#C53099] hover:text-white transition-all cursor-default">
+                                            {tag}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Call to Action: Forge Access */}
+                            <div className="mt-10 lg:mt-0 pt-8 lg:pt-0">
+                                <button className="group relative w-full overflow-hidden bg-white py-5 transition-all duration-500 hover:scale-[1.02] active:scale-95 shadow-[0_20px_50px_rgba(255,255,255,0.1)]">
+                                    <div className="absolute inset-0 bg-gradient-to-r from-[#9D01E9] to-[#E31E6E] translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-500" />
+                                    <span className="relative z-10 text-black group-hover:text-white font-black uppercase text-xl tracking-[0.2em] font-massive">
+                                        FORGE REGISTRATION
                                     </span>
-                                ))}
+                                </button>
+                                <p className="text-center text-[9px] font-mono mt-4 opacity-30 uppercase tracking-[0.3em]">Warning: Registrations are Final once Signed</p>
                             </div>
-                        </div>
-
-                        {/* Call to Action */}
-                        <button className="w-full py-4 bg-[#9D01E9] text-white font-black uppercase tracking-[0.2em] hover:bg-white hover:text-[#020617] transition-all border border-[#9D01E9] hover:border-white shadow-[0_0_20px_rgba(157,1,233,0.4)] font-massive">
-                            Register Now
-                        </button>
+                        </motion.div>
                     </div>
                 )}
             </FestivalModal>
