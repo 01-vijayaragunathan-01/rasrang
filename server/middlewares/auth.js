@@ -14,9 +14,11 @@ export const authenticateJWT = async (req, res, next) => {
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret');
         
-        // CSRF Verification: Ensure the token in cookie matches the header
-        if (!csrfToken || csrfToken !== decoded.csrf) {
-            return res.status(403).json({ error: 'CSRF token mismatch' });
+        // CSRF Verification: Only for mutating requests (POST, PUT, DELETE)
+        if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
+            if (!csrfToken || csrfToken !== decoded.csrf) {
+                return res.status(403).json({ error: 'CSRF token mismatch' });
+            }
         }
 
         const user = await prisma.user.findUnique({ where: { id: decoded.id } });
@@ -33,25 +35,41 @@ export const authenticateJWT = async (req, res, next) => {
 };
 
 export const isVolunteer = (req, res, next) => {
-    if (req.user && (req.user.role === 'VOLUNTEER' || req.user.role === 'COORDINATOR')) {
+    if (req.user && (req.user.role === 'VOLUNTEER' || req.user.role === 'COORDINATOR' || req.user.role === 'SUPER_ADMIN')) {
         next();
     } else {
-        res.status(403).json({ message: 'Require Volunteer/Coordinator Role!' });
+        res.status(403).json({ message: 'Require Volunteer/Coordinator/Admin Role!' });
     }
 };
 
 export const isCoordinator = (req, res, next) => {
-    if (req.user && req.user.role === 'COORDINATOR') {
+    if (req.user && (req.user.role === 'COORDINATOR' || req.user.role === 'SUPER_ADMIN')) {
         next();
     } else {
-        res.status(403).json({ message: 'Require Coordinator Role!' });
+        res.status(403).json({ message: 'Require Coordinator/Admin Role!' });
     }
 };
 
 export const ensureOnboarded = (req, res, next) => {
-    if (req.user && req.user.isOnboarded) {
+    if (req.user && (req.user.isOnboarded || req.user.role === 'SUPER_ADMIN')) {
         next();
     } else {
         res.status(403).json({ message: 'Must complete onboarding profile before performing this action.' });
+    }
+};
+
+export const isSuperCoordinator = (req, res, next) => {
+    if (req.user && ((req.user.role === 'COORDINATOR' && req.user.canManagePrivileges) || req.user.role === 'SUPER_ADMIN')) {
+        next();
+    } else {
+        res.status(403).json({ message: 'Require Coordinator Role with Privilege Management Access!' });
+    }
+};
+
+export const isSuperAdmin = (req, res, next) => {
+    if (req.user && req.user.role === 'SUPER_ADMIN') {
+        next();
+    } else {
+        res.status(403).json({ message: 'Require Platform Super Admin Role!' });
     }
 };

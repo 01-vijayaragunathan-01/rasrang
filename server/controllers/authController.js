@@ -166,3 +166,27 @@ export const logout = async (req, res) => {
     res.clearCookie('refreshToken');
     res.json({ success: true, message: 'Logged out successfully' });
 };
+
+export const updateProfile = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { clgName, year, dept, branch, section } = req.body;
+        
+        // Note: regNo and phoneNo are explicitly ignored/locked
+
+        const updatedUser = await prisma.user.update({
+            where: { id: userId },
+            data: {
+                clgName,
+                year,
+                dept,
+                branch,
+                section
+            }
+        });
+
+        res.json({ success: true, message: 'Profile updated', user: updatedUser });
+    } catch (err) {
+        res.status(500).json({ error: 'Profile update failed', details: err.message });
+    }
+};

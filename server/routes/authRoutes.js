@@ -1,6 +1,6 @@
 import express from 'express';
 import passport from '../utils/passport.js';
-import { googleCallback, localLogin, localSignup, onboard, getProfile, logout, refresh } from '../controllers/authController.js';
+import { googleCallback, localLogin, localSignup, onboard, getProfile, logout, refresh, updateProfile } from '../controllers/authController.js';
 import { authenticateJWT } from '../middlewares/auth.js';
 
 const router = express.Router();
@@ -14,5 +14,6 @@ router.post('/onboard', authenticateJWT, onboard);
 router.post('/logout', logout);
 router.get('/refresh-token', refresh);
 router.get('/profile', authenticateJWT, getProfile);
+router.put('/profile', authenticateJWT, updateProfile);
 
 export default router;

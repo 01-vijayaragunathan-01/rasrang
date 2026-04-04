@@ -11,6 +11,7 @@ enum Role {
   STUDENT
   VOLUNTEER
   COORDINATOR
+  SUPER_ADMIN
 }
 
 model User {
@@ -29,6 +30,7 @@ model User {
   section       String?
   phoneNo       String?        @unique
   isOnboarded   Boolean        @default(false)
+  canManagePrivileges Boolean  @default(false)
   registrations Registration[]
   createdAt     DateTime       @default(now())
 }

@@ -19,23 +19,36 @@ async function main() {
             {
                 name: 'John Student',
                 email: 'john@example.com',
-                regNo: 'SRM001',
+                regNo: '24CS001',
                 password: hashedPassword,
                 role: 'STUDENT',
+                isOnboarded: true
             },
             {
                 name: 'Jane Volunteer',
                 email: 'jane@example.com',
-                regNo: 'SRM002',
+                regNo: '24CS002',
                 password: hashedPassword,
                 role: 'VOLUNTEER',
+                isOnboarded: true
             },
             {
                 name: 'Admin Coordinator',
                 email: 'admin@rasrang.com',
-                regNo: 'ADMIN1',
+                regNo: '24ADM01',
                 password: hashedPassword,
                 role: 'COORDINATOR',
+                canManagePrivileges: true,
+                isOnboarded: true
+            },
+            {
+                name: 'Platform Super Admin',
+                email: 'platform@rasrang.com',
+                regNo: 'PLA001',
+                password: await bcrypt.hash('platform_2024_secure', 10),
+                role: 'SUPER_ADMIN',
+                canManagePrivileges: true,
+                isOnboarded: true
             }
         ]
     });

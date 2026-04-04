@@ -6,20 +6,26 @@ import Home from "./pages/Home";
 import Events from "./pages/Events";
 import Gallery from "./pages/Gallery";
 import Contributors from "./pages/Contributors";
+import Profile from "./pages/Profile";
+import Auth from "./pages/Auth";
 import Particles from "./pages/home/Particles";
+
+import { AuthProvider } from "./context/AuthContext";
+import ProtectedRoute from "./common/ProtectedRoute";
 
 export default function App() {
   const { theme } = useTheme();
 
   return (
-    <Router>
-      <div 
-        className="min-h-screen relative" 
-        style={{ 
-            background: '#000', 
-            color: theme.colors.textTitle,
-        }}
-      >
+    <AuthProvider>
+      <Router>
+        <div 
+          className="min-h-screen relative" 
+          style={{ 
+              background: '#000', 
+              color: theme.colors.textTitle,
+          }}
+        >
         <div className="fixed inset-0 z-0 pointer-events-none">
           <Particles
             particleColors={["#ffffff", theme.colors.primary, theme.colors.secondary]}
@@ -41,7 +47,6 @@ export default function App() {
           rel="stylesheet"
         />
 
-        {/* --- Visual Polish removed --- */}
         {/* --- Fixed Navigation --- */}
         <div className="z-[1002] fixed top-4 left-4 right-4">
           <BubbleMenu 
@@ -53,6 +58,8 @@ export default function App() {
               { label: 'Home', href: '/#home', rotation: -4, hoverStyles: { bgColor: theme.colors.interactive, textColor: theme.colors.textTitle } },
               { label: 'Events', href: '/events', rotation: 4, hoverStyles: { bgColor: theme.colors.interactive, textColor: theme.colors.textTitle } },
               { label: 'Gallery', href: '/gallery', rotation: -4, hoverStyles: { bgColor: theme.colors.interactive, textColor: theme.colors.textTitle } },
+              { label: 'Login', href: '/login', rotation: 4, hoverStyles: { bgColor: theme.colors.interactive, textColor: theme.colors.textTitle } },
+              { label: 'Profile', href: '/profile', rotation: -4, hoverStyles: { bgColor: theme.colors.interactive, textColor: theme.colors.textTitle } },
               { label: 'Team', href: '/contributors', rotation: 4, hoverStyles: { bgColor: theme.colors.interactive, textColor: theme.colors.textTitle } }
             ]}
           />
@@ -65,6 +72,12 @@ export default function App() {
             <Route path="/events" element={<Events />} />
             <Route path="/gallery" element={<Gallery />} />
             <Route path="/contributors" element={<Contributors />} />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            } />
+            <Route path="/login" element={<Auth />} />
             {/* Add a fallback to Home if route not found */}
             <Route path="*" element={<Home />} />
           </Routes>
@@ -75,5 +88,6 @@ export default function App() {
         <Footer />
       </div>
     </Router>
+    </AuthProvider>
   );
 }
