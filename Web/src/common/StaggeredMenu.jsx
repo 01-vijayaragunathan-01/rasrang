@@ -385,14 +385,18 @@ export const StaggeredMenu = ({
           </div>
 
           {/* Middle: Rasrang Logo */}
-          <div className="absolute left-1/2 -translate-x-1/2 flex items-center select-none pointer-events-auto" aria-label="Rasrang Logo">
+          <Link 
+            to="/" 
+            className="absolute left-1/2 -translate-x-1/2 flex items-center select-none pointer-events-auto cursor-pointer" 
+            aria-label="Rasrang Home"
+          >
             <img
               src={logoUrl || '/Assets/rasrang.png'}
               alt="Rasrang Logo"
               className="block h-6 md:h-16 w-auto object-contain"
               draggable={false}
             />
-          </div>
+          </Link>
 
           <button
             ref={toggleBtnRef}

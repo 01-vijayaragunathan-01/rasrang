@@ -24,7 +24,11 @@ export const googleCallback = async (req, res) => {
     res.cookie('accessToken', accessToken, { ...cookieOptions, maxAge: 15 * 60 * 1000 });
     res.cookie('refreshToken', refreshToken, cookieOptions);
 
-    res.redirect(`http://localhost:5173/login?csrf=${csrfToken}&onboarded=${req.user.isOnboarded}`);
+    const redirectUrl = req.user.isOnboarded 
+        ? `http://localhost:5173/?csrf=${csrfToken}` 
+        : `http://localhost:5173/onboarding?csrf=${csrfToken}`;
+
+    res.redirect(redirectUrl);
 };
 
 export const localSignup = async (req, res) => {

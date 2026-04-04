@@ -6,11 +6,13 @@ import Contributors from "./pages/Contributors";
 import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
 import Particles from "./pages/home/Particles";
-import Footer from "./common/Footer";
-import Navbar from "./common/Navbar";
-import Events from "./pages/Events";
-import Gallery from "./pages/Gallery";
-// import FestivalBackground from "./common/FestivalBackground";
+
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import { ToastProvider } from "./context/ToastContext";
+import { ToastContainer } from "./common/Toast";
+import ProtectedRoute from "./common/ProtectedRoute";
+import Dashboard from "./pages/Dashboard";
+import Onboarding from "./pages/Onboarding";
 
 export default function App() {
   const { theme } = useTheme();
@@ -37,44 +39,54 @@ export default function App() {
           />
         </div>
 
-        {/* --- Asset Imports --- */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=IM+Fell+English:italic&family=Inter+Tight:wght@300;400;600;700;900&family=Syne:wght@700;800&family=Great+Vibes&display=swap"
-          rel="stylesheet"
+      {/* --- Fixed Navigation --- */}
+      <div className="z-[1002] fixed inset-0 pointer-events-none">
+        <StaggeredMenu 
+          logoUrl="/Assets/rasrang.png" 
+          items={navItems}
+          socialItems={socialItems}
+          colors={[
+            theme.colors.primary,    // #9D01E9 - Purple
+            theme.colors.secondary,  // #C53099 - Magenta
+            theme.colors.highlight,  // #E31E6E - Pink
+            "#22D3EE",               // Cyan
+            "#FACC15"                // Yellow
+          ]}
+          accentColor={theme.colors.highlight}
+          menuButtonColor="#ffffff"
+          openMenuButtonColor="#ffffff"
+          position="right"
+          isFixed={true}
+          displaySocials={false}
         />
+      </div>
 
-        {/* --- Visual Polish removed --- */}
-        {/* --- Fixed Navigation --- */}
-        {/* <div className="z-[1002] fixed top-4 left-4 right-4">
-          <BubbleMenu 
-            logo="/Assets/rasrang.png" 
-            useFixedPosition={true}
-            menuContentColor={theme.colors.base}
-            menuBg={theme.colors.primary}
-            items={[
-              { label: 'Home', href: '/#home', rotation: -4, hoverStyles: { bgColor: theme.colors.interactive, textColor: theme.colors.textTitle } },
-              { label: 'Events', href: '/events', rotation: 4, hoverStyles: { bgColor: theme.colors.interactive, textColor: theme.colors.textTitle } },
-              { label: 'Gallery', href: '/gallery', rotation: -4, hoverStyles: { bgColor: theme.colors.interactive, textColor: theme.colors.textTitle } },
-              { label: 'Team', href: '/contributors', rotation: 4, hoverStyles: { bgColor: theme.colors.interactive, textColor: theme.colors.textTitle } }
-            ]}
-          />
-        </div> */}
-        <Navbar />
-        {/* --- Page Routes --- */}
-        <main className="relative z-10">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/events" element={<Events />} />
-            <Route path="/gallery" element={<Gallery/>} />
-            <Route path="/contributors" element={<Contributors />} />
-            {/* Add a fallback to Home if route not found */}
-            <Route path="*" element={<Home />} />
-          </Routes>
-        </main>
-
-        {/* --- Global Footer --- */}
+      {/* --- Page Routes --- */}
+      <main className="relative z-10">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/events" element={<Events />} />
+          <Route path="/gallery" element={<Gallery />} />
+          <Route path="/contributors" element={<Contributors />} />
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          } />
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/onboarding" element={
+            <ProtectedRoute>
+              <Onboarding />
+            </ProtectedRoute>
+          } />
+          <Route path="/login" element={<Auth />} />
+          <Route path="*" element={<Home />} />
+        </Routes>
+      </main>
 
         <Footer />
       </div>

@@ -20,7 +20,9 @@ export const setupApiInterceptor = () => {
       url.includes("/api/auth/refresh-token") ||
       url.includes("/api/auth/login") ||
       url.includes("/api/auth/signup") ||
-      url.includes("/api/auth/google")
+      url.includes("/api/auth/google") ||
+      url.includes("/api/auth/profile") ||
+      url.includes("/api/auth/logout")
     ) {
       return response;
     }

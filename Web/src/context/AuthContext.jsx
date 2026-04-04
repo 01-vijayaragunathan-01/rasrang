@@ -34,11 +34,14 @@ export const AuthProvider = ({ children }) => {
 
     const logout = async () => {
         try {
+            setUser(null);
+            setCsrfToken(null);
             await fetch("http://localhost:5000/api/auth/logout", { method: "POST", credentials: "include" });
+        } catch (err) {
+            console.error("Logout API failed, but clearing session anyway.");
+        } finally {
             toast.success("SESSION TERMINATED: You have been signed out.");
             window.location.href = "/login";
-        } catch (err) {
-            toast.error("TERMINATION FAILURE: Logout protocol interrupted.");
         }
     };
 

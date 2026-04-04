@@ -322,8 +322,8 @@ export default function Events() {
     
     // Enforce Onboarding
     if (user && !user.isOnboarded) {
-         toast.error("Please complete your Bio-Metric Vault (Profile) to register for events.");
-         navigate("/profile", { state: { requireOnboarding: true } });
+         toast.error("Please complete your Bio-Metric Vault initialization to register.");
+         navigate("/onboarding");
          return;
     }
 
