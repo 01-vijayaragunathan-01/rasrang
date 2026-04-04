@@ -412,24 +412,57 @@ export default function Events() {
             </div>
         ) : (
             <>
-                {/* ── HEADLINERS ── */}
-                <div className="mb-32">
-                    <div className="flex items-center gap-4 mb-10">
-                        <h2 className="text-3xl md:text-4xl font-bold text-white" style={{ fontFamily: "'Playfair Display', serif" }}>
-                            The Grand Stages
-                        </h2>
-                        <div className="h-px flex-1 bg-gradient-to-r from-white/20 to-transparent" />
-                    </div>
+                {/* ── THE MANIFESTO / FIERY DIALOGUE ── */}
+                {/* ── THE CULTURAL MANIFESTO ── */}
+                <div className="mb-32 relative w-full rounded-[3rem] overflow-hidden bg-[#1A0B2E] border border-[#E4BD8D]/20 shadow-[0_20px_60px_rgba(197,48,153,0.15)]">
                     
-                    {loading ? (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        {[1, 2].map(i => <HeadlinerSkeleton key={i} />)}
+                    {/* Subtle Background Textures & Glows */}
+                    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-10 mix-blend-overlay pointer-events-none" />
+                    <div className="absolute -right-20 -top-20 w-96 h-96 bg-[#C53099]/20 blur-[100px] rounded-full pointer-events-none" />
+                    <div className="absolute -left-20 -bottom-20 w-96 h-96 bg-[#E4BD8D]/10 blur-[100px] rounded-full pointer-events-none" />
+
+                    <div className="relative z-10 flex flex-col lg:flex-row items-center p-8 sm:p-12 md:p-16 gap-12 lg:gap-20">
+                        
+                        {/* Left Side: The Narrative */}
+                        <div className="flex-1 space-y-8">
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="h-px w-12 bg-[#E4BD8D]" />
+                                <span className="text-[#E4BD8D] text-[10px] font-bold uppercase tracking-[0.4em]">The RasRang Manifesto</span>
+                            </div>
+                            
+                            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-[1.1]" style={{ fontFamily: "'Playfair Display', serif" }}>
+                                The Stage Is Yours.<br/>
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#E4BD8D] to-[#C53099] italic">The Legacy Awaits.</span>
+                            </h2>
+                            
+                            <div className="space-y-6 text-white/70 text-base md:text-lg font-light leading-relaxed max-w-2xl">
+                                <p>
+                                    <span className="font-semibold text-white">Forget the ordinary.</span> We are not here to merely exist; we are here to ignite the sky. RasRang isn't just an event—it is the beating heart of our campus, a spectacular collision of untamed creativity, raw talent, and relentless passion.
+                                </p>
+                                <p>
+                                    Whether you take the floor to dance like the world is ending, strike chords that send shivers down spines, or innovate the future in real-time—this is your battleground. There are no isolated grand stages reserved for the elite; <span className="text-[#22D3EE] font-medium">every corner of this festival becomes a grand stage if you have the fire to claim it.</span>
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Right Side: The Floating Quote Card */}
+                        <div className="w-full lg:w-[400px] shrink-0">
+                            <div className="relative p-8 md:p-10 rounded-[2.5rem] bg-white/5 border border-white/10 backdrop-blur-md shadow-2xl transform lg:-rotate-2 hover:rotate-0 transition-transform duration-500 group">
+                                {/* Decorative Quotes */}
+                                <span className="absolute -top-6 -left-2 text-8xl text-[#E4BD8D]/20 font-serif leading-none select-none group-hover:text-[#E4BD8D]/40 transition-colors">"</span>
+                                <span className="absolute -bottom-16 -right-2 text-8xl text-[#E4BD8D]/20 font-serif leading-none select-none group-hover:text-[#E4BD8D]/40 transition-colors">"</span>
+                                
+                                <p className="relative z-10 text-2xl md:text-3xl text-white font-medium italic text-center leading-snug" style={{ fontFamily: "'Playfair Display', serif" }}>
+                                    Bring your frenzy.<br/>
+                                    Bring your soul.<br/>
+                                    <span className="text-[#E4BD8D] mt-4 block">Leave your mark.</span>
+                                </p>
+                                
+                                <div className="absolute inset-0 rounded-[2.5rem] bg-gradient-to-b from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                            </div>
+                        </div>
+
                     </div>
-                    ) : (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        {headliners.map(hl => <HeadlinerCard key={hl.id} headliner={hl} />)}
-                    </div>
-                    )}
                 </div>
 
         {/* ── EVENT EXPLORER ── */}

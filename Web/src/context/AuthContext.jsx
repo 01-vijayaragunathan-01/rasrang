@@ -55,6 +55,16 @@ export const AuthProvider = ({ children }) => {
         }
 
         checkAuth();
+
+        const handleKickout = () => {
+            setUser(null);
+            toast.error("SESSION EXPIRED: Please log in again to continue.");
+            window.location.href = "/login?expired=true";
+        };
+
+        window.addEventListener('unauthorized-kickout', handleKickout);
+
+        return () => window.removeEventListener('unauthorized-kickout', handleKickout);
     }, []);
 
     return (

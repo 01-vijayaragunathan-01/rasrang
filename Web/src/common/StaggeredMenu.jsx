@@ -374,14 +374,23 @@ export const StaggeredMenu = ({
           className="staggered-menu-header absolute top-0 left-0 w-full flex items-center justify-between p-[2em] bg-transparent pointer-events-none z-20"
           aria-label="Main navigation header"
         >
-          <div className="sm-logo flex items-center select-none pointer-events-auto" aria-label="Logo">
+          {/* Left: SRM Logo */}
+          <div className="sm-logo flex items-center select-none pointer-events-auto" aria-label="SRM Logo">
+            <img
+              src="/Assets/SRM_Logo.png"
+              alt="SRM Logo"
+              className="sm-logo-img block h-8 md:h-20 w-auto object-contain"
+              draggable={false}
+            />
+          </div>
+
+          {/* Middle: Rasrang Logo */}
+          <div className="absolute left-1/2 -translate-x-1/2 flex items-center select-none pointer-events-auto" aria-label="Rasrang Logo">
             <img
               src={logoUrl || '/Assets/rasrang.png'}
-              alt="Logo"
-              className="sm-logo-img block h-8 w-auto object-contain"
+              alt="Rasrang Logo"
+              className="block h-6 md:h-16 w-auto object-contain"
               draggable={false}
-              width={110}
-              height={24}
             />
           </div>
 
