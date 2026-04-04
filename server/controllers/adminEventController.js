@@ -7,26 +7,17 @@ const prisma = new PrismaClient();
 // 1. CREATE EVENT (Admin Only)
 // ==========================================
 export const createEvent = async (req, res) => {
-    const { title, category, description, date, time, capacity, isHeadliner } = req.body;
+    const { title, category, description, date, time, isHeadliner, imageUrl, rulebookUrl } = req.body;
     console.log(`[adminEventController] createEvent → called by user: ${req.user?.id}`);
-    console.log(`[adminEventController] createEvent → payload:`, { title, category, date, time, capacity, isHeadliner, hasFile: !!req.file });
+    console.log(`[adminEventController] createEvent → payload:`, { title, category, date, time, isHeadliner, imageUrl, rulebookUrl });
     try {
-        if (!title || !description || !date || !capacity) {
+        if (!title || !description || !date) {
             console.log(`[adminEventController] createEvent → validation failed: missing required fields`);
             return res.status(400).json({ error: "Missing required fields" });
         }
 
-        let imageUrl = null;
-
-        if (req.file) {
-            console.log(`[adminEventController] createEvent → uploading image: ${req.file.originalname} (${req.file.mimetype})`);
-            imageUrl = await uploadFile(
-                req.file.buffer, 
-                req.file.originalname, 
-                req.file.mimetype
-            );
-            console.log(`[adminEventController] createEvent → image uploaded to: ${imageUrl}`);
-        }
+        // --- Type Casting for Prisma Stability ---
+        const finalIsHeadliner = isHeadliner !== undefined ? (isHeadliner === 'true' || isHeadliner === true) : false;
 
         const newEvent = await prisma.event.create({
             data: {
@@ -35,9 +26,9 @@ export const createEvent = async (req, res) => {
                 description,
                 date,
                 time: time || null,
-                capacity: parseInt(capacity, 10),
-                imageUrl: imageUrl,
-                isHeadliner: isHeadliner === 'true' || isHeadliner === true
+                imageUrl: imageUrl || null,
+                rulebookUrl: rulebookUrl || null,
+                isHeadliner: finalIsHeadliner
             }
         });
 
@@ -45,7 +36,7 @@ export const createEvent = async (req, res) => {
         res.status(201).json({ message: "Event created successfully", event: newEvent });
     } catch (err) {
         console.error("[adminEventController] createEvent → ERROR:", err);
-        res.status(500).json({ error: 'Failed to create event' });
+        res.status(500).json({ error: `Failed to create event: ${err.message}` });
     }
 };
 
@@ -54,47 +45,50 @@ export const createEvent = async (req, res) => {
 // ==========================================
 export const updateEvent = async (req, res) => {
     const { eventId } = req.params;
-    const { title, category, description, date, time, capacity, isHeadliner } = req.body;
-    console.log(`[adminEventController] updateEvent → called by user: ${req.user?.id} for eventId: ${eventId}`);
-    console.log(`[adminEventController] updateEvent → payload:`, { title, category, date, time, capacity, isHeadliner, hasFile: !!req.file });
+    const { title, category, description, date, time, isHeadliner, imageUrl, rulebookUrl } = req.body;
+    console.log(`[adminEventController] updateEvent → id: ${eventId}`);
+    console.log(`[adminEventController] updateEvent → bodyKeys: ${Object.keys(req.body)}`);
+
     try {
+        // Validate UUID format manually to prevent Prisma crash 500
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+        if (!uuidRegex.test(eventId)) {
+            console.log(`[adminEventController] updateEvent → ERR: Invalid UUID format "${eventId}"`);
+            return res.status(400).json({ error: "System Error: Invalid Event ID format." });
+        }
+
         const existingEvent = await prisma.event.findUnique({ where: { id: eventId } });
         if (!existingEvent) {
             console.log(`[adminEventController] updateEvent → NOT FOUND: eventId ${eventId}`);
             return res.status(404).json({ error: "Event not found" });
         }
 
-        let imageUrl = existingEvent.imageUrl;
-
-        if (req.file) {
-            console.log(`[adminEventController] updateEvent → uploading new image: ${req.file.originalname}`);
-            imageUrl = await uploadFile(
-                req.file.buffer, 
-                req.file.originalname, 
-                req.file.mimetype
-            );
-            console.log(`[adminEventController] updateEvent → new image uploaded to: ${imageUrl}`);
-        }
+        console.log(`[adminEventController] updateEvent → processing update for "${existingEvent.title}"`);
+        
+        // --- Explicit Type Consolidation ---
+        const finalIsHeadliner = isHeadliner !== undefined ? (isHeadliner === 'true' || isHeadliner === true) : existingEvent.isHeadliner;
+        
+        const updateData = {
+            title: title || existingEvent.title,
+            category: category || existingEvent.category,
+            description: description || existingEvent.description,
+            date: date || existingEvent.date,
+            time: time !== undefined ? time : existingEvent.time,
+            imageUrl: imageUrl !== undefined ? imageUrl : existingEvent.imageUrl,
+            rulebookUrl: rulebookUrl !== undefined ? rulebookUrl : existingEvent.rulebookUrl,
+            isHeadliner: finalIsHeadliner
+        };
 
         const updatedEvent = await prisma.event.update({
             where: { id: eventId },
-            data: {
-                title: title || existingEvent.title,
-                category: category || existingEvent.category,
-                description: description || existingEvent.description,
-                date: date || existingEvent.date,
-                time: time !== undefined ? time : existingEvent.time,
-                capacity: capacity ? parseInt(capacity, 10) : existingEvent.capacity,
-                imageUrl: imageUrl,
-                isHeadliner: isHeadliner !== undefined ? (isHeadliner === 'true' || isHeadliner === true) : existingEvent.isHeadliner
-            }
+            data: updateData
         });
 
         console.log(`[adminEventController] updateEvent → success: event "${updatedEvent.title}" (${eventId}) updated`);
         res.status(200).json({ message: "Event updated", event: updatedEvent });
     } catch (err) {
         console.error(`[adminEventController] updateEvent → ERROR for eventId ${eventId}:`, err);
-        res.status(500).json({ error: 'Failed to update event' });
+        res.status(500).json({ error: `Failed to update event: ${err.message}` });
     }
 };
 
@@ -124,6 +118,10 @@ export const deleteEvent = async (req, res) => {
         if (event.imageUrl) {
             console.log(`[adminEventController] deleteEvent → triggering MinIO cleanup for image: ${event.imageUrl}`);
             deleteFile(event.imageUrl);
+        }
+        if (event.rulebookUrl) {
+            console.log(`[adminEventController] deleteEvent → triggering MinIO cleanup for rulebook: ${event.rulebookUrl}`);
+            deleteFile(event.rulebookUrl);
         }
 
         console.log(`[adminEventController] deleteEvent → success: event "${event.title}" fully terminated`);

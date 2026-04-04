@@ -2,6 +2,7 @@ import express from 'express';
 import multer from 'multer';
 import { getEventStats, exportCsv, getUsers, updateUserRole } from '../controllers/adminController.js';
 import { createEvent, updateEvent, deleteEvent } from '../controllers/adminEventController.js';
+import { uploadChunk } from '../controllers/uploadController.js';
 import { createGalleryItem, deleteGalleryItem } from '../controllers/galleryController.js';
 import { authenticateJWT, isCoordinator, isSuperCoordinator, isPlatformAdmin } from '../middlewares/auth.js';
 
@@ -19,9 +20,12 @@ router.get('/users', authenticateJWT, isSuperCoordinator, getUsers);
 router.put('/role', authenticateJWT, isSuperCoordinator, updateUserRole);
 
 // Event Management (Platform Admin Only)
-router.post('/events', authenticateJWT, isPlatformAdmin, upload.single('posterImage'), createEvent);
-router.put('/events/:eventId', authenticateJWT, isPlatformAdmin, upload.single('posterImage'), updateEvent);
+router.post('/events', authenticateJWT, isPlatformAdmin, createEvent);
+router.put('/events/:eventId', authenticateJWT, isPlatformAdmin, updateEvent);
 router.delete('/events/:eventId', authenticateJWT, isPlatformAdmin, deleteEvent);
+
+// Chunk Upload
+router.post('/upload-chunk', authenticateJWT, isPlatformAdmin, upload.single('chunk'), uploadChunk);
 
 // Gallery management
 router.post('/gallery', authenticateJWT, isPlatformAdmin, upload.single('galleryImage'), createGalleryItem);

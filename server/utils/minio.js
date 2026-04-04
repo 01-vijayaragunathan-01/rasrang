@@ -69,7 +69,31 @@ export const uploadFile = async (fileBuffer, fileName, mimetype) => {
         return url;
     } catch (err) {
         console.error("MinIO Upload Error:", err);
-        throw new Error("Failed to upload file to storage.");
+    }
+};
+
+/**
+ * Upload a file to MinIO direct from a local disk path (RAM efficient)
+ * @param {string} filePath 
+ * @param {string} fileName 
+ * @param {string} mimetype 
+ * @returns {Promise<string>} The public URL of the uploaded file
+ */
+export const uploadFileFromDisk = async (filePath, fileName, mimetype) => {
+    try {
+        const metaData = { 'Content-Type': mimetype };
+        const objectName = `${Date.now()}-${fileName}`;
+        
+        await minioClient.fPutObject(bucketName, objectName, filePath, metaData);
+        
+        // Construct the public URL
+        const protocol = process.env.MINIO_USE_SSL === 'true' ? 'https' : 'http';
+        const url = `${protocol}://${process.env.MINIO_ENDPOINT}:${process.env.MINIO_PORT}/${bucketName}/${objectName}`;
+        
+        return url;
+    } catch (err) {
+        console.error("MinIO fPutObject Error:", err);
+        throw new Error("Failed to upload local file to storage.");
     }
 };
 

@@ -21,13 +21,15 @@ export default function EventForge() {
     // Form State
     const [imagePreview, setImagePreview] = useState(null);
     const [imageFile, setImageFile] = useState(null);
+    const [rulebookFile, setRulebookFile] = useState(null);
+    const [rulebookUrl, setRulebookUrl] = useState(null);
     const fileInputRef = useRef(null);
+    const rulebookInputRef = useRef(null);
     const [eventData, setEventData] = useState({
         title: "",
         category: "Main Stage",
         date: "",
         time: "",
-        capacity: "",
         description: "",
         isHeadliner: false
     });
@@ -101,6 +103,13 @@ export default function EventForge() {
         }
     };
 
+    const handleRulebookChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setRulebookFile(file);
+        }
+    };
+
     // 2. Delete Logic
     const handleDelete = (id) => {
         setConfirmAction(() => () => triggerDelete(id));
@@ -129,31 +138,73 @@ export default function EventForge() {
             category: event.category,
             date: event.date,
             time: event.time || "",
-            capacity: event.capacity,
             description: event.description,
             isHeadliner: event.isHeadliner
         });
         setImagePreview(event.imageUrl);
+        setRulebookUrl(event.rulebookUrl);
+        setRulebookFile(null);
         setActiveMode("add");
     };
 
-    // 4. Submit Logic (Forge or Update)
+    // 4. Chunked Upload Helper
+    const uploadFileInChunks = async (file) => {
+        const chunkSize = 2 * 1024 * 1024; // 2MB
+        const totalChunks = Math.ceil(file.size / chunkSize);
+        const uploadId = `upl_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        let minioUrl = null;
+
+        for (let idx = 0; idx < totalChunks; idx++) {
+            const chunk = file.slice(idx * chunkSize, (idx + 1) * chunkSize);
+            const chunkForm = new FormData();
+            chunkForm.append("chunk", chunk);
+            chunkForm.append("uploadId", uploadId);
+            chunkForm.append("chunkIndex", idx);
+            chunkForm.append("totalChunks", totalChunks);
+            chunkForm.append("fileName", file.name);
+            chunkForm.append("mimetype", file.type);
+
+            const res = await fetch("http://localhost:5000/api/admin/upload-chunk", {
+                method: "POST",
+                headers: { "x-csrf-token": csrfToken },
+                body: chunkForm,
+                credentials: "include"
+            });
+            if (!res.ok) throw new Error("Chunk upload failed");
+            const data = await res.json();
+            if (data.complete) minioUrl = data.url;
+        }
+        return minioUrl;
+    };
+
+    // 5. Submit Logic (Forge or Update)
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
 
-        const formData = new FormData();
-        formData.append("title", eventData.title);
-        formData.append("category", eventData.category);
-        formData.append("date", eventData.date);
-        formData.append("time", eventData.time);
-        formData.append("capacity", eventData.capacity);
-        formData.append("description", eventData.description);
-        formData.append("isHeadliner", eventData.isHeadliner);
-        
-        if (imageFile) formData.append("posterImage", imageFile); 
-
         try {
+            let finalImageUrl = undefined;
+            let finalRulebookUrl = undefined;
+
+            if (imageFile) {
+                finalImageUrl = await uploadFileInChunks(imageFile);
+            }
+            if (rulebookFile) {
+                finalRulebookUrl = await uploadFileInChunks(rulebookFile);
+            }
+
+            const payload = {
+                title: eventData.title,
+                category: eventData.category,
+                date: eventData.date,
+                time: eventData.time,
+                description: eventData.description,
+                isHeadliner: eventData.isHeadliner,
+            };
+
+            if (finalImageUrl) payload.imageUrl = finalImageUrl;
+            if (finalRulebookUrl) payload.rulebookUrl = finalRulebookUrl;
+
             const url = editingEventId 
                 ? `http://localhost:5000/api/admin/events/${editingEventId}`
                 : "http://localhost:5000/api/admin/events";
@@ -162,8 +213,11 @@ export default function EventForge() {
 
             const response = await fetch(url, {
                 method,
-                headers: { "x-csrf-token": csrfToken },
-                body: formData,
+                headers: { 
+                    "x-csrf-token": csrfToken,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload),
                 credentials: "include"
             });
 
@@ -183,9 +237,11 @@ export default function EventForge() {
     };
 
     const resetForm = () => {
-        setEventData({ title: "", category: "Main Stage", date: "", time: "", capacity: "", description: "", isHeadliner: false });
+        setEventData({ title: "", category: "Main Stage", date: "", time: "", description: "", isHeadliner: false });
         setImageFile(null);
         setImagePreview(null);
+        setRulebookFile(null);
+        setRulebookUrl(null);
         setEditingEventId(null);
     };
 
@@ -303,27 +359,17 @@ export default function EventForge() {
                                         className="w-full bg-white/[0.03] border border-white/5 rounded-2xl px-6 py-4 text-xl font-bold text-white outline-none focus:border-[#22D3EE]/50 focus:bg-white/[0.06] transition-all placeholder:text-white/5"
                                     />
                                 </div>
-                                <div className="grid grid-cols-2 gap-8">
-                                    <div>
-                                        <label className="text-[10px] uppercase tracking-[0.3em] text-[#AF94D2] font-bold mb-3 block">Operational Sector</label>
-                                        <select 
-                                            value={eventData.category} onChange={e => setEventData({...eventData, category: e.target.value})}
-                                            className="w-full bg-white/[0.03] border border-white/5 rounded-2xl p-4 font-bold text-white outline-none focus:border-[#22D3EE]/50 focus:bg-white/[0.06] transition-all appearance-none"
-                                        >
-                                            <option className="bg-[#0A0A10]">Main Stage</option>
-                                            <option className="bg-[#0A0A10]">Cultural</option>
-                                            <option className="bg-[#0A0A10]">Technical</option>
-                                            <option className="bg-[#0A0A10]">Informals</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="text-[10px] uppercase tracking-[0.3em] text-[#AF94D2] font-bold mb-3 block">Registry Capacity</label>
-                                        <input 
-                                            required type="number" placeholder="500"
-                                            value={eventData.capacity} onChange={e => setEventData({...eventData, capacity: e.target.value})}
-                                            className="w-full bg-white/[0.03] border border-white/5 rounded-2xl p-4 text-xl font-bold text-white outline-none focus:border-[#22D3EE]/50 focus:bg-white/[0.06] transition-all"
-                                        />
-                                    </div>
+                                <div>
+                                    <label className="text-[10px] uppercase tracking-[0.3em] text-[#AF94D2] font-bold mb-3 block">Operational Sector</label>
+                                    <select 
+                                        value={eventData.category} onChange={e => setEventData({...eventData, category: e.target.value})}
+                                        className="w-full bg-white/[0.03] border border-white/5 rounded-2xl p-4 font-bold text-white outline-none focus:border-[#22D3EE]/50 focus:bg-white/[0.06] transition-all appearance-none"
+                                    >
+                                        <option value="Main Stage" className="bg-black text-white">Main Stage</option>
+                                        <option value="Technical" className="bg-black text-white">Technical</option>
+                                        <option value="Cultural" className="bg-black text-white">Cultural</option>
+                                        <option value="Workshop" className="bg-black text-white">Workshop</option>
+                                    </select>
                                 </div>
                                 <div className="grid grid-cols-2 gap-8">
                                     <div>
@@ -379,6 +425,37 @@ export default function EventForge() {
                                             <p className="font-black uppercase tracking-widest text-xs text-white/40">{isDragging ? "DROP INTEL" : "Inject Visual"}</p>
                                             <p className="text-[8px] mt-2 text-white/20 uppercase tracking-[0.2em]">Drag, Drop or Paste</p>
                                         </div>
+                                    )}
+                                </div>
+
+                                {/* Rulebook Upload Section */}
+                                <div className="p-6 bg-white/5 rounded-2xl border border-white/10 flex flex-col gap-4">
+                                    <div className="flex flex-col">
+                                        <label className="text-[10px] uppercase font-black text-[#AF94D2] tracking-widest mb-1 flex items-center gap-2">
+                                            Mission Details (Rulebook)
+                                        </label>
+                                        <p className="text-[8px] text-white/40 uppercase tracking-widest">Attach PDF containing comprehensive guidelines.</p>
+                                    </div>
+                                    <div className="flex items-center justify-between gap-4">
+                                        <input 
+                                            type="file" 
+                                            ref={rulebookInputRef} 
+                                            onChange={handleRulebookChange} 
+                                            accept=".pdf,.doc,.docx" 
+                                            className="hidden" 
+                                        />
+                                        <button 
+                                            type="button"
+                                            onClick={() => rulebookInputRef.current.click()}
+                                            className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border border-white/10 w-full"
+                                        >
+                                            {rulebookFile ? rulebookFile.name : (rulebookUrl ? "UPDATE ATTACHED RULEBOOK" : "ATTACH DOCUMENT")}
+                                        </button>
+                                    </div>
+                                    {rulebookUrl && !rulebookFile && (
+                                        <a href={rulebookUrl} target="_blank" rel="noreferrer" className="text-[10px] text-[#22D3EE] font-bold uppercase tracking-widest underline decoration-[#22D3EE]/30 hover:decoration-[#22D3EE]">
+                                            VERIFY CURRENT RULEBOOK
+                                        </a>
                                     )}
                                 </div>
 

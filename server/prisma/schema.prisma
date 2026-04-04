@@ -42,8 +42,8 @@ model Event {
   description   String
   date          String
   time          String?
-  capacity      Int
   imageUrl      String?
+  rulebookUrl   String?
   isHeadliner   Boolean        @default(false)
   registrations Registration[]
 }

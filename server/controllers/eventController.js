@@ -25,36 +25,29 @@ export const registerForEvent = async (req, res) => {
     const userId = req.user.id;
     console.log(`[eventController] registerForEvent → user: ${userId} attempting to register for event: ${eventId}`);
     try {
-        // Use a transaction to prevent race conditions
-        const registration = await prisma.$transaction(async (tx) => {
-            const event = await tx.event.findUnique({
-                where: { id: eventId },
-                include: { _count: { select: { registrations: true } } }
-            });
+        // 1. Verify Event Exists
+        const event = await prisma.event.findUnique({
+            where: { id: eventId }
+        });
 
-            if (!event) {
-                console.log(`[eventController] registerForEvent → NOT FOUND: eventId ${eventId}`);
-                throw new Error('Event not found');
-            }
+        if (!event) {
+            console.log(`[eventController] registerForEvent → NOT FOUND: eventId ${eventId}`);
+            return res.status(404).json({ error: 'Event not found' });
+        }
 
-            console.log(`[eventController] registerForEvent → event "${event.title}" capacity: ${event._count.registrations}/${event.capacity}`);
+        // 2. Check for Duplicate Registration
+        const existing = await prisma.registration.findUnique({
+            where: { userId_eventId: { userId, eventId } }
+        });
 
-            if (event._count.registrations >= event.capacity) {
-                console.log(`[eventController] registerForEvent → FULL CAPACITY: event "${event.title}"`);
-                throw new Error('Event is at full capacity');
-            }
+        if (existing) {
+            console.log(`[eventController] registerForEvent → DUPLICATE: user ${userId} already registered for event ${eventId}`);
+            return res.status(400).json({ error: 'Already registered for this event' });
+        }
 
-            const existing = await tx.registration.findUnique({
-                where: { userId_eventId: { userId, eventId } }
-            });
-            if (existing) {
-                console.log(`[eventController] registerForEvent → DUPLICATE: user ${userId} already registered for event ${eventId}`);
-                throw new Error('Already registered for this event');
-            }
-
-            return await tx.registration.create({
-                data: { userId, eventId }
-            });
+        // 3. Create Registration
+        const registration = await prisma.registration.create({
+            data: { userId, eventId }
         });
 
         console.log(`[eventController] registerForEvent → success: registration created with id: ${registration.id} for user ${userId} / event ${eventId}`);

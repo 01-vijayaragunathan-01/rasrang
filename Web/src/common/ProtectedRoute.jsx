@@ -1,9 +1,17 @@
+import { useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function ProtectedRoute({ children }) {
-    const { user, loading } = useAuth();
+    const { user, loading, logout } = useAuth();
     const location = useLocation();
+
+    useEffect(() => {
+        // If the module has finished loading and the user is null, aggressively purge the session.
+        if (!loading && !user) {
+            logout();
+        }
+    }, [loading, user, logout]);
 
     if (loading) {
         return (
@@ -14,7 +22,8 @@ export default function ProtectedRoute({ children }) {
     }
 
     if (!user) {
-        // Not logged in: send them to /login with the intended path in state
+        // Not logged in: The useEffect block above is already executing logout() to purge HTTPOnly cookies.
+        // We still return Navigate to visually throw them back to Auth screen immediately.
         return <Navigate to="/login" state={{ from: location.pathname }} replace />;
     }
 
