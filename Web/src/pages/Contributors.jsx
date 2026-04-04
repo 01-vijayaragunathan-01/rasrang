@@ -206,6 +206,42 @@ export default function Contributors() {
         return activeNodes.map((node, i) => `${i === 0 ? 'M' : 'L'} ${node.rawLeft} ${node.rawTop}`).join(" ");
     }, [activeNodes]);
 
+    // Check env vars (supporting both correct spelling and user typo)
+    const showContributorsRaw = import.meta.env.VITE_SHOW_CONTRIBUTOR ?? import.meta.env.VITE_SHOE_CONTRIBUTOR ?? "true";
+    const showContributors = showContributorsRaw === "true" || showContributorsRaw === "null";
+
+    if (!showContributors) {
+        return (
+            <section className="relative w-full min-h-screen bg-transparent flex flex-col items-center justify-center overflow-hidden">
+                {/* Background ambient lighting */}
+                <div className="absolute inset-0 z-0 pointer-events-none">
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#9D01E9]/10 rounded-full blur-[120px]" />
+                </div>
+                
+                <motion.div 
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 1 }}
+                    className="relative z-10 text-center px-6 max-w-4xl mx-auto"
+                >
+                    <span className="inline-block px-4 py-2 border border-[#E4BD8D]/30 rounded-full text-[#E4BD8D] text-xs font-black uppercase tracking-[0.5em] mb-6 font-accent backdrop-blur-md bg-[#E4BD8D]/5">
+                        The Architects Are Brewing
+                    </span>
+                    <h1 className="text-5xl md:text-8xl font-black uppercase tracking-widest text-white mb-8 drop-shadow-[0_0_30px_rgba(227,30,110,0.4)] font-massive leading-tight">
+                        Legends Under <br className="hidden md:block" /> Construction
+                    </h1>
+                    <div className="flex justify-center mb-8">
+                        <div className="h-px w-32 bg-gradient-to-r from-transparent via-[#E31E6E] to-transparent" />
+                    </div>
+                    <p className="text-sm md:text-lg text-white/60 uppercase tracking-widest max-w-2xl mx-auto leading-relaxed">
+                        The cosmic architects are currently tuning the frequencies and forging the constellation. 
+                        The full lineup of cultural trailblazers will manifest into reality very soon. Keep your aura ready.
+                    </p>
+                </motion.div>
+            </section>
+        );
+    }
+
     return (
         <section className="relative w-full min-h-screen bg-transparent flex flex-col">
             
