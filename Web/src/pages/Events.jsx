@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "../context/ToastContext";
-import { Loader2, Calendar, MapPin, Clock, Ticket, Sparkles, ArrowRight, X, AlertTriangle, RefreshCcw } from "lucide-react";
+import { Loader2, Calendar, MapPin, Clock, Ticket, Sparkles, ArrowRight, X, AlertTriangle, RefreshCcw, Share2 } from "lucide-react";
 import gsap from "gsap";
 import FestivalModal from "../common/FestivalModal";
 import Particles from "../pages/home/Particles";
@@ -156,7 +156,7 @@ function EventCard({ event, index, onClick }) {
 }
 
 // ─── MODAL (Elegant Frosted Panel) ──────────────────────────────────────────────
-function EventModal({ event, onClose, onRegister, registering }) {
+function EventModal({ event, onClose, onRegister, registering, onShare }) {
   if (!event) return null;
   return (
     <AnimatePresence mode="wait">
@@ -189,6 +189,14 @@ function EventModal({ event, onClose, onRegister, registering }) {
                 className="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white/70 hover:text-white hover:bg-[#E31E6E] transition-all z-10"
               >
                 <X size={18} />
+              </button>
+
+              <button
+                onClick={() => onShare(event.id)}
+                className="absolute top-6 right-20 w-10 h-10 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white/70 hover:text-white hover:bg-[#22D3EE] transition-all z-10"
+                title="Share Event"
+              >
+                <Share2 size={16} />
               </button>
 
               <div className="flex-1">
@@ -254,6 +262,7 @@ export default function Events() {
   const { user, csrfToken, isAuthenticated } = useAuth?.() ?? { user: null, csrfToken: null, isAuthenticated: false };
   const toast = useToast?.() ?? { success: console.log, error: console.error };
   const navigate = useNavigate();
+  const location = useLocation();
   const containerRef = useRef(null);
 
   const [activeCategory, setActiveCategory] = useState("All");
@@ -286,6 +295,19 @@ export default function Events() {
   useEffect(() => {
     fetchEvents();
   }, []);
+
+  // Handle Deep Linking / Auto-open Event Popup
+  useEffect(() => {
+      if (loading) return;
+      const queryParams = new URLSearchParams(location.search);
+      const eventId = queryParams.get('id');
+      if (eventId) {
+          const found = headliners.find(e => e.id === eventId) || events.find(e => e.id === eventId);
+          if (found && !selectedEvent) {
+              setSelectedEvent(found);
+          }
+      }
+  }, [loading, headliners, events, location.search]);
 
   useEffect(() => {
     if (loading) return;
@@ -325,6 +347,12 @@ export default function Events() {
     } finally {
       setRegistering(false);
     }
+  };
+
+  const handleShare = (eventId) => {
+      const url = `${window.location.origin}/events?id=${eventId}`;
+      navigator.clipboard.writeText(url);
+      toast.success("Event link copied to clipboard!");
   };
 
   const categories = ["All", "Dance", "Music", "Arts", "Fashion", "Technical", "Informals"];
@@ -480,6 +508,7 @@ export default function Events() {
         onClose={() => setSelectedEvent(null)}
         onRegister={handleRegister}
         registering={registering}
+        onShare={handleShare}
       />
     </section>
   );
