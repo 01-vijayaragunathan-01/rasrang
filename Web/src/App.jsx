@@ -1,11 +1,15 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-// import BubbleMenu from "./common/BubbleMenu";
 import { useTheme } from "./context/ThemeContext";
 import Home from "./pages/Home";
+import Events from "./pages/Events";
+import Gallery from "./pages/Gallery";
 import Contributors from "./pages/Contributors";
 import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
 import Particles from "./pages/home/Particles";
+import Footer from "./common/Footer";
+import Navbar from "./common/Navbar";
+import StaggeredMenu from "./common/StaggeredMenu";
 
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ToastProvider } from "./context/ToastContext";
@@ -14,30 +18,48 @@ import ProtectedRoute from "./common/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
 import Onboarding from "./pages/Onboarding";
 
-export default function App() {
+function MainContent() {
   const { theme } = useTheme();
+  const { user } = useAuth();
+
+  const isStaff = user && (user.role === 'VOLUNTEER' || user.role === 'COORDINATOR' || user.role === 'SUPER_ADMIN');
+
+  const navItems = [
+    { label: 'Home', link: '/', ariaLabel: 'Return to headquarters' },
+    { label: 'Events', link: '/events', ariaLabel: 'Explore active sectors' },
+    { label: 'Gallery', link: '/gallery', ariaLabel: 'Access visual archives' },
+    user ? { label: 'Profile', link: '/profile', ariaLabel: 'Open biometric vault' } 
+         : { label: 'Login', link: '/login', ariaLabel: 'User authentication' },
+    ...(isStaff ? [{ label: 'Dashboard', link: '/dashboard', ariaLabel: 'Command Tower access' }] : []),
+    { label: 'Team', link: '/contributors', ariaLabel: 'Meet the architects' }
+  ];
+
+  const socialItems = [
+    { label: 'Instagram', link: 'https://instagram.com/rasrang' },
+    { label: 'Twitter', link: 'https://twitter.com/rasrang' },
+    { label: 'LinkedIn', link: 'https://linkedin.com' }
+  ];
 
   return (
-    <Router>
-      <div
-        className="min-h-screen relative"
-        style={{
-          background: '#000',
+    <div 
+      className="min-h-screen relative" 
+      style={{ 
+          background: '#000', 
           color: theme.colors.textTitle,
-        }}
-      >
-        <div className="fixed inset-0 z-0 pointer-events-none">
-          <Particles
-            particleColors={["#ffffff", theme.colors.primary, theme.colors.secondary]}
-            particleCount={400}
-            particleSpread={10}
-            speed={0.1}
-            particleBaseSize={120}
-            moveParticlesOnHover
-            alphaParticles={true}
-            disableRotation={false}
-          />
-        </div>
+      }}
+    >
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <Particles
+          particleColors={["#ffffff", theme.colors.primary, theme.colors.secondary]}
+          particleCount={400}
+          particleSpread={10}
+          speed={0.1}
+          particleBaseSize={120}
+          moveParticlesOnHover
+          alphaParticles={true}
+          disableRotation={false}
+        />
+      </div>
 
       {/* --- Fixed Navigation --- */}
       <div className="z-[1002] fixed inset-0 pointer-events-none">
@@ -88,8 +110,20 @@ export default function App() {
         </Routes>
       </main>
 
-        <Footer />
-      </div>
-    </Router>
+      <Footer />
+      <ToastContainer />
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <ToastProvider>
+        <Router>
+          <MainContent />
+        </Router>
+      </ToastProvider>
+    </AuthProvider>
   );
 }
