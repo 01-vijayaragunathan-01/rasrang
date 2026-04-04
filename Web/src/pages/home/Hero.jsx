@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, useMotionValue, useTransform, useMotionTemplate } from "framer-motion";
+import { ChevronDown } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 
 export default function Hero() {
@@ -18,12 +19,9 @@ export default function Hero() {
     const rotateX = useTransform(y, [-1, 1], [15, -15]);
     const rotateY = useTransform(x, [-1, 1], [-15, 15]);
 
-    // 2. The "Glitch" Effect (Muted for light theme)
-    const glitchX = useTransform(x, [-1, 1], [10, -10]);
-    const glitchY = useTransform(y, [-1, 1], [10, -10]);
-
-    // Adjusted glitch to use light gold and soft amber
-    const glitchFilter = useMotionTemplate`drop-shadow(${glitchX}px ${glitchY}px 2px rgba(255,190,100,0.3)) drop-shadow(-${glitchX}px -${glitchY}px 2px rgba(255,230,180,0.2))`;
+    // 2. The Glow Effect
+    const glowIntensity = useTransform(x, [-1, 1], [0.8, 1.2]);
+    const logoGlow = useMotionTemplate`drop-shadow(0 0 ${useTransform(glowIntensity, [0.8, 1.2], [15, 25])}px rgba(157,1,233,0.5))`;
 
     function handleMouseMove(event) {
         const rect = event.currentTarget.getBoundingClientRect();
@@ -92,14 +90,14 @@ export default function Hero() {
 
                         <motion.div
                             style={{ rotateX, rotateY, z: 50 }}
-                            className="relative inline-flex justify-center items-center group cursor-pointer p-8"
+                            className="relative inline-flex justify-center items-center group cursor-pointer p-8 pointer-events-auto"
                             whileHover={{ scale: 1.05 }}
                             transition={{ type: "spring", stiffness: 300, damping: 20 }}
                         >
                             <motion.img
                                 src="/Assets/rasrang.png"
                                 alt="RasRang Logo"
-                                style={{ filter: glitchFilter }}
+                                style={{ filter: logoGlow }}
                                 className="h-[clamp(14rem,30vw,26rem)] w-auto object-contain relative z-10 transition-all duration-100"
                             />
                         </motion.div>
@@ -125,9 +123,9 @@ export default function Hero() {
                                 Explore Events
                             </a>
 
-                            {/* Past Memories - Lightened Border */}
+                            {/* Past Memories - Redirects to Gallery */}
                             <a
-                                href="#past-events"
+                                href="/gallery"
                                 className="w-full py-4 text-xs font-black tracking-[0.25em] uppercase text-center transition-all duration-300 hover:-translate-y-1 hover:bg-orange-300/10 rounded-sm border font-massive"
                                 style={{
                                     color: '#FFB347',
@@ -150,10 +148,13 @@ export default function Hero() {
                 </div>
             </div>
 
-            {/* Scroll Cue */}
-            <div className="absolute bottom-6 lg:bottom-10 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-2 animate-bounce">
-                <span className="text-[9px] tracking-[0.4em] uppercase" style={{ color: theme.colors.textMuted }}>Scroll</span>
-                <div className="w-px h-8" style={{ background: `linear-gradient(135deg, #e05e31 0%, #FFBD8B 100%)` }} />
+            {/* Scroll Cue - Hidden on Mobile, Enhanced for Desktop */}
+            <div className="hidden sm:flex absolute bottom-6 lg:bottom-10 left-1/2 -translate-x-1/2 z-30 flex-col items-center gap-2 animate-bounce">
+                <span className="text-[9px] tracking-[0.4em] uppercase opacity-70" style={{ color: theme.colors.textMuted }}>Scroll</span>
+                <div className="flex flex-col items-center gap-1">
+                    <div className="w-px h-8" style={{ background: `linear-gradient(to bottom, transparent, ${theme.colors.accent})` }} />
+                    <ChevronDown size={14} style={{ color: theme.colors.accent }} strokeWidth={3} className="-mt-1" />
+                </div>
             </div>
         </section>
     );

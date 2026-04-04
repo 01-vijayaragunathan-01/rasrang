@@ -8,7 +8,6 @@ import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
 import Particles from "./pages/home/Particles";
 import Footer from "./common/Footer";
-import Navbar from "./common/Navbar";
 import StaggeredMenu from "./common/StaggeredMenu";
 
 import { AuthProvider, useAuth } from "./context/AuthContext";
@@ -118,12 +117,12 @@ function MainContent() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <ToastProvider>
+    <ToastProvider>
+      <AuthProvider>
         <Router>
           <MainContent />
         </Router>
-      </ToastProvider>
-    </AuthProvider>
+      </AuthProvider>
+    </ToastProvider>
   );
 }

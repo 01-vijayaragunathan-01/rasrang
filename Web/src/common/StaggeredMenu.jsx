@@ -376,14 +376,14 @@ export const StaggeredMenu = ({
         >
           {/* Left: SRM Logo (With balanced sizes) */}
           <Link to="/">
-              <div className="sm-logo flex items-center select-none pointer-events-auto" aria-label="SRM Logo">
-                <img
-                  src="/Assets/SRM_Logo.jpeg"
-                  alt="SRM Logo"
-                  className="sm-logo-img block h-10 md:h-14 w-auto object-contain transition-all duration-300"
-                  draggable={false}
-                />
-              </div>
+            <div className="sm-logo flex items-center select-none pointer-events-auto" aria-label="SRM Logo">
+              <img
+                src="/Assets/SRM_Logo.jpeg"
+                alt="SRM Logo"
+                className="sm-logo-img block h-10 md:h-14 w-auto object-contain transition-all duration-300"
+                draggable={false}
+              />
+            </div>
           </Link>
 
           <button
