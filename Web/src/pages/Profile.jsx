@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import ProfileLayout from "../components/profile/ProfileLayout";
 import TicketSlider from "../components/profile/TicketSlider";
@@ -8,10 +9,13 @@ import { APP_THEME } from "../constants/theme";
 
 export default function Profile() {
     const { user, setUser, csrfToken } = useAuth();
+    const location = useLocation();
     const toast = useToast();
     const { colors } = APP_THEME;
     const [activeTab, setActiveTab ] = useState("passport");
-    const [isEditing, setIsEditing] = useState(false);
+    
+    // Automatically open edit mode if they just arrived from Events requiring onboarding, or if they aren't onboarded yet.
+    const [isEditing, setIsEditing] = useState(location.state?.requireOnboarding || (user && !user.isOnboarded) ? true : false);
     const [tickets, setTickets] = useState({ individualTickets: [], masterTickets: [] });
 
     useEffect(() => {
@@ -32,10 +36,21 @@ export default function Profile() {
     }, [user]);
 
     const handleSave = async () => {
+        // Validation for Onboarding
+        if (!user.isOnboarded) {
+            if (!user.regNo || !user.phoneNo || !user.clgName || !user.dept || !user.year) {
+                toast.error("Please fill all required fields (RegNo, Phone, College, Dept, Year).");
+                return;
+            }
+        }
+
         setIsEditing(false);
         try {
-            const res = await fetch("http://localhost:5000/api/auth/profile", {
-                method: "PUT",
+            const endpoint = user.isOnboarded ? "http://localhost:5000/api/auth/profile" : "http://localhost:5000/api/auth/onboard";
+            const method = user.isOnboarded ? "PUT" : "POST";
+
+            const res = await fetch(endpoint, {
+                method,
                 headers: { 
                     "Content-Type": "application/json",
                     "x-csrf-token": csrfToken 
@@ -46,16 +61,23 @@ export default function Profile() {
             const data = await res.json();
             if (res.ok) {
                 if (data.user) setUser(data.user);
-                toast.success("BIOMETRIC VAULT SYNCHRONIZED.");
+                toast.success(user.isOnboarded ? "BIOMETRIC VAULT SYNCHRONIZED." : "ONBOARDING COMPLETE! You can now register for events.");
             } else {
-                toast.error(`SYNCHRONIZATION FAILED: ${data.error || "INVALID DATA"}`);
+                setIsEditing(true); // Re-open editing if it failed (e.g., duplicated RegNo)
+                toast.error(`ERROR: ${data.error || "INVALID DATA"}`);
             }
         } catch (err) {
+            setIsEditing(true);
             toast.error("CONNECTION COLLAPSE: Identity update severed.");
         }
     };
 
     if (!user) return <div className="min-h-screen text-white flex items-center justify-center font-black uppercase text-2xl tracking-[0.4em] animate-pulse" style={{ backgroundColor: colors.base }}>Scanning Bio-Metrics...</div>;
+
+    // Determine fields: If onboarded, hide regNo & phoneNo from editing. If onboarding, show them!
+    const editFields = user.isOnboarded 
+        ? ['clgName', 'dept', 'year', 'branch', 'section']
+        : ['regNo', 'phoneNo', 'clgName', 'dept', 'year', 'branch', 'section'];
 
     return (
         <ProfileLayout activeTab={activeTab} setActiveTab={setActiveTab}>
@@ -78,7 +100,9 @@ export default function Profile() {
                         </div>
                         <h1 className="text-3xl md:text-4xl font-black uppercase tracking-tight mb-2" style={{ color: colors.textTitle }}>{user.name}</h1>
                         <div className="flex gap-2">
-                             <span className="bg-white/5 px-3 py-1 rounded-md font-mono text-[9px] border border-white/10" style={{ color: colors.textSubtitle }}>ID: {user.regNo}</span>
+                             <span className="bg-white/5 px-3 py-1 rounded-md font-mono text-[9px] border border-white/10" style={{ color: colors.textSubtitle }}>
+                                ID: {user.regNo || "PENDING"}
+                             </span>
                         </div>
                     </motion.div>
 
@@ -88,13 +112,23 @@ export default function Profile() {
                         className="lg:col-span-2 border p-6 md:p-8 rounded-3xl backdrop-blur-md relative overflow-hidden"
                     >
                         <div className="absolute top-0 right-0 w-64 h-64 rounded-full blur-[80px] pointer-events-none" style={{ backgroundColor: `${colors.primary}1A` }} />
-                        <h3 className="text-xl font-bold uppercase mb-6 tracking-widest" style={{ color: colors.highlight }}>Bio-Metric Vault</h3>
+                        
+                        <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-xl font-bold uppercase tracking-widest" style={{ color: colors.highlight }}>
+                                Bio-Metric Vault
+                            </h3>
+                            {!user.isOnboarded && (
+                                <span className="bg-[#E31E6E]/20 text-[#E31E6E] px-3 py-1 text-[10px] font-black uppercase tracking-widest border border-[#E31E6E]/50 rounded-full animate-pulse">
+                                    Action Required
+                                </span>
+                            )}
+                        </div>
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
-                            {['clgName', 'dept', 'year', 'branch', 'section'].map((field) => (
+                            {editFields.map((field) => (
                                 <div key={field} className="space-y-2">
                                     <label className="text-[10px] uppercase tracking-widest" style={{ color: colors.textMuted }}>
-                                        {field === 'clgName' ? 'College' : field}
+                                        {field === 'clgName' ? 'College' : field === 'regNo' ? 'Registration / Roll No.' : field === 'phoneNo' ? 'Phone Number' : field}
                                     </label>
                                     <input 
                                         disabled={!isEditing}
@@ -104,7 +138,10 @@ export default function Profile() {
                                             borderColor: isEditing ? colors.primary : 'rgba(255,255,255,0.1)',
                                             color: isEditing ? colors.textTitle : colors.textMuted
                                         }}
-                                        className={`w-full bg-black/20 border-b-2 p-3 text-sm outline-none transition-all font-bold`}
+                                        className={`w-full bg-black/20 border-b-2 p-3 text-sm outline-none transition-all font-bold 
+                                            ${!isEditing && !user[field] ? 'border-red-500 border-dashed' : ''}
+                                        `}
+                                        placeholder={!isEditing && !user[field] ? 'REQUIRED' : ''}
                                     />
                                 </div>
                             ))}

@@ -4,8 +4,9 @@ import { useAuth } from "../context/AuthContext";
 import UserManagement from "../components/profile/UserManagement";
 import EventForge from "../components/profile/EventForge";
 import GalleryForge from "../components/profile/GalleryForge";
+import AttendeeRegistry from "../components/profile/AttendeeRegistry";
 import { APP_THEME } from "../constants/theme";
-import { LayoutDashboard, ShieldCheck, Hammer, Zap, Camera } from "lucide-react";
+import { LayoutDashboard, ShieldCheck, Hammer, Zap, Camera, Users } from "lucide-react";
 
 export default function Dashboard() {
     const { user } = useAuth();
@@ -29,6 +30,7 @@ export default function Dashboard() {
 
     const sections = [
         { id: "overview", label: "Overview", icon: <LayoutDashboard className="w-4 h-4" />, show: true },
+        { id: "registry", label: "Attendee Registry", icon: <Users className="w-4 h-4" />, show: isContributor },
         { id: "management", label: isPlatformAdmin ? "Platform Control" : "Overlord Protocol", icon: <ShieldCheck className="w-4 h-4" />, show: isPlatformAdmin },
         { id: "forge", label: "The Event Forge", icon: <Hammer className="w-4 h-4" />, show: isPlatformAdmin },
         { id: "gallery", label: "Visual Archives", icon: <Camera className="w-4 h-4" />, show: isPlatformAdmin },
@@ -104,6 +106,16 @@ export default function Dashboard() {
                         {activeSection === "forge" && isPlatformAdmin && <EventForge />}
 
                         {activeSection === "gallery" && isPlatformAdmin && <GalleryForge />}
+
+                        {activeSection === "registry" && (
+                            <div className="text-left">
+                                <h2 className="text-2xl font-black uppercase tracking-widest text-[#AF94D2] mb-8 flex items-center gap-4">
+                                    <span className="w-1.5 h-6 bg-[#22D3EE]" />
+                                    Attendee Registry
+                                </h2>
+                                <AttendeeRegistry />
+                            </div>
+                        )}
 
                         {(activeSection === "management" || activeSection === "command") && (
                             <div className="text-left">

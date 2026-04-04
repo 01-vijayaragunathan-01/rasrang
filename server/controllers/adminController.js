@@ -112,3 +112,110 @@ export const updateUserRole = async (req, res) => {
         res.status(500).json({ error: 'Failed to update user role', details: err.message });
     }
 };
+
+// ==========================================
+// ATTENDEE REGISTRY MODULE
+// ==========================================
+
+// 1. GET ATTENDEES (With Event Filter & Search)
+export const getAttendees = async (req, res) => {
+    console.log(`[adminController] getAttendees → called by user: ${req.user?.id} (${req.user?.role})`);
+    try {
+        const { eventId, search } = req.query;
+
+        // Base: users who have at least one registration
+        let whereClause = { registrations: { some: {} } };
+
+        // Filter by specific event
+        if (eventId && eventId !== 'All') {
+            whereClause.registrations.some = { eventId };
+        }
+
+        // Search by Name, RegNo, or Email
+        if (search) {
+            whereClause.OR = [
+                { name: { contains: search, mode: 'insensitive' } },
+                { regNo: { contains: search, mode: 'insensitive' } },
+                { email: { contains: search, mode: 'insensitive' } }
+            ];
+        }
+
+        const attendees = await prisma.user.findMany({
+            where: whereClause,
+            select: {
+                id: true,
+                name: true,
+                regNo: true,
+                email: true,
+                phoneNo: true,
+                registrations: {
+                    select: {
+                        scanned: true,
+                        event: { select: { id: true, title: true, category: true } }
+                    }
+                }
+            },
+            orderBy: { name: 'asc' }
+        });
+
+        console.log(`[adminController] getAttendees → success: returned ${attendees.length} attendees`);
+        res.status(200).json(attendees);
+    } catch (error) {
+        console.error("[adminController] getAttendees → ERROR:", error);
+        res.status(500).json({ error: "Failed to fetch attendees." });
+    }
+};
+
+// 2. EXPORT ATTENDEES TO CSV (Server-side stream)
+export const exportAttendeesCsv = async (req, res) => {
+    console.log(`[adminController] exportAttendeesCsv → called by user: ${req.user?.id}`);
+    try {
+        const { eventId } = req.query;
+
+        let whereClause = { registrations: { some: {} } };
+        if (eventId && eventId !== 'All') {
+            whereClause.registrations.some = { eventId };
+        }
+
+        const attendees = await prisma.user.findMany({
+            where: whereClause,
+            include: {
+                registrations: { include: { event: true } }
+            },
+            orderBy: { name: 'asc' }
+        });
+
+        // Flatten data for CSV
+        const csvData = attendees.map(user => {
+            const registeredEvents = user.registrations.map(r => r.event.title).join(' | ');
+            const eventsAttended = user.registrations.filter(r => r.scanned).length;
+
+            return {
+                "Full Name": user.name,
+                "Register No": user.regNo || "N/A",
+                "Email Address": user.email,
+                "Phone": user.phoneNo || "N/A",
+                "Total Registrations": user.registrations.length,
+                "Events Attended": eventsAttended,
+                "Registered Events": registeredEvents
+            };
+        });
+
+        if (csvData.length === 0) {
+            console.log(`[adminController] exportAttendeesCsv → no attendees found`);
+            return res.status(404).json({ error: "No attendees found for this filter." });
+        }
+
+        const parser = new AsyncParser();
+        const csv = await parser.parse(csvData).promise();
+
+        console.log(`[adminController] exportAttendeesCsv → success: CSV generated with ${csvData.length} rows`);
+        res.header('Content-Type', 'text/csv');
+        res.attachment(`RasRang-Attendees-${eventId && eventId !== 'All' ? eventId : 'All'}.csv`);
+        res.send(csv);
+
+    } catch (error) {
+        console.error("[adminController] exportAttendeesCsv → ERROR:", error);
+        res.status(500).json({ error: "Failed to generate CSV." });
+    }
+};

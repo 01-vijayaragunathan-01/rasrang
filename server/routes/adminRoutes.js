@@ -1,10 +1,10 @@
 import express from 'express';
 import multer from 'multer';
-import { getEventStats, exportCsv, getUsers, updateUserRole } from '../controllers/adminController.js';
+import { getEventStats, exportCsv, getUsers, updateUserRole, getAttendees, exportAttendeesCsv } from '../controllers/adminController.js';
 import { createEvent, updateEvent, deleteEvent } from '../controllers/adminEventController.js';
 import { uploadChunk } from '../controllers/uploadController.js';
 import { createGalleryItem, deleteGalleryItem } from '../controllers/galleryController.js';
-import { authenticateJWT, isCoordinator, isSuperCoordinator, isPlatformAdmin } from '../middlewares/auth.js';
+import { authenticateJWT, isCoordinator, isVolunteer, isSuperCoordinator, isPlatformAdmin } from '../middlewares/auth.js';
 
 const router = express.Router();
 
@@ -30,5 +30,9 @@ router.post('/upload-chunk', authenticateJWT, isPlatformAdmin, upload.single('ch
 // Gallery management
 router.post('/gallery', authenticateJWT, isPlatformAdmin, upload.single('galleryImage'), createGalleryItem);
 router.delete('/gallery/:id', authenticateJWT, isPlatformAdmin, deleteGalleryItem);
+
+// Attendee Registry (Volunteer, Coordinator & Admin)
+router.get('/attendees', authenticateJWT, isVolunteer, getAttendees);
+router.get('/attendees/export', authenticateJWT, isVolunteer, exportAttendeesCsv);
 
 export default router;

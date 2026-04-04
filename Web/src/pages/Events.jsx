@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 import { useToast } from "../context/ToastContext";
 import { Loader2, Calendar, MapPin, Clock, Ticket, Sparkles, ArrowRight, X, AlertTriangle, RefreshCcw } from "lucide-react";
 import gsap from "gsap";
@@ -250,8 +251,9 @@ function EventModal({ event, onClose, onRegister, registering }) {
 // ─── MAIN PAGE ──────────────────────────────────────────────────────
 export default function Events() {
   const { theme } = useTheme();
-  const { csrfToken, isAuthenticated } = useAuth?.() ?? { csrfToken: null, isAuthenticated: false };
+  const { user, csrfToken, isAuthenticated } = useAuth?.() ?? { user: null, csrfToken: null, isAuthenticated: false };
   const toast = useToast?.() ?? { success: console.log, error: console.error };
+  const navigate = useNavigate();
   const containerRef = useRef(null);
 
   const [activeCategory, setActiveCategory] = useState("All");
@@ -295,6 +297,14 @@ export default function Events() {
 
   const handleRegister = async (eventId) => {
     if (!isAuthenticated) return toast.error("Please log in to reserve your pass.");
+    
+    // Enforce Onboarding
+    if (user && !user.isOnboarded) {
+         toast.error("Please complete your Bio-Metric Vault (Profile) to register for events.");
+         navigate("/profile", { state: { requireOnboarding: true } });
+         return;
+    }
+
     setRegistering(true);
     try {
       const res = await fetch("http://localhost:5000/api/events/register", {
