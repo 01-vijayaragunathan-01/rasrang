@@ -104,7 +104,7 @@ export default function Profile() {
                             <button 
                                 onClick={isEditing ? handleSave : () => setIsEditing(true)}
                                 style={{ background: `linear-gradient(to right, ${colors.primary}, ${colors.highlight})`, boxShadow: `0 0 20px ${colors.primaryGlow}` }}
-                                className="px-8 py-3 text-xs font-black uppercase tracking-widest hover:scale-105 transition-all rounded-sm"
+                                className="px-8 py-3 text-xs font-black uppercase tracking-widest hover:scale-105 transition-all rounded-sm font-massive"
                             >
                                 {isEditing ? "Sign & Save" : "Modify Credentials"}
                             </button>
@@ -122,21 +122,6 @@ export default function Profile() {
                     </h2>
                     <TicketSlider tickets={tickets} />
                 </div>
-            )}
-
-            {/* 3. COMMAND CENTER TAB (ADMIN) */}
-            {activeTab === "command" && (
-                <UserManagement isSuper={false} />
-            )}
-
-            {/* 4. OVERLORD PROTOCOL TAB (COORD ADMIN) */}
-            {activeTab === "overlord" && (
-                <UserManagement isSuper={true} />
-            )}
-
-            {/* 5. PLATFORM CONTROL TAB (SUPER ADMIN) */}
-            {activeTab === "platform" && (
-                <UserManagement isSuper={true} />
             )}
 
         </ProfileLayout>

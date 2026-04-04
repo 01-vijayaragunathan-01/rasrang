@@ -8,18 +8,9 @@ export default function ProfileLayout({ children, activeTab, setActiveTab }) {
     const { colors } = APP_THEME;
 
     const navItems = [
+        { id: "passport", icon: "🆔", label: "Passport", show: true },
         { id: "vault", icon: "🎟️", label: "Vault", show: true },
-        { id: "command", icon: "⚡", label: "Command", show: user?.role === "COORDINATOR" || user?.role === "SUPER_ADMIN" },
-        { id: "passport", icon: "🆔", label: "Passport", show: true, isProfile: true },
-        { 
-            id: "platform", 
-            icon: "🌐", 
-            label: "Control", 
-            show: user?.role === "SUPER_ADMIN" || (user?.role === "COORDINATOR" && user?.canManagePrivileges)
-        }
     ];
-
-    const filteredNav = navItems.filter(item => item.show);
 
     return (
         <div className="flex flex-col md:flex-row h-screen text-white md:pt-20 overflow-hidden" style={{ backgroundColor: colors.base }}>
@@ -42,13 +33,7 @@ export default function ProfileLayout({ children, activeTab, setActiveTab }) {
                 </div>
 
                 <nav className="flex-1 space-y-3">
-                    {/* Consistent Desktop Nav */}
-                    {[
-                        { id: "passport", label: "Passport", icon: "🆔", show: true },
-                        { id: "vault", label: "Ticket Vault", icon: "🎟️", show: true },
-                        { id: "command", label: "Command Center", icon: "⚡", show: user?.role === "COORDINATOR" || user?.role === "SUPER_ADMIN" },
-                        { id: "platform", label: user?.role === 'SUPER_ADMIN' ? "Platform Control" : "Overlord Protocol", icon: "🌐", show: user?.role === "SUPER_ADMIN" || (user?.role === "COORDINATOR" && user?.canManagePrivileges) }
-                    ].filter(item => item.show).map((item) => (
+                    {navItems.map((item) => (
                         <button
                             key={item.id}
                             onClick={() => setActiveTab(item.id)}
@@ -59,7 +44,7 @@ export default function ProfileLayout({ children, activeTab, setActiveTab }) {
                             } : { 
                                 color: colors.textMuted 
                             }}
-                            className={`w-full flex items-center gap-4 px-4 py-3 rounded-lg transition-all duration-300 font-bold uppercase tracking-wider text-[11px] ${
+                            className={`w-full flex items-center gap-4 px-4 py-3 rounded-lg transition-all duration-300 font-black uppercase tracking-wider text-[11px] ${
                                 activeTab === item.id ? "" : "hover:bg-white/5 hover:text-white"
                             }`}
                         >
@@ -82,67 +67,40 @@ export default function ProfileLayout({ children, activeTab, setActiveTab }) {
                 </div>
             </motion.aside>
 
-            {/* --- MOBILE DOCK --- */}
-            <nav 
-                className="md:hidden fixed bottom-0 left-0 right-0 h-20 z-50 flex items-center justify-around px-2 backdrop-blur-3xl border-t"
-                style={{ backgroundColor: `${colors.surface}DD`, borderColor: `${colors.primary}33` }}
-            >
-                {/* Left side navs before Profile */}
-                {filteredNav.filter(item => !item.isProfile).map((item, idx) => (
-                   idx < 2 && (
-                    <button 
-                        key={item.id}
-                        onClick={() => setActiveTab(item.id)}
-                        className="flex flex-col items-center gap-1 min-w-[60px]"
-                    >
-                        <span className="text-xl" style={{ opacity: activeTab === item.id ? 1 : 0.4 }}>{item.icon}</span>
-                        <span className="text-[8px] font-black uppercase tracking-tighter" style={{ color: activeTab === item.id ? colors.primary : colors.textMuted }}>{item.label}</span>
-                        {activeTab === item.id && <motion.div layoutId="dock-glow" className="absolute w-2 h-2 rounded-full blur-[4px] mt-8" style={{ backgroundColor: colors.primary }} />}
-                    </button>
-                   )
-                ))}
-
-                {/* Center Profile */}
-                <button 
-                    onClick={() => setActiveTab("passport")}
-                    className="relative -top-8 w-16 h-16 rounded-full p-0.5 shadow-2xl transition-transform active:scale-90"
-                    style={{ background: `linear-gradient(to top right, ${colors.primary}, ${colors.highlight})` }}
-                >
-                    <div className="w-full h-full bg-black rounded-full flex items-center justify-center overflow-hidden border border-white/5">
-                        <span className="text-xl font-black">{user?.name?.charAt(0)}</span>
-                    </div>
-                    {activeTab === "passport" && (
-                        <div className="absolute -inset-2 rounded-full border border-white/20 animate-pulse" />
-                    )}
-                </button>
-
-                {/* Right side navs & Logout */}
-                {filteredNav.filter(item => !item.isProfile).map((item, idx) => (
-                   idx >= 2 && (
-                    <button 
-                        key={item.id}
-                        onClick={() => setActiveTab(item.id)}
-                        className="flex flex-col items-center gap-1 min-w-[60px]"
-                    >
-                        <span className="text-xl" style={{ opacity: activeTab === item.id ? 1 : 0.4 }}>{item.icon}</span>
-                        <span className="text-[8px] font-black uppercase tracking-tighter" style={{ color: activeTab === item.id ? colors.primary : colors.textMuted }}>{item.label}</span>
-                    </button>
-                   )
-                ))}
-
-                {/* Logout at the end */}
-                <button 
-                    onClick={logout}
-                    className="flex flex-col items-center gap-1 min-w-[60px]"
-                    style={{ color: colors.highlight }}
-                >
-                    <span className="text-xl opacity-60 hover:opacity-100 transition-opacity">⏻</span>
-                    <span className="text-[8px] font-black uppercase tracking-tighter opacity-40">EXIT</span>
-                </button>
-            </nav>
+            {/* --- MOBILE NEON SEGMENTED HUB --- */}
+            <div className="md:hidden fixed top-24 left-1/2 -translate-x-1/2 z-[50] w-[90%] max-w-sm">
+                <div className="bg-black/40 backdrop-blur-3xl border border-white/10 p-1.5 rounded-2xl flex relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-pulse" />
+                    
+                    {navItems.map((item) => (
+                        <button
+                            key={item.id}
+                            onClick={() => setActiveTab(item.id)}
+                            className="flex-1 relative z-10 py-3 rounded-xl transition-all duration-500 overflow-hidden group"
+                        >
+                            {activeTab === item.id && (
+                                <motion.div 
+                                    layoutId="tab-highlight"
+                                    className="absolute inset-0 z-0 bg-gradient-to-r"
+                                    style={{ background: `linear-gradient(to right, ${colors.primary}, ${colors.secondary})` }}
+                                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                />
+                            )}
+                            <div className="flex items-center justify-center gap-3 relative z-10">
+                                <span className={`text-sm transition-transform duration-500 ${activeTab === item.id ? 'scale-125' : 'opacity-40 group-hover:opacity-100'}`}>
+                                    {item.icon}
+                                </span>
+                                <span className={`text-[10px] font-black uppercase tracking-widest transition-all duration-500 ${activeTab === item.id ? 'text-white' : 'text-white/40'}`}>
+                                    {item.label}
+                                </span>
+                            </div>
+                        </button>
+                    ))}
+                </div>
+            </div>
 
             {/* Main Content Container */}
-            <main className="flex-1 overflow-y-auto p-4 md:p-8 relative md:pt-0 pt-20 mb-20 md:mb-0">
+            <main className="flex-1 overflow-y-auto p-4 md:p-8 relative md:pt-0 pt-40 mb-20 md:mb-0">
                  <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full blur-[120px] pointer-events-none" style={{ backgroundColor: `${colors.primary}0D` }} />
                  <AnimatePresence mode="wait">
                     <motion.div
