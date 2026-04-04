@@ -3,11 +3,12 @@ import { motion } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 import ProfileLayout from "../components/profile/ProfileLayout";
 import TicketSlider from "../components/profile/TicketSlider";
-import UserManagement from "../components/profile/UserManagement";
+import { useToast } from "../context/ToastContext";
 import { APP_THEME } from "../constants/theme";
 
 export default function Profile() {
     const { user, setUser, csrfToken } = useAuth();
+    const toast = useToast();
     const { colors } = APP_THEME;
     const [activeTab, setActiveTab ] = useState("passport");
     const [isEditing, setIsEditing] = useState(false);
@@ -30,20 +31,28 @@ export default function Profile() {
             });
     }, [user]);
 
-    const handleSave = () => {
+    const handleSave = async () => {
         setIsEditing(false);
-        fetch("http://localhost:5000/api/auth/profile", {
-            method: "PUT",
-            headers: { 
-                "Content-Type": "application/json",
-                "x-csrf-token": csrfToken 
-            },
-            body: JSON.stringify(user),
-            credentials: "include"
-        }).then(res => res.json())
-          .then(data => {
-              if (data.user) setUser(data.user);
-          });
+        try {
+            const res = await fetch("http://localhost:5000/api/auth/profile", {
+                method: "PUT",
+                headers: { 
+                    "Content-Type": "application/json",
+                    "x-csrf-token": csrfToken 
+                },
+                body: JSON.stringify(user),
+                credentials: "include"
+            });
+            const data = await res.json();
+            if (res.ok) {
+                if (data.user) setUser(data.user);
+                toast.success("BIOMETRIC VAULT SYNCHRONIZED.");
+            } else {
+                toast.error(`SYNCHRONIZATION FAILED: ${data.error || "INVALID DATA"}`);
+            }
+        } catch (err) {
+            toast.error("CONNECTION COLLAPSE: Identity update severed.");
+        }
     };
 
     if (!user) return <div className="min-h-screen text-white flex items-center justify-center font-black uppercase text-2xl tracking-[0.4em] animate-pulse" style={{ backgroundColor: colors.base }}>Scanning Bio-Metrics...</div>;

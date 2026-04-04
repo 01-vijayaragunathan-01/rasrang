@@ -1,11 +1,14 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
-import { Hammer, Zap, ShieldAlert, Image as ImageIcon, Flame, Trash2, Edit3, Plus, List } from "lucide-react";
+import { useToast } from "../../context/ToastContext";
+import { Hammer, Zap, ShieldAlert, Image as ImageIcon, Flame, Trash2, Edit3, Plus, List, Star } from "lucide-react";
 import { APP_THEME } from "../../constants/theme";
+import ConfirmModal from "../../common/ConfirmModal";
 
 export default function EventForge() {
     const { csrfToken } = useAuth();
+    const toast = useToast();
     const { colors } = APP_THEME;
     const [activeMode, setActiveMode] = useState("manage"); // 'manage' or 'add'
     const [isLoading, setIsLoading] = useState(false);
@@ -21,8 +24,14 @@ export default function EventForge() {
         category: "Main Stage",
         date: "",
         capacity: "",
-        description: ""
+        date: "",
+        capacity: "",
+        description: "",
+        isHeadliner: false
     });
+
+    const [showConfirm, setShowConfirm] = useState(false);
+    const [confirmAction, setConfirmAction] = useState(null);
 
     // 1. Fetch Events for Registry
     const fetchEvents = async () => {
@@ -91,8 +100,12 @@ export default function EventForge() {
     };
 
     // 2. Delete Logic
-    const handleDelete = async (id) => {
-        if (!confirm("TERMINATE EVENT INTEL? THIS ACTION IS IRREVERSIBLE.")) return;
+    const handleDelete = (id) => {
+        setConfirmAction(() => () => triggerDelete(id));
+        setShowConfirm(true);
+    };
+
+    const triggerDelete = async (id) => {
         try {
             const res = await fetch(`http://localhost:5000/api/admin/events/${id}`, {
                 method: "DELETE",
@@ -101,8 +114,9 @@ export default function EventForge() {
             });
             if (res.ok) {
                 setEvents(events.filter(e => e.id !== id));
+                toast.success("EVENT INTEL TERMINATED.");
             }
-        } catch (err) { alert("TERMINATION FAILED."); }
+        } catch (err) { toast.error("TERMINATION FAILED."); }
     };
 
     // 3. Edit Logic (Transition to Add mode with data)
@@ -113,7 +127,8 @@ export default function EventForge() {
             category: event.category,
             date: event.date,
             capacity: event.capacity,
-            description: event.description
+            description: event.description,
+            isHeadliner: event.isHeadliner
         });
         setImagePreview(event.imageUrl);
         setActiveMode("add");
@@ -130,6 +145,7 @@ export default function EventForge() {
         formData.append("date", eventData.date);
         formData.append("capacity", eventData.capacity);
         formData.append("description", eventData.description);
+        formData.append("isHeadliner", eventData.isHeadliner);
         
         if (imageFile) formData.append("posterImage", imageFile); 
 
@@ -148,22 +164,22 @@ export default function EventForge() {
             });
 
             if (response.ok) {
-                alert(editingEventId ? "INTEL UPDATED!" : "EVENT SUCCESSFULLY FORGED!");
+                toast.success(editingEventId ? "INTEL UPDATED!" : "EVENT SUCCESSFULLY FORGED!");
                 resetForm();
                 setActiveMode("manage");
             } else {
                 const err = await response.json();
-                alert(`ERROR: ${err.error || 'FORGE FAILURE'}`);
+                toast.error(`ERROR: ${err.error || 'FORGE FAILURE'}`);
             }
         } catch (error) {
-            alert("NETWORK COLLAPSE.");
+            toast.error("NETWORK COLLAPSE.");
         } finally {
             setIsLoading(false);
         }
     };
 
     const resetForm = () => {
-        setEventData({ title: "", category: "Main Stage", date: "", capacity: "", description: "" });
+        setEventData({ title: "", category: "Main Stage", date: "", capacity: "", description: "", isHeadliner: false });
         setImageFile(null);
         setImagePreview(null);
         setEditingEventId(null);
@@ -215,7 +231,12 @@ export default function EventForge() {
                                                 <div className="flex items-center gap-4">
                                                     <div className="w-10 h-10 bg-black border border-white/10 rounded-md overflow-hidden bg-cover bg-center" style={{ backgroundImage: `url(${event.imageUrl})` }} />
                                                     <div>
-                                                        <p className="font-black uppercase text-sm">{event.title}</p>
+                                                        <div className="flex items-center gap-2">
+                                                            <p className="font-black uppercase text-sm">{event.title}</p>
+                                                            {event.isHeadliner && (
+                                                                <Star className="w-3 h-3 text-[#FACC15] fill-[#FACC15]" />
+                                                            )}
+                                                        </div>
                                                         <p className="text-[9px] font-mono text-white/30 uppercase tracking-tighter">{event.date}</p>
                                                     </div>
                                                 </div>
@@ -338,11 +359,34 @@ export default function EventForge() {
                                 >
                                     {isLoading ? "SYNCING..." : (editingEventId ? "COMMIT CHANGES" : "INITIALIZE EVENT")}
                                 </button>
+
+                                <div className="p-6 border-4 border-dashed border-white/10 flex items-center justify-between">
+                                    <div className="flex flex-col gap-1">
+                                        <label className="text-[10px] uppercase font-black text-[#E31E6E] tracking-widest">Headliner Status</label>
+                                        <p className="text-[8px] opacity-40 uppercase tracking-widest leading-tight">Elevate this intelligence to the Grand Stages section.</p>
+                                    </div>
+                                    <button 
+                                        type="button"
+                                        onClick={() => setEventData({ ...eventData, isHeadliner: !eventData.isHeadliner })}
+                                        className={`w-12 h-6 rounded-full relative transition-all duration-300 ${eventData.isHeadliner ? 'bg-[#FACC15]' : 'bg-white/10'}`}
+                                    >
+                                        <motion.div 
+                                            animate={{ x: eventData.isHeadliner ? 24 : 0 }}
+                                            className="absolute left-1 top-1 w-4 h-4 rounded-full bg-white shadow-xl"
+                                        />
+                                    </button>
+                                </div>
                             </div>
                         </form>
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            <ConfirmModal 
+                isOpen={showConfirm} 
+                onClose={() => setShowConfirm(false)} 
+                onConfirm={confirmAction}
+            />
         </div>
     );
 }

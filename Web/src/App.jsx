@@ -11,6 +11,8 @@ import Auth from "./pages/Auth";
 import Particles from "./pages/home/Particles";
 
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { ToastProvider } from "./context/ToastContext";
+import { ToastContainer } from "./common/Toast";
 import ProtectedRoute from "./common/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
 
@@ -63,7 +65,13 @@ function MainContent() {
           logoUrl="/Assets/rasrang.png" 
           items={navItems}
           socialItems={socialItems}
-          colors={[theme.colors.primary, theme.colors.secondary]}
+          colors={[
+            theme.colors.primary,    // #9D01E9 - Purple
+            theme.colors.secondary,  // #C53099 - Magenta
+            theme.colors.highlight,  // #E31E6E - Pink
+            "#22D3EE",               // Cyan
+            "#FACC15"                // Yellow
+          ]}
           accentColor={theme.colors.highlight}
           menuButtonColor="#ffffff"
           openMenuButtonColor="#ffffff"
@@ -96,23 +104,26 @@ function MainContent() {
       </main>
 
       <Footer />
+      <ToastContainer />
     </div>
   );
 }
 
 export default function App() {
   return (
-    <AuthProvider>
-      <Router>
-        {/* --- Asset Imports --- */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=IM+Fell+English:italic&family=Inter+Tight:wght@300;400;600;700;900&family=Syne:wght@700;800&family=Great+Vibes&display=swap"
-          rel="stylesheet"
-        />
-        <MainContent />
-      </Router>
-    </AuthProvider>
+    <ToastProvider>
+      <AuthProvider>
+        <Router>
+          {/* --- Asset Imports --- */}
+          <link rel="preconnect" href="https://fonts.googleapis.com" />
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+          <link
+            href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=IM+Fell+English:italic&family=Inter+Tight:wght@300;400;600;700;900&family=Syne:wght@700;800&family=Great+Vibes&display=swap"
+            rel="stylesheet"
+          />
+          <MainContent />
+        </Router>
+      </AuthProvider>
+    </ToastProvider>
   );
 }

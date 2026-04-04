@@ -127,7 +127,10 @@ export const localLogin = (req, res, next) => {
 };
 
 export const getProfile = (req, res) => {
-    res.json(req.user);
+    res.json({ 
+        ...req.user, 
+        csrfToken: req.csrfToken 
+    });
 };
 
 export const refresh = async (req, res) => {

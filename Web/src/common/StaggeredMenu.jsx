@@ -76,7 +76,7 @@ export const StaggeredMenu = ({
       if (toggleBtnRef.current) gsap.set(toggleBtnRef.current, { color: menuButtonColor });
     });
     return () => ctx.revert();
-  }, [menuButtonColor, position]);
+  }, [menuButtonColor, position, colors]);
 
   const buildOpenTimeline = useCallback(() => {
     const panel = panelRef.current;
@@ -361,21 +361,13 @@ export const StaggeredMenu = ({
           className="sm-prelayers absolute top-0 right-0 bottom-0 pointer-events-none z-[5]"
           aria-hidden="true"
         >
-          {(() => {
-            const raw = colors && colors.length ? colors.slice(0, 4) : ['#1e1e22', '#35353c'];
-            let arr = [...raw];
-            if (arr.length >= 3) {
-              const mid = Math.floor(arr.length / 2);
-              arr.splice(mid, 1);
-            }
-            return arr.map((c, i) => (
-              <div
-                key={i}
-                className="sm-prelayer absolute top-0 right-0 h-full w-full translate-x-0"
-                style={{ background: c }}
-              />
-            ));
-          })()}
+          {colors && colors.map((c, i) => (
+            <div
+              key={i}
+              className="sm-prelayer absolute top-0 right-0 h-full w-full translate-x-0"
+              style={{ background: c }}
+            />
+          ))}
         </div>
 
         <header
@@ -439,6 +431,7 @@ export const StaggeredMenu = ({
           className="staggered-menu-panel absolute top-0 right-0 h-full bg-white flex flex-col p-[6em_2em_2em_2em] overflow-y-auto z-10 backdrop-blur-[12px] pointer-events-auto"
           style={{ WebkitBackdropFilter: 'blur(12px)' }}
           aria-hidden={!open}
+          {...(!open ? { inert: true } : {})}
         >
           <div className="sm-panel-inner flex-1 flex flex-col gap-5">
             <ul
@@ -519,7 +512,8 @@ export const StaggeredMenu = ({
 .sm-scope [data-position='left'] .staggered-menu-panel { right: auto; left: 0; }
 .sm-scope .sm-prelayers { position: absolute; top: 0; right: 0; bottom: 0; width: clamp(260px, 38vw, 420px); pointer-events: none; z-index: 5; }
 .sm-scope [data-position='left'] .sm-prelayers { right: auto; left: 0; }
-.sm-scope .sm-prelayer { position: absolute; top: 0; right: 0; height: 100%; width: 100%; transform: translateX(0); }
+.sm-scope .sm-prelayer { position: absolute; top: 0; right: 0; height: 100%; width: 100%; transform: translateX(100%); }
+.sm-scope [data-position='left'] .sm-prelayer { transform: translateX(-100%); }
 .sm-scope .sm-panel-inner { flex: 1; display: flex; flex-direction: column; gap: 1.25rem; }
 .sm-scope .sm-socials { margin-top: auto; padding-top: 2rem; display: flex; flex-direction: column; gap: 0.75rem; }
 .sm-scope .sm-socials-title { margin: 0; font-size: 1rem; font-weight: 500; color: var(--sm-accent, #ff0000); }

@@ -3,8 +3,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 import UserManagement from "../components/profile/UserManagement";
 import EventForge from "../components/profile/EventForge";
+import GalleryForge from "../components/profile/GalleryForge";
 import { APP_THEME } from "../constants/theme";
-import { LayoutDashboard, ShieldCheck, Hammer, Zap } from "lucide-react";
+import { LayoutDashboard, ShieldCheck, Hammer, Zap, Camera } from "lucide-react";
 
 export default function Dashboard() {
     const { user } = useAuth();
@@ -30,6 +31,7 @@ export default function Dashboard() {
         { id: "overview", label: "Overview", icon: <LayoutDashboard className="w-4 h-4" />, show: true },
         { id: "management", label: isPlatformAdmin ? "Platform Control" : "Overlord Protocol", icon: <ShieldCheck className="w-4 h-4" />, show: isPlatformAdmin },
         { id: "forge", label: "The Event Forge", icon: <Hammer className="w-4 h-4" />, show: isPlatformAdmin },
+        { id: "gallery", label: "Visual Archives", icon: <Camera className="w-4 h-4" />, show: isPlatformAdmin },
         { id: "command", label: "Command Center", icon: <Zap className="w-4 h-4" />, show: true },
     ];
 
@@ -100,6 +102,8 @@ export default function Dashboard() {
                         )}
 
                         {activeSection === "forge" && isPlatformAdmin && <EventForge />}
+
+                        {activeSection === "gallery" && isPlatformAdmin && <GalleryForge />}
 
                         {(activeSection === "management" || activeSection === "command") && (
                             <div className="text-left">

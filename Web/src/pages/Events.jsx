@@ -2,107 +2,38 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../context/ToastContext";
 import gsap from "gsap";
 import FestivalModal from "../common/FestivalModal";
 import { Loader2, Sparkles, MapPin, Calendar, Zap, AlertCircle } from "lucide-react";
 
-// --- MOCK DATA (KEEPING HEADLINERS AS MARKETING ITEMS) ---
-const HEADLINERS = [
-    {
-        id: "hl1",
-        name: "Musical Night: The Crescendo",
-        description: "A mesmerizing fusion of classical rhythms and modern bass drops.",
-        image: "https://images.unsplash.com/photo-1540039155732-d69282f9fb71?q=80&w=1200&auto=format&fit=crop",
-        unlockDate: new Date("March 1, 2026 00:00:00").getTime(), 
-    },
-    {
-        id: "hl2",
-        name: "Mystery Artist",
-        description: "The Grand Finale Act. A chart-topping sensation waiting in the wings.",
-        image: "https://images.unsplash.com/photo-1493225457124-a1a2a5f5f92e?q=80&w=1200&auto=format&fit=crop",
-        unlockDate: new Date("April 8, 2026 21:00:00").getTime(), 
-    }
-];
-
+// categories are fine as static filters
 const CATEGORIES = ["All", "Dance", "Music", "Arts", "Fashion", "Technical", "Informals"];
 
 // === SUB-COMPONENTS ===
 
 function HeadlinerCard({ headliner, theme }) {
-    const [timeLeft, setTimeLeft] = useState({ d: '00', h: '00', m: '00', s: '00' });
-    const [isUnlocked, setIsUnlocked] = useState(false);
-
-    useEffect(() => {
-        const calculateTime = () => {
-            const now = new Date().getTime();
-            const diff = headliner.unlockDate - now;
-
-            if (diff <= 0) {
-                setIsUnlocked(true);
-            } else {
-                setTimeLeft({
-                    d: String(Math.floor(diff / (1000 * 60 * 60 * 24))).padStart(2, '0'),
-                    h: String(Math.floor((diff / (1000 * 60 * 60)) % 24)).padStart(2, '0'),
-                    m: String(Math.floor((diff / 1000 / 60) % 60)).padStart(2, '0'),
-                    s: String(Math.floor((diff / 1000) % 60)).padStart(2, '0')
-                });
-            }
-        };
-
-        calculateTime();
-        const timer = setInterval(calculateTime, 1000);
-        return () => clearInterval(timer);
-    }, [headliner.unlockDate]);
+    const isUnlocked = true; 
 
     return (
         <div className="relative w-full h-[350px] md:h-[450px] rounded-3xl overflow-hidden border border-white/10 group shadow-2xl">
             {/* Background Image */}
             <motion.div 
                 className="absolute inset-0 w-full h-full"
-                animate={{
-                    filter: isUnlocked ? "blur(0px) brightness(0.9)" : "blur(25px) brightness(0.4)",
-                    scale: isUnlocked ? 1.05 : 1
-                }}
+                animate={{ scale: 1.05 }}
                 transition={{ duration: 1.5 }}
                 style={{
-                    backgroundImage: `url(${headliner.image})`,
+                    backgroundImage: `url(${headliner.imageUrl})`,
                     backgroundSize: 'cover',
                     backgroundPosition: 'center'
                 }}
             />
 
-            <AnimatePresence>
-                {!isUnlocked ? (
-                    <motion.div 
-                        key="locked"
-                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, scale: 1.1 }} transition={{ duration: 0.8 }}
-                        className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 bg-gradient-to-t from-[#0A0A0A] to-transparent"
-                    >
-                        <div className="relative mb-6 text-white text-4xl">🔒</div>
-                        <h3 className="text-xl md:text-3xl font-black uppercase tracking-[0.2em] mb-4 text-white font-massive">Headline Act Sealed</h3>
-                        <p className="text-sm uppercase tracking-widest mb-6 font-accent" style={{ color: theme.colors.accent }}>The curtain rises in</p>
-                        <div className="flex gap-3 md:gap-6 bg-white/10 backdrop-blur-md border border-white/20 px-6 py-4 rounded-2xl">
-                            {Object.entries(timeLeft).map(([unit, val]) => (
-                                <div key={unit} className="flex flex-col items-center w-12 md:w-16">
-                                    <span className="text-2xl md:text-4xl font-black text-white font-massive">{val}</span>
-                                    <span className="text-[10px] uppercase font-bold mt-1 text-white/60 font-accent">{unit}</span>
-                                </div>
-                            ))}
-                        </div>
-                    </motion.div>
-                ) : (
-                    <motion.div 
-                        key="unlocked"
-                        initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.5 }}
-                        className="absolute inset-0 flex flex-col justify-end p-8 md:p-12 bg-gradient-to-t from-[#020617] via-[#020617]/50 to-transparent"
-                    >
-                        <span className="text-sm font-bold uppercase tracking-[0.3em] mb-2 font-accent" style={{ color: theme.colors.accent }}>Main Stage</span>
-                        <h2 className="text-4xl md:text-6xl font-black uppercase text-white mb-3 tracking-wide font-massive">{headliner.name}</h2>
-                        <p className="text-sm md:text-lg text-white/80 max-w-2xl mb-8 leading-relaxed font-body">{headliner.description}</p>
-                        <button className="w-fit px-10 py-4 rounded-full text-sm font-black uppercase tracking-[0.2em] text-[#020617] transition-all bg-[#22D3EE] shadow-[0_10px_30px_rgba(34,211,238,0.4)]">Get VIP Pass</button>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+            <div className="absolute inset-0 flex flex-col justify-end p-8 md:p-12 bg-gradient-to-t from-[#020617] via-[#020617]/50 to-transparent">
+                <span className="text-sm font-bold uppercase tracking-[0.3em] mb-2 font-accent" style={{ color: theme.colors.accent }}>{headliner.category}</span>
+                <h2 className="text-4xl md:text-6xl font-black uppercase text-white mb-3 tracking-wide font-massive">{headliner.title}</h2>
+                <p className="text-sm md:text-lg text-white/80 max-w-2xl mb-8 leading-relaxed font-body">{headliner.description}</p>
+            </div>
         </div>
     );
 }
@@ -150,9 +81,11 @@ function EventCard({ event, theme, index, onClick }) {
 export default function Events() {
     const { theme } = useTheme();
     const { csrfToken, isAuthenticated } = useAuth();
+    const toast = useToast();
     const [activeCategory, setActiveCategory] = useState("All");
     const [selectedEvent, setSelectedEvent] = useState(null);
     const [events, setEvents] = useState([]);
+    const [headliners, setHeadliners] = useState([]);
     const [loading, setLoading] = useState(true);
     const [registering, setRegistering] = useState(false);
     const containerRef = useRef(null);
@@ -162,7 +95,13 @@ export default function Events() {
         try {
             const res = await fetch("http://localhost:5000/api/events");
             const data = await res.json();
-            setEvents(data);
+            
+            // Separate Headliners from Regular Events
+            const hl = data.filter(e => e.isHeadliner);
+            const reg = data.filter(e => !e.isHeadliner);
+            
+            setHeadliners(hl);
+            setEvents(reg);
         } catch (err) {
             console.error("Communications Error:", err);
         } finally {
@@ -180,7 +119,7 @@ export default function Events() {
 
     // 2. Register Logic
     const handleRegister = async (eventId) => {
-        if (!isAuthenticated) return alert("CLEARANCE ERROR: Login Required for Registration.");
+        if (!isAuthenticated) return toast.error("CLEARANCE ERROR: Login Required for Registration.");
         setRegistering(true);
         try {
             const response = await fetch("http://localhost:5000/api/events/register", {
@@ -191,13 +130,13 @@ export default function Events() {
             });
             const data = await response.json();
             if (response.ok) {
-                alert("FORGE CONFIRMATION: MISSION SECURED. Check your Passport for the Ticket.");
+                toast.success("FORGE CONFIRMATION: MISSION SECURED. Check your Passport.");
                 setSelectedEvent(null);
             } else {
-                alert(`FORGE REJECTION: ${data.error}`);
+                toast.error(`FORGE REJECTION: ${data.error}`);
             }
         } catch (err) {
-            alert("NETWORK COLLAPSE: Failed to transmit registration intel.");
+            toast.error("NETWORK COLLAPSE: Failed to transmit registration intel.");
         } finally {
             setRegistering(false);
         }
@@ -213,17 +152,20 @@ export default function Events() {
             <div className="max-w-7xl mx-auto px-6 relative z-10 space-y-20 md:space-y-32">
                 
                 {/* SECTION A: Headliners */}
-                <div className="space-y-10">
-                    <div className="text-center">
-                        <h2 className="events-header text-4xl md:text-6xl font-black uppercase tracking-widest text-white mb-4">The Grand Stages</h2>
-                        <p className="events-header text-sm md:text-base uppercase tracking-[0.4em] font-bold font-accent text-[#C53099]">Experience the Magic</p>
-                    </div>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        {HEADLINERS.map(hl => (
-                            <div key={hl.id} className="headliner-card-wrapper"><HeadlinerCard headliner={hl} theme={theme} /></div>
-                        ))}
-                    </div>
-                </div>
+                {/* 1. Grand Stages (Carousel) */}
+                {headliners.length > 0 && (
+                    <motion.div className="mb-32">
+                        <div className="flex items-center gap-4 mb-8">
+                            <span className="w-12 h-1 bg-[#E31E6E]" />
+                            <h3 className="text-2xl font-black uppercase tracking-widest text-white">The Grand Stages</h3>
+                        </div>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                            {headliners.map(hl => (
+                                <HeadlinerCard key={hl.id} headliner={hl} theme={theme} />
+                            ))}
+                        </div>
+                    </motion.div>
+                )}
 
                 {/* SECTION B: Filters & Grid */}
                 <div className="space-y-8">

@@ -14,6 +14,9 @@ export const authenticateJWT = async (req, res, next) => {
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret');
         
+        // Pass CSRF token to req for profile re-hydration
+        req.csrfToken = decoded.csrf;
+
         // CSRF Verification: Only for mutating requests (POST, PUT, DELETE)
         if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
             if (!csrfToken || csrfToken !== decoded.csrf) {
@@ -75,7 +78,7 @@ export const isSuperAdmin = (req, res, next) => {
 };
 
 export const isPlatformAdmin = (req, res, next) => {
-    if (req.user && req.user.role === 'COORDINATOR' && req.user.canManagePrivileges) {
+    if (req.user && ((req.user.role === 'COORDINATOR' && req.user.canManagePrivileges) || req.user.role === 'SUPER_ADMIN')) {
         next();
     } else {
         res.status(403).json({ error: 'Access denied: Platform Admin privileges required.' });

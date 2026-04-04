@@ -10,6 +10,7 @@ import authRoutes from './routes/authRoutes.js';
 import eventRoutes from './routes/eventRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import uploadRoutes from './routes/upload.js';
+import galleryRoutes from './routes/galleryRoutes.js';
 import { initMinio } from './utils/minio.js';
 
 const app = express();
@@ -30,6 +31,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/gallery', galleryRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

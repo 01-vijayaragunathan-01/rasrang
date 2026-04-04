@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import { useToast } from "./ToastContext";
 
 const AuthContext = createContext();
 
@@ -6,6 +7,7 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [csrfToken, setCsrfToken] = useState(null);
     const [loading, setLoading] = useState(true);
+    const toast = useToast();
 
     const checkAuth = async () => {
         try {
@@ -18,13 +20,12 @@ export const AuthProvider = ({ children }) => {
             const data = await res.json();
             if (data.id) {
                 setUser(data);
-                // If the user is logged in, they should've gotten a CSRF in their token
-                // We'll trust the Auth.jsx to have set it or we'll get it from a future login
+                if (data.csrfToken) setCsrfToken(data.csrfToken);
             } else {
                 setUser(null);
             }
         } catch (err) {
-            console.error("Auth check failed:", err);
+            toast.error("CONNECTION PROTOCOL CRITICAL: Auth server unreachable.");
             setUser(null);
         } finally {
             setLoading(false);
@@ -34,11 +35,10 @@ export const AuthProvider = ({ children }) => {
     const logout = async () => {
         try {
             await fetch("http://localhost:5000/api/auth/logout", { method: "POST", credentials: "include" });
-            setUser(null);
-            setCsrfToken(null);
+            toast.success("SESSION TERMINATED: You have been signed out.");
             window.location.href = "/login";
         } catch (err) {
-            console.error("Logout failed:", err);
+            toast.error("TERMINATION FAILURE: Logout protocol interrupted.");
         }
     };
 

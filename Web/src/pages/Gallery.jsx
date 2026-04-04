@@ -1,16 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
 import { useTheme } from "../context/ThemeContext";
+import { useToast } from "../context/ToastContext";
 
-const galleryItems = [
-  { id: 1, src: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&q=80", caption: "Sur Sangram 2024", span: "md:col-span-2 md:row-span-2" },
-  { id: 2, src: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&q=80", caption: "Natyam Finals", span: "" },
-  { id: 3, src: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&q=80", caption: "Opening Ceremony", span: "" },
-  { id: 4, src: "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=600&q=80", caption: "Rang Bhoomi Art", span: "" },
-  { id: 5, src: "https://images.unsplash.com/photo-1429514513361-8a632ff5a71d?w=800&q=80", caption: "Crowd & Lights", span: "md:col-span-2" },
-  { id: 6, src: "https://images.unsplash.com/photo-1506157786151-b8491531f063?w=600&q=80", caption: "Abhivyakti Theatre", span: "" },
-  { id: 7, src: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&q=80", caption: "DJ Night", span: "" },
-];
+// Gallery intel now fetched from API
 
 function GalleryCard({ item, theme, onClick }) {
     const x = useMotionValue(0);
@@ -27,7 +20,7 @@ function GalleryCard({ item, theme, onClick }) {
     return (
         <motion.div
             layoutId={`img-${item.id}`}
-            className={`perspective-1000 group relative overflow-hidden cursor-pointer rounded-2xl ${item.span}`}
+            className={`perspective-1000 group relative overflow-hidden cursor-pointer rounded-2xl ${item.span || ""}`}
             onClick={onClick}
             onMouseMove={handleMouseMove}
             onMouseLeave={() => { x.set(0); y.set(0); }}
@@ -38,7 +31,7 @@ function GalleryCard({ item, theme, onClick }) {
         >
             <motion.div style={{ rotateX, rotateY }} className="w-full h-full">
                 <img 
-                    src={item.src} 
+                    src={item.imageUrl} 
                     alt={item.caption} 
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
                 />
@@ -64,7 +57,26 @@ function GalleryCard({ item, theme, onClick }) {
 
 export default function Gallery() {
     const [lightbox, setLightbox] = useState(null);
+    const [items, setItems] = useState([]);
+    const toast = useToast();
     const { theme } = useTheme();
+
+    useEffect(() => {
+        const fetchGallery = async () => {
+            try {
+                const res = await fetch("http://localhost:5000/api/gallery");
+                const data = await res.json();
+                if (res.ok) {
+                    setItems(data);
+                } else {
+                    toast.error(`ARCHIVE ERROR: ${data.error || "Failed to load registry"}`);
+                }
+            } catch (err) {
+                toast.error("CONNECTION FAILURE: Global archives unreachable.");
+            }
+        };
+        fetchGallery();
+    }, []);
 
     return (
         <section id="gallery" className="relative py-32 min-h-screen overflow-hidden" style={{ backgroundColor: "transparent" }}>
@@ -99,7 +111,7 @@ export default function Gallery() {
 
                 {/* Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 auto-rows-[240px]">
-                    {galleryItems.map((item) => (
+                    {items.map((item) => (
                         <GalleryCard key={item.id} item={item} theme={theme} onClick={() => setLightbox(item)} />
                     ))}
                 </div>
@@ -121,7 +133,7 @@ export default function Gallery() {
                                  style={{ borderColor: `${theme.colors.primary}30`, background: `${theme.colors.surface}80` }}>
                                 <motion.img 
                                     layoutId={`img-${lightbox.id}`}
-                                    src={lightbox.src} 
+                                    src={lightbox.imageUrl} 
                                     className="w-full max-h-[70vh] object-contain" 
                                 />
                             </div>

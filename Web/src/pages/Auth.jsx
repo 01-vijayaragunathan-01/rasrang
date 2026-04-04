@@ -2,11 +2,13 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../context/ToastContext";
 
 export default function Auth() {
     const navigate = useNavigate();
     const location = useLocation();
     const { setCsrfToken, setUser } = useAuth();
+    const toast = useToast();
     
     // The path the user was trying to access
     const from = location.state?.from || "/profile";
@@ -59,15 +61,22 @@ export default function Auth() {
                 credentials: "include"
             });
             const data = await res.json();
-            if (!res.ok) throw new Error(data.message || data.error || "Authentication Failed");
+            if (!res.ok) {
+                const errMsg = data.message || data.error || "Authentication Failed";
+                setError(errMsg);
+                toast.error(`ENTRY REJECTED: ${errMsg}`);
+                return;
+            }
             
-            // On successful local login, the backend sends user and csrfToken in the body (from sendTokenResponse)
+            // On successful local login
+            toast.success("IDENTITY RECOGNIZED: Access Granted.");
             if (data.user) setUser(data.user);
             if (data.csrfToken) setCsrfToken(data.csrfToken);
 
             navigate(from, { replace: true });
         } catch (err) {
-            setError(err.message);
+            setError("Connection to Central Intelligence severed.");
+            toast.error("CONNECTION FAILURE: Platform unreachable.");
         }
     };
 

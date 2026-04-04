@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
+import { useToast } from "../../context/ToastContext";
 import { APP_THEME } from "../../constants/theme";
 
 export default function UserManagement({ isSuper }) {
     const { user: currentUser, csrfToken } = useAuth();
+    const toast = useToast();
     const { colors } = APP_THEME;
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -14,9 +16,13 @@ export default function UserManagement({ isSuper }) {
         try {
             const res = await fetch("http://localhost:5000/api/admin/users", { credentials: "include" });
             const data = await res.json();
-            if (Array.isArray(data)) setUsers(data);
+            if (res.ok) {
+                if (Array.isArray(data)) setUsers(data);
+            } else {
+                toast.error(`INTEL RETRIEVAL FAILED: ${data.error || "UNKNOWN STATUS"}`);
+            }
         } catch (err) {
-            console.error(err);
+            toast.error("CONNECTION COLLAPSE: Data access severed.");
         } finally {
             setLoading(false);
         }
@@ -38,11 +44,14 @@ export default function UserManagement({ isSuper }) {
                 credentials: "include"
             });
             const data = await res.json();
-            if (data.success) {
+            if (res.ok) {
+                toast.success(`CLEARANCE UPDATED: User role synchronized.`);
                 fetchUsers(); // Refresh the list
+            } else {
+                toast.error(`PROTOCOL REJECTED: ${data.message || data.error}`);
             }
         } catch (err) {
-            console.error(err);
+            toast.error("SIGNAL INTERFERENCE: Failed to update role.");
         }
     };
 
