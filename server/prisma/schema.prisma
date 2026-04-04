@@ -41,6 +41,7 @@ model Event {
   category      String         @default("General")
   description   String
   date          String
+  time          String?
   capacity      Int
   imageUrl      String?
   isHeadliner   Boolean        @default(false)

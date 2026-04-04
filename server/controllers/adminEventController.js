@@ -7,9 +7,9 @@ const prisma = new PrismaClient();
 // 1. CREATE EVENT (Admin Only)
 // ==========================================
 export const createEvent = async (req, res) => {
-    const { title, category, description, date, capacity, isHeadliner } = req.body;
+    const { title, category, description, date, time, capacity, isHeadliner } = req.body;
     console.log(`[adminEventController] createEvent → called by user: ${req.user?.id}`);
-    console.log(`[adminEventController] createEvent → payload:`, { title, category, date, capacity, isHeadliner, hasFile: !!req.file });
+    console.log(`[adminEventController] createEvent → payload:`, { title, category, date, time, capacity, isHeadliner, hasFile: !!req.file });
     try {
         if (!title || !description || !date || !capacity) {
             console.log(`[adminEventController] createEvent → validation failed: missing required fields`);
@@ -34,6 +34,7 @@ export const createEvent = async (req, res) => {
                 category: category || 'General',
                 description,
                 date,
+                time: time || null,
                 capacity: parseInt(capacity, 10),
                 imageUrl: imageUrl,
                 isHeadliner: isHeadliner === 'true' || isHeadliner === true
@@ -53,9 +54,9 @@ export const createEvent = async (req, res) => {
 // ==========================================
 export const updateEvent = async (req, res) => {
     const { eventId } = req.params;
-    const { title, category, description, date, capacity, isHeadliner } = req.body;
+    const { title, category, description, date, time, capacity, isHeadliner } = req.body;
     console.log(`[adminEventController] updateEvent → called by user: ${req.user?.id} for eventId: ${eventId}`);
-    console.log(`[adminEventController] updateEvent → payload:`, { title, category, date, capacity, isHeadliner, hasFile: !!req.file });
+    console.log(`[adminEventController] updateEvent → payload:`, { title, category, date, time, capacity, isHeadliner, hasFile: !!req.file });
     try {
         const existingEvent = await prisma.event.findUnique({ where: { id: eventId } });
         if (!existingEvent) {
@@ -82,6 +83,7 @@ export const updateEvent = async (req, res) => {
                 category: category || existingEvent.category,
                 description: description || existingEvent.description,
                 date: date || existingEvent.date,
+                time: time !== undefined ? time : existingEvent.time,
                 capacity: capacity ? parseInt(capacity, 10) : existingEvent.capacity,
                 imageUrl: imageUrl,
                 isHeadliner: isHeadliner !== undefined ? (isHeadliner === 'true' || isHeadliner === true) : existingEvent.isHeadliner

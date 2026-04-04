@@ -66,8 +66,15 @@ export default function TicketSlider({ tickets }) {
                     className="min-w-[260px] snap-center shrink-0 rounded-xl p-6 border opacity-80 hover:opacity-100 flex flex-col justify-between"
                 >
                     <div>
-                        <h4 className="text-lg font-bold uppercase" style={{ color: colors.textTitle }}>{ticket.event.title}</h4>
-                        <p className="text-xs font-mono mt-1" style={{ color: colors.primary }}>{ticket.event.category}</p>
+                    <div className="flex flex-col gap-1">
+                        <h4 className="text-lg font-black uppercase tracking-tight" style={{ color: colors.textTitle }}>{ticket.event.title}</h4>
+                        <div className="flex items-center gap-3">
+                            <p className="text-[9px] font-black uppercase text-[#22D3EE] font-accent">{ticket.event.date}</p>
+                            {ticket.event.time && (
+                                <p className="text-[9px] font-black uppercase text-white/40 border-l border-white/10 pl-3 font-accent">{ticket.event.time}</p>
+                            )}
+                        </div>
+                    </div>
                     </div>
                     
                     <div className="my-6">

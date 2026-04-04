@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
-import { Camera, Image as ImageIcon, Trash2, Plus, List, Zap, AlertCircle } from "lucide-react";
+import { Camera, Image as ImageIcon, Trash2, Plus, List, Zap, AlertCircle, Sparkles, Archive } from "lucide-react";
 import { APP_THEME } from "../../constants/theme";
 import ConfirmModal from "../../common/ConfirmModal";
 
@@ -153,14 +153,14 @@ export default function GalleryForge() {
                     className={`px-8 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center gap-3
                     ${activeMode === "manage" ? "bg-[#9D01E9] text-white shadow-[0_0_20px_rgba(157,1,233,0.4)]" : "bg-white/5 text-white/40 hover:bg-white/10"}`}
                 >
-                    <List className="w-4 h-4" /> ARCHIVE REGISTRY
+                    <List className="w-4 h-4" /> VISUAL ARCHIVES
                 </button>
                 <button 
                     onClick={() => setActiveMode("add")}
                     className={`px-8 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center gap-3
                     ${activeMode === "add" ? "bg-[#22D3EE] text-black shadow-[0_0_20px_rgba(34,211,238,0.4)]" : "bg-white/5 text-white/40 hover:bg-white/10"}`}
                 >
-                    <Plus className="w-4 h-4" /> INGEST IMAGE
+                    <Plus className="w-4 h-4" /> INGEST INTEL
                 </button>
             </div>
 
@@ -168,70 +168,80 @@ export default function GalleryForge() {
                 {activeMode === "manage" ? (
                     <motion.div 
                         key="manage" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }}
-                        className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4"
+                        className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6"
                     >
                         {items.map((item) => (
-                            <div key={item.id} className="group relative aspect-square bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden shadow-2xl">
-                                <img src={item.imageUrl} alt={item.caption} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 group-hover:rotate-2 opacity-60 group-hover:opacity-100" />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                                
-                                <div className="absolute inset-x-0 bottom-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform">
-                                    <p className="text-[8px] font-black uppercase tracking-widest text-white mb-2 truncate">{item.caption || "NO CAPTION"}</p>
+                            <div key={item.id} className="group relative aspect-square bg-[#050510] border border-white/5 rounded-[2rem] overflow-hidden shadow-2xl transition-all hover:border-[#9D01E9]/50">
+                                <img src={item.imageUrl} alt={item.caption} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-70 group-hover:opacity-100" />
+                                <div className="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform bg-black/60 backdrop-blur-md">
+                                    <p className="text-[9px] font-black uppercase tracking-widest text-white mb-3 truncate">{item.caption || "SECURED INTEL"}</p>
                                     <button 
                                         onClick={() => handleDelete(item.id)}
-                                        className="w-full py-1.5 bg-red-600/90 text-white text-[8px] font-black uppercase tracking-[0.2em] hover:bg-white hover:text-black transition-colors"
+                                        className="w-full py-2 bg-red-500/80 hover:bg-red-500 text-white text-[9px] font-black uppercase tracking-widest rounded-lg transition-all"
                                     >
                                         TERMINATE
                                     </button>
+                                </div>
+                                <div className="absolute top-4 right-4 px-2 py-1 bg-black/40 backdrop-blur-md border border-white/10 rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <p className="text-[7px] font-black uppercase text-[#22D3EE] tracking-widest">{item.category}</p>
                                 </div>
                             </div>
                         ))}
                     </motion.div>
                 ) : (
                     <motion.div 
-                        key="add" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
-                        className="max-w-4xl mx-auto bg-[#0A0A0A] border-4 border-[#9D01E9] p-1 shadow-[15px_15px_0px_#22D3EE] overflow-hidden"
+                        key="add" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+                        className="max-w-4xl mx-auto bg-black/40 backdrop-blur-3xl border border-white/10 p-1 rounded-[2rem] relative overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)]"
                     >
-                        {/* Hazard Header */}
-                        <div className="bg-[#9D01E9] p-4 flex items-center justify-between relative">
-                            <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, #000 10px, #000 20px)' }} />
-                            <h3 className="text-2xl font-black uppercase italic text-white tracking-[0.2em] relative z-10 flex items-center gap-3">
-                                <Camera className="w-6 h-6" /> VISUAL ARCHIVE INGESTION
-                            </h3>
-                            <button onClick={() => { setActiveMode("manage"); resetForm(); }} className="bg-black text-white px-4 py-1 text-[9px] font-black uppercase tracking-widest z-10 hover:bg-white hover:text-black transition-colors">
-                                ABORT
+                        {/* Premium Header */}
+                        <div className="p-6 flex items-center justify-between relative border-b border-white/5">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-[#9D01E9]/10 rounded-2xl border border-[#9D01E9]/20">
+                                    <Camera className="w-6 h-6 text-[#9D01E9]" />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-black uppercase tracking-widest text-white flex items-center gap-2">
+                                        Visual Intelligence Ingestion
+                                        <Sparkles className="w-4 h-4 text-[#FACC15] animate-pulse" />
+                                    </h3>
+                                    <p className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">Secure Archive Protocol: Activated</p>
+                                </div>
+                            </div>
+                            <button onClick={() => { setActiveMode("manage"); resetForm(); }} className="bg-white/5 text-white/40 px-6 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-red-500 hover:text-white transition-all border border-white/10">
+                                ABORT INGESTION
                             </button>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="p-8 flex flex-col md:flex-row gap-8">
-                            <div className="flex-1 space-y-6">
+                        <form onSubmit={handleSubmit} className="p-10 flex flex-col md:flex-row gap-10">
+                            <div className="flex-1 space-y-8">
                                 <div>
-                                    <label className="text-[10px] uppercase tracking-[0.2em] text-[#9D01E9] font-black flex items-center gap-2 mb-2">
+                                    <label className="text-[10px] uppercase tracking-[0.3em] text-[#9D01E9] font-black flex items-center gap-2 mb-3">
                                         <Zap className="w-3 h-3" /> Visual Caption
                                     </label>
                                     <input 
                                         type="text" placeholder="e.g. SUR SANGRAM NIGHT VIBES"
                                         value={formData.caption} onChange={e => setFormData({...formData, caption: e.target.value})}
-                                        className="w-full bg-[#1E1B4B]/30 border-b-2 border-white/20 py-3 text-lg font-black uppercase text-white outline-none focus:border-[#22D3EE] placeholder:text-white/10"
+                                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-lg font-bold uppercase text-white outline-none focus:border-[#22D3EE] focus:bg-white/10 transition-all placeholder:text-white/10"
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-[10px] uppercase tracking-[0.2em] text-[#9D01E9] font-black flex items-center gap-2 mb-2">
+                                    <label className="text-[10px] uppercase tracking-[0.3em] text-[#9D01E9] font-black flex items-center gap-2 mb-3">
                                         <AlertCircle className="w-3 h-3" /> Asset Category
                                     </label>
                                     <select 
                                         value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})}
-                                        className="w-full bg-[#1E1B4B] border-2 border-white/20 p-4 font-bold text-white outline-none focus:border-[#22D3EE] appearance-none"
+                                        className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 font-bold text-white outline-none focus:border-[#22D3EE] focus:bg-white/10 transition-all appearance-none"
                                     >
-                                        <option>Main Stage</option><option>Cultural</option><option>Technical</option><option>Informals</option><option>Festival</option>
+                                        <option className="bg-[#050510]">Main Stage</option><option className="bg-[#050510]">Cultural</option><option className="bg-[#050510]">Technical</option><option className="bg-[#050510]">Informals</option><option className="bg-[#050510]">Festival</option>
                                     </select>
                                 </div>
                                 <button 
                                     type="submit" disabled={isLoading || !imageFile}
-                                    className={`w-full py-5 text-xl font-black uppercase tracking-widest transition-all border-4 flex items-center justify-center gap-4 
-                                    ${isLoading || !imageFile ? 'bg-white/5 border-white/10 text-white/20' : 'bg-[#22D3EE] text-black border-[#22D3EE] hover:bg-transparent hover:text-[#22D3EE] shadow-[0_0_20px_rgba(34,211,238,0.4)]'}`}
+                                    className={`w-full py-6 rounded-2xl text-xl font-black uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-4 group
+                                    ${isLoading || !imageFile ? 'bg-white/5 text-white/20 border border-white/5' : 'bg-[#22D3EE] text-black hover:bg-white shadow-[0_20px_40px_rgba(34,211,238,0.3)] hover:scale-[1.02]'}`}
                                 >
-                                    {isLoading ? "UPLOADING..." : "COMMIT TO ARCHIVE"}
+                                    {isLoading ? "UPLOADING TO VAULT..." : "COMMIT TO ARCHIVE"}
+                                    {!isLoading && <Archive className="w-5 h-5 group-hover:animate-bounce" />}
                                 </button>
                             </div>
 
@@ -241,17 +251,19 @@ export default function GalleryForge() {
                                     onDragOver={handleDragOver}
                                     onDragLeave={handleDragLeave}
                                     onDrop={handleDrop}
-                                    className={`relative w-full aspect-square flex flex-col items-center justify-center border-4 border-dashed transition-all cursor-pointer
-                                    ${isDragging ? 'border-[#9D01E9] bg-[#9D01E9]/10' : (imagePreview ? 'border-[#22D3EE]' : 'border-white/20 hover:border-[#9D01E9]')}`}
+                                    className={`relative w-full aspect-square flex flex-col items-center justify-center border-2 border-dashed rounded-[2.5rem] transition-all cursor-pointer overflow-hidden
+                                    ${isDragging ? 'border-[#9D01E9] bg-[#9D01E9]/10 scale-[0.98]' : (imagePreview ? 'border-[#22D3EE] bg-black' : 'border-white/10 hover:border-[#9D01E9] bg-white/5')}`}
                                 >
                                     <input type="file" ref={fileInputRef} onChange={handleImageChange} accept="image/*" className="hidden" />
                                     {imagePreview ? (
-                                        <img src={imagePreview} alt="Preview" className="absolute inset-0 w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700" />
+                                        <img src={imagePreview} alt="Preview" className="absolute inset-0 w-full h-full object-cover opacity-60 hover:opacity-100 transition-opacity duration-700" />
                                     ) : (
-                                        <div className="text-center p-6 text-white/30">
-                                            <ImageIcon className="w-10 h-10 mx-auto mb-4 opacity-20" />
-                                            <p className="font-black uppercase tracking-widest text-[10px]">Inject Visual Intel</p>
-                                            <p className="text-[7px] mt-2 opacity-50 uppercase font-mono">DRAG & DROP OR CTRL+V</p>
+                                        <div className="text-center p-8">
+                                            <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/10">
+                                                <ImageIcon className="w-6 h-6 text-white/20" />
+                                            </div>
+                                            <p className="font-black uppercase tracking-widest text-xs text-white/40">{isDragging ? "DROP IMAGE" : "Inject Visual"}</p>
+                                            <p className="text-[8px] mt-2 text-white/20 uppercase tracking-[0.2em]">Drag, Drop or Paste</p>
                                         </div>
                                     )}
                                 </div>

@@ -2,9 +2,12 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
-import { Hammer, Zap, ShieldAlert, Image as ImageIcon, Flame, Trash2, Edit3, Plus, List, Star } from "lucide-react";
+import { Hammer, Zap, ShieldAlert, Image as ImageIcon, Flame, Trash2, Edit3, Plus, List, Star, Clock, Sparkles } from "lucide-react";
 import { APP_THEME } from "../../constants/theme";
 import ConfirmModal from "../../common/ConfirmModal";
+import { DatePicker } from "../application/date-picker/date-picker";
+import { parseDate, getLocalTimeZone } from "@internationalized/date";
+import TimePicker from "../../common/TimePicker";
 
 export default function EventForge() {
     const { csrfToken } = useAuth();
@@ -23,8 +26,7 @@ export default function EventForge() {
         title: "",
         category: "Main Stage",
         date: "",
-        capacity: "",
-        date: "",
+        time: "",
         capacity: "",
         description: "",
         isHeadliner: false
@@ -126,6 +128,7 @@ export default function EventForge() {
             title: event.title,
             category: event.category,
             date: event.date,
+            time: event.time || "",
             capacity: event.capacity,
             description: event.description,
             isHeadliner: event.isHeadliner
@@ -143,6 +146,7 @@ export default function EventForge() {
         formData.append("title", eventData.title);
         formData.append("category", eventData.category);
         formData.append("date", eventData.date);
+        formData.append("time", eventData.time);
         formData.append("capacity", eventData.capacity);
         formData.append("description", eventData.description);
         formData.append("isHeadliner", eventData.isHeadliner);
@@ -179,7 +183,7 @@ export default function EventForge() {
     };
 
     const resetForm = () => {
-        setEventData({ title: "", category: "Main Stage", date: "", capacity: "", description: "", isHeadliner: false });
+        setEventData({ title: "", category: "Main Stage", date: "", time: "", capacity: "", description: "", isHeadliner: false });
         setImageFile(null);
         setImagePreview(null);
         setEditingEventId(null);
@@ -191,17 +195,17 @@ export default function EventForge() {
             <div className="flex gap-4">
                 <button 
                     onClick={() => { setActiveMode("manage"); resetForm(); }}
-                    className={`px-8 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center gap-3
+                    className={`px-8 py-3 rounded-xl font-bold uppercase tracking-widest text-[10px] transition-all flex items-center gap-3
                     ${activeMode === "manage" ? "bg-[#E31E6E] text-white shadow-[0_0_20px_rgba(227,30,110,0.4)]" : "bg-white/5 text-white/40 hover:bg-white/10"}`}
                 >
                     <List className="w-4 h-4" /> REGISTRY
                 </button>
                 <button 
                     onClick={() => setActiveMode("add")}
-                    className={`px-8 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center gap-3
-                    ${activeMode === "add" ? "bg-[#22D3EE] text-black shadow-[0_0_20px_rgba(34,211,238,0.4)]" : "bg-white/5 text-white/40 hover:bg-white/10"}`}
+                    className={`px-8 py-3 rounded-xl font-bold uppercase tracking-widest text-[10px] transition-all flex items-center gap-3
+                    ${activeMode === "add" ? "bg-gradient-to-r from-[#22D3EE] to-[#9D01E9] text-white shadow-[0_0_30px_rgba(34,211,238,0.4)]" : "bg-white/5 text-white/40 hover:bg-white/10"}`}
                 >
-                    <Plus className="w-4 h-4" /> {editingEventId ? "UPDATING" : "INITIALIZE"}
+                    <Plus className="w-4 h-4" /> {editingEventId ? "SYNCHRONIZING" : "GENERATE MISSION"}
                 </button>
             </div>
 
@@ -211,9 +215,9 @@ export default function EventForge() {
                         key="manage" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}
                         className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden"
                     >
-                        <div className="bg-white/10 p-4 border-b border-white/10 flex justify-between items-center">
-                            <h4 className="text-xs font-black uppercase tracking-widest text-[#AF94D2]">Operational Registry</h4>
-                            <span className="text-[10px] font-mono opacity-40">{events.length} ACTIVE RECORDS</span>
+                        <div className="bg-white/5 p-4 border-b border-white/5 flex justify-between items-center">
+                            <h4 className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#AF94D2]">Operational Registry</h4>
+                            <span className="text-[9px] font-medium text-[#22D3EE]/60 uppercase tracking-widest">{events.length} ACTIVE RECORDS</span>
                         </div>
                         <div className="overflow-x-auto">
                             <table className="w-full text-left border-collapse">
@@ -242,7 +246,7 @@ export default function EventForge() {
                                                 </div>
                                             </td>
                                             <td className="p-6">
-                                                <span className="text-[10px] font-black px-2 py-1 rounded bg-[#9D01E9]/20 text-[#9D01E9] uppercase border border-[#9D01E9]/30">
+                                                <span className="text-[10px] font-bold px-3 py-1 rounded-full bg-[#9D01E9]/10 text-[#22D3EE] uppercase border border-[#9D01E9]/30">
                                                     {event.category}
                                                 </span>
                                             </td>
@@ -264,18 +268,25 @@ export default function EventForge() {
                     </motion.div>
                 ) : (
                     <motion.div 
-                        key="add" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
-                        className="bg-[#020617] border-4 border-[#E31E6E] p-1 shadow-[12px_12px_0px_#22D3EE] relative"
+                        key="add" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+                        className="bg-black/40 backdrop-blur-3xl border border-white/10 p-1 rounded-[2rem] relative overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)]"
                     >
-                        {/* Brutalist Hazard Header */}
-                        <div className="bg-[#E31E6E] p-4 flex items-center justify-between overflow-hidden relative">
-                            <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, #000 10px, #000 20px)' }} />
-                            <h3 className="text-3xl font-black uppercase italic text-black tracking-widest relative z-10 flex items-center gap-3">
-                                <Hammer className="w-8 h-8" />
-                                {editingEventId ? "INTEL UPDATE" : "THE FORGE"}
-                            </h3>
-                            <button onClick={() => { setActiveMode("manage"); resetForm(); }} className="bg-black text-white px-4 py-1 text-[10px] font-black uppercase tracking-widest z-10 hover:bg-white hover:text-black transition-colors">
-                                ABORT
+                        {/* Premium Header */}
+                        <div className="p-6 flex items-center justify-between relative border-b border-white/5">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-[#E31E6E]/10 rounded-2xl border border-[#E31E6E]/20">
+                                    <Hammer className="w-6 h-6 text-[#E31E6E]" />
+                                </div>
+                                <div>
+                                    <h3 className="text-2xl font-bold text-white flex items-center gap-2" style={{ fontFamily: "'Playfair Display', serif" }}>
+                                        {editingEventId ? "Intel Resynchronization" : "The Event Forge"}
+                                        <Sparkles className="w-4 h-4 text-[#FACC15] animate-pulse" />
+                                    </h3>
+                                    <p className="text-[10px] font-medium text-white/50 uppercase tracking-[0.3em]">Authorized Clearance: System Admin</p>
+                                </div>
+                            </div>
+                            <button onClick={() => { setActiveMode("manage"); resetForm(); }} className="bg-white/5 text-white/40 px-6 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-red-500 hover:text-white transition-all border border-white/10">
+                                ABORT MISSION
                             </button>
                         </div>
 
@@ -283,96 +294,118 @@ export default function EventForge() {
                             {/* LEFT COL: Text Details */}
                             <div className="flex-1 space-y-8 text-white">
                                 <div>
-                                    <label className="text-[10px] uppercase tracking-[0.2em] text-[#E31E6E] font-black flex items-center gap-2 mb-2">
-                                        <Zap className="w-3 h-3" /> Event Designation
+                                    <label className="text-[10px] uppercase tracking-[0.4em] text-[#E31E6E] font-bold flex items-center gap-2 mb-3">
+                                        <Zap className="w-3 h-3" /> Mission Designation
                                     </label>
                                     <input 
                                         required type="text" placeholder="e.g. BATTLE OF BANDS"
                                         value={eventData.title} onChange={e => setEventData({...eventData, title: e.target.value})}
-                                        className="w-full bg-transparent border-b-4 border-white/20 py-3 text-2xl font-black uppercase text-white outline-none focus:border-[#22D3EE] placeholder:text-white/20"
+                                        className="w-full bg-white/[0.03] border border-white/5 rounded-2xl px-6 py-4 text-xl font-bold text-white outline-none focus:border-[#22D3EE]/50 focus:bg-white/[0.06] transition-all placeholder:text-white/5"
                                     />
                                 </div>
                                 <div className="grid grid-cols-2 gap-8">
                                     <div>
-                                        <label className="text-[10px] uppercase tracking-[0.2em] text-[#E31E6E] font-black">Category</label>
+                                        <label className="text-[10px] uppercase tracking-[0.3em] text-[#AF94D2] font-bold mb-3 block">Operational Sector</label>
                                         <select 
                                             value={eventData.category} onChange={e => setEventData({...eventData, category: e.target.value})}
-                                            className="w-full bg-[#1E1B4B] border-2 border-white/20 p-4 font-bold text-white outline-none focus:border-[#22D3EE] mt-2 appearance-none"
+                                            className="w-full bg-white/[0.03] border border-white/5 rounded-2xl p-4 font-bold text-white outline-none focus:border-[#22D3EE]/50 focus:bg-white/[0.06] transition-all appearance-none"
                                         >
-                                            <option>Main Stage</option><option>Cultural</option><option>Technical</option><option>Informals</option>
+                                            <option className="bg-[#0A0A10]">Main Stage</option>
+                                            <option className="bg-[#0A0A10]">Cultural</option>
+                                            <option className="bg-[#0A0A10]">Technical</option>
+                                            <option className="bg-[#0A0A10]">Informals</option>
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="text-[10px] uppercase tracking-[0.2em] text-[#E31E6E] font-black">Max Capacity</label>
+                                        <label className="text-[10px] uppercase tracking-[0.3em] text-[#AF94D2] font-bold mb-3 block">Registry Capacity</label>
                                         <input 
                                             required type="number" placeholder="500"
                                             value={eventData.capacity} onChange={e => setEventData({...eventData, capacity: e.target.value})}
-                                            className="w-full bg-transparent border-b-4 border-white/20 py-3 mt-1 text-2xl font-black text-white outline-none focus:border-[#22D3EE]"
+                                            className="w-full bg-white/[0.03] border border-white/5 rounded-2xl p-4 text-xl font-bold text-white outline-none focus:border-[#22D3EE]/50 focus:bg-white/[0.06] transition-all"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-8">
+                                    <div>
+                                        <label className="text-[10px] uppercase tracking-[0.3em] text-[#AF94D2] font-bold flex items-center gap-2 mb-3">
+                                            <Sparkles className="w-3 h-3 text-[#FACC15]" /> Mission Date
+                                        </label>
+                                        <DatePicker 
+                                            value={eventData.date ? parseDate(eventData.date) : null}
+                                            onChange={(val) => setEventData({ ...eventData, date: val ? val.toString() : "" })}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] uppercase tracking-[0.3em] text-[#AF94D2] font-bold flex items-center gap-2 mb-3">
+                                            <Clock className="w-3 h-3 text-[#22D3EE]" /> Reporting Time
+                                        </label>
+                                        <TimePicker 
+                                            value={eventData.time}
+                                            onChange={(val) => setEventData({ ...eventData, time: val })}
                                         />
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="text-[10px] uppercase tracking-[0.2em] text-[#E31E6E] font-black">Date / Time</label>
-                                    <input 
-                                        required type="text" placeholder="e.g. APR 09 | 10:00 PM"
-                                        value={eventData.date} onChange={e => setEventData({...eventData, date: e.target.value})}
-                                        className="w-full bg-transparent border-b-4 border-white/20 py-3 text-xl font-bold uppercase text-white outline-none focus:border-[#22D3EE]"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="text-[10px] uppercase tracking-[0.2em] text-[#E31E6E] font-black">Briefing (Description)</label>
+                                    <label className="text-[10px] uppercase tracking-[0.3em] text-[#AF94D2] font-black mb-3 block">Mission Briefing</label>
                                     <textarea 
-                                        required rows="4" placeholder="Detail the chaos here..."
+                                        required rows="4" placeholder="Detail the tactical chaos here..."
                                         value={eventData.description} onChange={e => setEventData({...eventData, description: e.target.value})}
-                                        className="w-full bg-[#1E1B4B]/50 border-2 border-white/20 p-4 mt-2 font-mono text-sm text-white outline-none focus:border-[#22D3EE] resize-none"
+                                        className="w-full bg-white/5 border border-white/10 rounded-2xl p-6 font-medium text-sm text-white/80 outline-none focus:border-[#22D3EE] focus:bg-white/10 transition-all resize-none italic"
                                     />
                                 </div>
                             </div>
 
                             {/* RIGHT COL: Image Upload & Submit */}
                             <div className="flex-1 flex flex-col gap-8">
-                                <label className="text-[10px] uppercase tracking-[0.2em] text-[#E31E6E] font-black flex items-center gap-2">
-                                    <ImageIcon className="w-3 h-3" /> Official Poster Injector
+                                <label className="text-[10px] uppercase tracking-[0.3em] text-[#AF94D2] font-black flex items-center gap-2">
+                                    <ImageIcon className="w-3 h-3" /> Visual Intel (Poster)
                                 </label>
                                 <div 
                                     onClick={() => fileInputRef.current.click()}
                                     onDragOver={handleDragOver}
                                     onDragLeave={handleDragLeave}
                                     onDrop={handleDrop}
-                                    className={`relative w-full aspect-square flex flex-col items-center justify-center border-4 border-dashed cursor-pointer transition-all 
-                                    ${isDragging ? 'border-[#E31E6E] bg-[#E31E6E]/10 scale-95 shadow-[0_0_30px_#E31E6E]' : (imagePreview ? 'border-[#22D3EE] bg-black' : 'border-white/20 hover:border-[#E31E6E]')}`}
+                                    className={`relative w-full aspect-square flex flex-col items-center justify-center border-2 border-dashed rounded-3xl transition-all cursor-pointer overflow-hidden
+                                    ${isDragging ? 'border-[#E31E6E] bg-[#E31E6E]/10 scale-[0.98]' : (imagePreview ? 'border-[#22D3EE] bg-black' : 'border-white/10 hover:border-[#E31E6E] bg-white/5')}`}
                                 >
                                     <input type="file" ref={fileInputRef} onChange={handleImageChange} accept="image/*" className="hidden" />
                                     {imagePreview ? (
-                                        <img src={imagePreview} alt="Preview" className="absolute inset-0 w-full h-full object-cover opacity-80 mix-blend-luminosity" />
+                                        <img src={imagePreview} alt="Preview" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" />
                                     ) : (
-                                        <div className="text-center p-6 text-white/40">
-                                            <p className="font-black uppercase tracking-widest text-lg">{isDragging ? "DROP INTEL NOW" : "Inject Intel"}</p>
-                                            <p className="text-[8px] mt-2 opacity-50 uppercase tracking-widest">DRAG, DROP OR CTRL+V</p>
+                                        <div className="text-center p-8">
+                                            <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/10">
+                                                <ImageIcon className="w-6 h-6 text-white/20" />
+                                            </div>
+                                            <p className="font-black uppercase tracking-widest text-xs text-white/40">{isDragging ? "DROP INTEL" : "Inject Visual"}</p>
+                                            <p className="text-[8px] mt-2 text-white/20 uppercase tracking-[0.2em]">Drag, Drop or Paste</p>
                                         </div>
                                     )}
                                 </div>
 
                                 <button 
                                     type="submit" disabled={isLoading}
-                                    className={`w-full py-6 text-2xl font-black uppercase tracking-widest transition-all border-4 flex items-center justify-center gap-4 ${isLoading ? 'bg-gray-600 border-gray-600' : 'bg-[#22D3EE] text-black border-[#22D3EE] hover:bg-transparent hover:text-[#22D3EE] shadow-[0_0_30px_rgba(34,211,238,0.5)]'}`}
+                                    className={`w-full py-6 rounded-2xl text-lg font-bold uppercase tracking-[0.4em] transition-all flex items-center justify-center gap-4 group
+                                    ${isLoading ? 'bg-white/5 text-white/20' : 'bg-[#E31E6E] text-white hover:bg-white hover:text-black shadow-[0_15px_30px_rgba(227,30,110,0.3)]'}`}
                                 >
-                                    {isLoading ? "SYNCING..." : (editingEventId ? "COMMIT CHANGES" : "INITIALIZE EVENT")}
+                                    {isLoading ? "SYNCING VAULT..." : (editingEventId ? "Update Intel" : "Forge Mission")}
+                                    {!isLoading && <Zap className="w-5 h-5 group-hover:translate-y-[-2px] transition-transform" />}
                                 </button>
 
-                                <div className="p-6 border-4 border-dashed border-white/10 flex items-center justify-between">
-                                    <div className="flex flex-col gap-1">
-                                        <label className="text-[10px] uppercase font-black text-[#E31E6E] tracking-widest">Headliner Status</label>
-                                        <p className="text-[8px] opacity-40 uppercase tracking-widest leading-tight">Elevate this intelligence to the Grand Stages section.</p>
+                                <div className="p-6 bg-white/5 rounded-2xl border border-white/10 flex items-center justify-between">
+                                    <div className="flex flex-col">
+                                        <label className="text-[10px] uppercase font-black text-[#FACC15] tracking-[0.2em] mb-1 flex items-center gap-2">
+                                            <Star className="w-3 h-3 fill-[#FACC15]" /> Headliner Status
+                                        </label>
+                                        <p className="text-[8px] text-white/30 uppercase tracking-widest">Mark as Main Stage attraction.</p>
                                     </div>
                                     <button 
                                         type="button"
                                         onClick={() => setEventData({ ...eventData, isHeadliner: !eventData.isHeadliner })}
-                                        className={`w-12 h-6 rounded-full relative transition-all duration-300 ${eventData.isHeadliner ? 'bg-[#FACC15]' : 'bg-white/10'}`}
+                                        className={`w-14 h-7 rounded-full relative transition-all duration-500 p-1 ${eventData.isHeadliner ? 'bg-[#FACC15]/20 border-[#FACC15]/50' : 'bg-white/5 border-white/10'} border`}
                                     >
                                         <motion.div 
-                                            animate={{ x: eventData.isHeadliner ? 24 : 0 }}
-                                            className="absolute left-1 top-1 w-4 h-4 rounded-full bg-white shadow-xl"
+                                            animate={{ x: eventData.isHeadliner ? 28 : 0 }}
+                                            className={`w-5 h-5 rounded-full shadow-lg ${eventData.isHeadliner ? 'bg-[#FACC15]' : 'bg-white/20'}`}
                                         />
                                     </button>
                                 </div>
