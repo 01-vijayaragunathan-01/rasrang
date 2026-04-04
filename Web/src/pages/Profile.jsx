@@ -72,87 +72,148 @@ export default function Profile() {
         }
     };
 
+    // ── 3D TILT LOGIC ──
+    const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+    const handleMouseMove = (e) => {
+        const { clientX, clientY, currentTarget } = e;
+        const { left, top, width, height } = currentTarget.getBoundingClientRect();
+        const x = (clientX - left) / width - 0.5;
+        const y = (clientY - top) / height - 0.5;
+        setMousePos({ x, y });
+    };
+
     if (!user) return <div className="min-h-screen text-white flex items-center justify-center font-black uppercase text-2xl tracking-[0.4em] animate-pulse" style={{ backgroundColor: colors.base }}>Scanning Bio-Metrics...</div>;
 
-    // Determine fields: If onboarded, hide regNo & phoneNo from editing. If onboarding, show them!
+    // Determine fields
     const editFields = user.isOnboarded 
         ? ['clgName', 'dept', 'year', 'branch', 'section']
         : ['regNo', 'phoneNo', 'clgName', 'dept', 'year', 'branch', 'section'];
 
+    const getFieldLabel = (field) => {
+        const labels = {
+            regNo: "Registration No.",
+            phoneNo: "Mobile Protocol",
+            clgName: "Institute / College",
+            dept: "Major Department",
+            year: "Academic Orbit",
+            branch: "Specialization",
+            section: "Sector / Section"
+        };
+        return labels[field] || field;
+    };
+
     return (
         <ProfileLayout activeTab={activeTab} setActiveTab={setActiveTab}>
-            
-            {/* 1. PASSPORT TAB (IDENTITY) */}
             {activeTab === "passport" && (
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-12">
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start py-4">
+                    
+                    {/* ── LEFT: 3D DIGITAL IDENTITY CARD ── */}
                     <motion.div 
-                        initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
-                        className="flex flex-col items-center lg:items-start"
+                        onMouseMove={handleMouseMove}
+                        onMouseLeave={() => setMousePos({ x: 0, y: 0 })}
+                        style={{ 
+                            rotateX: mousePos.y * -15, 
+                            rotateY: mousePos.x * 15,
+                            transformStyle: "preserve-3d" 
+                        }}
+                        className="lg:col-span-2 relative group"
                     >
-                        <div className="relative w-32 h-32 mb-6 flex justify-center items-center">
-                            <div className="absolute inset-0 rounded-full border-[3px] animate-spin" style={{ borderColor: `${colors.highlight} transparent ${colors.primary} transparent`, animationDuration: '3s' }}></div>
-                            <div className="w-28 h-28 bg-black/40 rounded-full flex items-center justify-center text-3xl font-black border border-white/5">
-                                {user.name ? user.name.charAt(0) : '?'}
+                        <div className="absolute -inset-1 bg-gradient-to-r from-[#9D01E9] to-[#E31E6E] rounded-[2.5rem] blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+                        <div className="relative bg-[#0D0620]/90 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] p-10 overflow-hidden min-h-[400px] flex flex-col justify-between">
+                            <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none select-none uppercase font-black text-6xl leading-none">
+                                PASSPORT<br/>RASRANG
                             </div>
-                            <div className="absolute -bottom-2 -right-2 text-[10px] px-3 py-1 font-black uppercase rounded-full shadow-[0_0_10px_rgba(157,1,233,0.3)]" style={{ background: `linear-gradient(to right, ${colors.primary}, ${colors.secondary})` }}>
-                                {user.role}
+                            
+                            <div className="relative z-10" style={{ transform: "translateZ(50px)" }}>
+                                <div className="w-16 h-1 bg-gradient-to-r from-[#9D01E9] to-transparent mb-8" />
+                                <h1 className="text-4xl font-black uppercase tracking-tighter mb-4 leading-tight" 
+                                    style={{ color: colors.textTitle, fontFamily: "'Cinzel', serif" }}>
+                                    {user.name.split(' ')[0]}<br/>
+                                    <span className="text-[#AF94D2]/40">{user.name.split(' ').slice(1).join(' ')}</span>
+                                </h1>
+                                <div className="flex items-center gap-3">
+                                     <span className="bg-[#9D01E9]/20 text-[#9D01E9] px-4 py-1.5 rounded-full font-black text-[10px] tracking-[0.2em] border border-[#9D01E9]/30">
+                                        ID: {user.regNo || "UNLINKED"}
+                                     </span>
+                                     <span className="text-white/20 font-black text-[10px] tracking-widest uppercase">AUTHENTICATED</span>
+                                </div>
                             </div>
-                        </div>
-                        <h1 className="text-3xl md:text-4xl font-black uppercase tracking-tight mb-2" style={{ color: colors.textTitle }}>{user.name}</h1>
-                        <div className="flex gap-2">
-                             <span className="bg-white/5 px-3 py-1 rounded-md font-mono text-[9px] border border-white/10" style={{ color: colors.textSubtitle }}>
-                                ID: {user.regNo || "PENDING"}
-                             </span>
+
+                            <div className="mt-12 relative z-10 flex items-end justify-between" style={{ transform: "translateZ(30px)" }}>
+                                <div className="space-y-4">
+                                    <div className="space-y-0.5">
+                                        <p className="text-[10px] uppercase font-bold text-white/20 tracking-widest">Access Role</p>
+                                        <p className="text-sm font-black uppercase tracking-wider text-[#E4BD8D]">{user.role}</p>
+                                    </div>
+                                    <div className="space-y-0.5">
+                                        <p className="text-[10px] uppercase font-bold text-white/20 tracking-widest">Member Since</p>
+                                        <p className="text-sm font-black uppercase tracking-wider text-white">2026.IV.01</p>
+                                    </div>
+                                </div>
+                                <div className="p-3 bg-white/5 border border-white/10 rounded-2xl">
+                                    <div className="w-12 h-12 flex items-center justify-center opacity-30 text-2xl">🧬</div>
+                                </div>
+                            </div>
                         </div>
                     </motion.div>
 
+                    {/* ── RIGHT: NEON BIO-METRIC VAULT FORM ── */}
                     <motion.div 
-                        initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-                        style={{ backgroundColor: colors.surface, borderColor: 'rgba(255,255,255,0.05)' }}
-                        className="lg:col-span-2 border p-6 md:p-8 rounded-3xl backdrop-blur-md relative overflow-hidden"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="lg:col-span-3 bg-[#0D0620]/40 border border-white/5 rounded-[2.5rem] p-8 md:p-12 backdrop-blur-sm relative"
                     >
-                        <div className="absolute top-0 right-0 w-64 h-64 rounded-full blur-[80px] pointer-events-none" style={{ backgroundColor: `${colors.primary}1A` }} />
-                        
-                        <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-xl font-bold uppercase tracking-widest" style={{ color: colors.highlight }}>
-                                Bio-Metric Vault
-                            </h3>
+                        <div className="flex items-center justify-between mb-12">
+                            <div className="space-y-1">
+                                <h3 className="text-2xl font-black uppercase tracking-widest flex items-center gap-4 text-white">
+                                    <span className="w-12 h-px bg-white/20"></span>
+                                    Bio-Metric Vault
+                                </h3>
+                                <p className="text-[10px] uppercase tracking-[0.3em] text-[#AF94D2]/60 font-bold ml-16 italic">Identity Synchronizer v2.0</p>
+                            </div>
+                            
                             {!user.isOnboarded && (
-                                <span className="bg-[#E31E6E]/20 text-[#E31E6E] px-3 py-1 text-[10px] font-black uppercase tracking-widest border border-[#E31E6E]/50 rounded-full animate-pulse">
-                                    Action Required
-                                </span>
+                                <div className="flex items-center gap-3 px-4 py-2 bg-[#E31E6E]/10 border border-[#E31E6E]/30 rounded-full animate-pulse">
+                                    <div className="w-2 h-2 rounded-full bg-[#E31E6E] shadow-[0_0_10px_#E31E6E]" />
+                                    <span className="text-[10px] font-black uppercase text-[#E31E6E] tracking-widest">Incomplete Profile</span>
+                                </div>
                             )}
                         </div>
                         
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-10">
                             {editFields.map((field) => (
-                                <div key={field} className="space-y-2">
-                                    <label className="text-[10px] uppercase tracking-widest" style={{ color: colors.textMuted }}>
-                                        {field === 'clgName' ? 'College' : field === 'regNo' ? 'Registration / Roll No.' : field === 'phoneNo' ? 'Phone Number' : field}
+                                <div key={field} className="relative group">
+                                    <label className={`absolute left-0 -top-6 text-[9px] uppercase tracking-[0.2em] font-black transition-all duration-300 ${isEditing ? 'text-[#9D01E9]' : 'text-white/20 group-hover:text-white/40'}`}>
+                                        {getFieldLabel(field)}
                                     </label>
                                     <input 
                                         disabled={!isEditing}
                                         value={user[field] || ""}
                                         onChange={(e) => setUser({...user, [field]: e.target.value})}
-                                        style={{ 
-                                            borderColor: isEditing ? colors.primary : 'rgba(255,255,255,0.1)',
-                                            color: isEditing ? colors.textTitle : colors.textMuted
-                                        }}
-                                        className={`w-full bg-black/20 border-b-2 p-3 text-sm outline-none transition-all font-bold 
-                                            ${!isEditing && !user[field] ? 'border-red-500 border-dashed' : ''}
+                                        placeholder={isEditing ? `ENTER ${field.toUpperCase()}` : "NOT SET"}
+                                        className={`w-full bg-white/[0.03] border border-white/10 rounded-xl px-5 py-4 text-sm outline-none transition-all duration-300 font-bold
+                                            ${isEditing ? 'focus:border-[#9D01E9] focus:bg-white/[0.07] focus:shadow-[0_0_20px_rgba(157,1,233,0.15)]' : 'border-dashed opacity-80'}
+                                            ${!isEditing && !user[field] ? 'text-red-400 border-red-500/30' : 'text-white'}
                                         `}
-                                        placeholder={!isEditing && !user[field] ? 'REQUIRED' : ''}
                                     />
+                                    {isEditing && (
+                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-[#9D01E9]/40 animate-ping" />
+                                    )}
                                 </div>
                             ))}
                         </div>
-                        <div className="mt-8 flex justify-end relative z-10">
+
+                        <div className="mt-12 flex justify-end">
                             <button 
                                 onClick={isEditing ? handleSave : () => setIsEditing(true)}
-                                style={{ background: `linear-gradient(to right, ${colors.primary}, ${colors.highlight})`, boxShadow: `0 0 20px ${colors.primaryGlow}` }}
-                                className="px-8 py-3 text-xs font-black uppercase tracking-widest hover:scale-105 transition-all rounded-sm font-massive"
+                                className={`relative group px-10 py-5 overflow-hidden rounded-2xl transition-all duration-500 active:scale-95 ${isEditing ? 'bg-white text-black shadow-[0_10px_40px_rgba(255,255,255,0.2)]' : 'bg-transparent text-white'}`}
                             >
-                                {isEditing ? "Sign & Save" : "Modify Credentials"}
+                                {!isEditing && (
+                                    <div className="absolute inset-0 bg-gradient-to-r from-[#9D01E9] to-[#E31E6E] group-hover:opacity-100 opacity-90 transition-opacity" />
+                                )}
+                                <span className={`relative z-10 font-black uppercase tracking-[0.3em] text-[10px]`}>
+                                    {isEditing ? "Finalize Sync" : "Access Console"}
+                                </span>
                             </button>
                         </div>
                     </motion.div>

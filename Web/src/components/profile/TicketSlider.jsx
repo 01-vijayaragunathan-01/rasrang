@@ -132,48 +132,71 @@ export default function TicketSlider({ tickets }) {
                         <Shield className="w-3.5 h-3.5 text-[#9D01E9]" />
                         Master Day Passes
                     </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                         {masterTickets.map((master, idx) => (
                             <motion.div
                                 key={`master-${idx}`}
-                                whileHover={{ scale: 1.02, y: -4 }}
-                                transition={{ type: "spring", stiffness: 300 }}
+                                whileHover={{ scale: 1.02, y: -8 }}
+                                transition={{ type: "spring", stiffness: 300, damping: 20 }}
                                 onClick={() => setSelectedMaster(master)}
-                                style={{ background: `linear-gradient(to bottom right, ${colors.surface}, ${colors.primary}44)`, borderColor: `${colors.primary}66`, boxShadow: `0 10px 30px ${colors.primaryGlow}` }}
-                                className="rounded-3xl p-1 relative border overflow-hidden cursor-pointer group"
+                                className="rounded-[2.5rem] p-0.5 relative group cursor-pointer overflow-hidden"
+                                style={{ background: `linear-gradient(135deg, ${colors.primary}44, ${colors.highlight}44)` }}
                             >
-                                <div className="absolute top-0 right-0 w-32 h-32 blur-[50px]" style={{ backgroundColor: `${colors.highlight}22` }} />
-                                <div className="backdrop-blur-xl rounded-[23px] flex flex-col items-center p-6 relative z-10" style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}>
-                                    <div className="w-full text-center border-b border-white/10 pb-4 mb-4">
-                                        <span className="font-black text-lg uppercase tracking-widest" style={{ background: `linear-gradient(to right, ${colors.highlight}, ${colors.primary})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                                {/* ── Holographic Glint ── */}
+                                <motion.div 
+                                    animate={{ 
+                                        left: ["-100%", "200%"],
+                                        top: ["-100%", "200%"]
+                                    }}
+                                    transition={{ duration: 4, repeat: Infinity, ease: "linear", repeatDelay: 1 }}
+                                    className="absolute w-1/2 h-[200%] bg-white/20 blur-[60px] -rotate-45 pointer-events-none z-20"
+                                />
+
+                                <div className="backdrop-blur-3xl rounded-[2.4rem] flex flex-col items-center p-8 relative z-10 h-full" style={{ backgroundColor: 'rgba(13,6,32,0.7)' }}>
+                                    <div className="absolute top-0 right-0 p-4 opacity-[0.03] text-4xl font-black italic select-none">
+                                        MASTER
+                                    </div>
+
+                                    <div className="w-full text-center border-b border-white/10 pb-6 mb-6">
+                                        <span className="font-black text-2xl uppercase tracking-tighter" 
+                                            style={{ background: `linear-gradient(to right, ${colors.highlight}, ${colors.primary})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontFamily: "'Cinzel', serif" }}>
                                             Master Pass
                                         </span>
-                                        <p className="text-xs font-mono mt-1 flex items-center justify-center gap-2" style={{ color: colors.accent }}>
-                                            <CalendarDays className="w-3 h-3" /> {master.date}
-                                        </p>
+                                        <div className="flex items-center justify-center gap-2 mt-2">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-[#22D3EE] shadow-[0_0_8px_#22D3EE]" />
+                                            <p className="text-[10px] font-black tracking-[0.3em] uppercase text-white/40">
+                                                {master.date}
+                                            </p>
+                                        </div>
                                     </div>
 
-                                    <div className="bg-white p-2 rounded-xl mb-4 group-hover:shadow-[0_0_25px_rgba(157,1,233,0.3)] transition-shadow" style={{ boxShadow: `0 0 15px ${colors.primaryGlow}` }}>
-                                        <img src={master.qrImage} alt="Master QR" className="w-32 h-32 object-contain" />
+                                    <div className="relative mb-6">
+                                        <div className="absolute -inset-4 bg-[#9D01E9]/10 rounded-full blur-2xl group-hover:bg-[#9D01E9]/20 transition-all" />
+                                        <div className="bg-white p-3 rounded-2xl relative z-10 shadow-[0_0_40px_rgba(157,1,233,0.2)]">
+                                            <img src={master.qrImage} alt="Master QR" className="w-32 h-32 object-contain" />
+                                        </div>
                                     </div>
 
-                                    <div className="w-full">
-                                        <p className="text-[10px] text-white/40 uppercase tracking-widest mb-2">
-                                            Valid for {master.events.length} event{master.events.length > 1 ? 's' : ''}
-                                        </p>
-                                        <div className="flex flex-wrap gap-1.5">
-                                            {master.events.slice(0, 3).map((ev, i) => (
-                                                <span key={i} className="text-[10px] bg-white/5 px-2 py-1 rounded-md border border-white/5" style={{ color: colors.textMuted }}>{ev}</span>
+                                    <div className="w-full space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <p className="text-[9px] text-white/30 uppercase tracking-[0.25em] font-black">
+                                                Active Privileges
+                                            </p>
+                                            <span className="text-[10px] font-bold text-[#E4BD8D]">{master.events.length} EVENTS</span>
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {master.events.slice(0, 2).map((ev, i) => (
+                                                <span key={i} className="text-[9px] bg-white/5 px-3 py-1.5 rounded-lg border border-white/5 font-bold text-white/60 truncate max-w-[120px]">{ev}</span>
                                             ))}
-                                            {master.events.length > 3 && (
-                                                <span className="text-[10px] px-2 py-1 rounded-md" style={{ color: colors.accent }}>+{master.events.length - 3} more</span>
+                                            {master.events.length > 2 && (
+                                                <span className="text-[9px] px-3 py-1.5 rounded-lg bg-[#9D01E9]/10 border border-[#9D01E9]/20 font-black text-[#AF94D2]">+{master.events.length - 2}</span>
                                             )}
                                         </div>
                                     </div>
 
-                                    <div className="w-full mt-4 py-2.5 bg-white/5 border border-white/10 text-center text-[10px] font-bold uppercase tracking-widest rounded-lg text-white/40 group-hover:text-white group-hover:bg-white/10 transition-all flex items-center justify-center gap-2">
-                                        Tap to View Details
-                                        <ChevronRight className="w-3 h-3" />
+                                    <div className="w-full mt-8 py-4 bg-white/5 border border-white/10 text-center text-[10px] font-black uppercase tracking-[0.3em] rounded-2xl text-white/30 group-hover:text-white group-hover:bg-white/10 transition-all flex items-center justify-center gap-3">
+                                        Initialize Protocol
+                                        <ChevronRight className="w-3.5 h-3.5" />
                                     </div>
                                 </div>
                             </motion.div>
