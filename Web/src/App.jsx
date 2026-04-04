@@ -6,6 +6,7 @@ import Gallery from "./pages/Gallery";
 import Contributors from "./pages/Contributors";
 import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
+import NotFound from "./pages/NotFound";
 import Particles from "./pages/home/Particles";
 import Footer from "./common/Footer";
 import StaggeredMenu from "./common/StaggeredMenu";
@@ -105,7 +106,7 @@ function MainContent() {
             </ProtectedRoute>
           } />
           <Route path="/login" element={<Auth />} />
-          <Route path="*" element={<Home />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
 
