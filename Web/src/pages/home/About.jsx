@@ -83,19 +83,19 @@ export default function About() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
                     {/* Left: Text Context */}
                     <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="flex flex-col gap-6">
-                        <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full border bg-white/5 w-fit" style={{ borderColor: `${theme.colors.primary}50` }}>
+                        <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full border bg-white/5 w-fit font-accent" style={{ borderColor: `${theme.colors.primary}50` }}>
                             <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: theme.colors.glow }} />
                             <span className="text-[10px] md:text-xs tracking-[0.2em] uppercase font-bold" style={{ color: theme.colors.textMuted }}>
                                 SRM Trichy Campus Exclusive
                             </span>
                         </div>
 
-                        <h2 className="text-4xl md:text-5xl lg:text-6xl font-black uppercase leading-tight tracking-wide" style={{ color: theme.colors.textTitle }}>
+                        <h2 className="text-4xl md:text-5xl lg:text-6xl font-black uppercase leading-tight tracking-wide font-massive" style={{ color: theme.colors.textTitle }}>
                             The Ultimate <br />
                             <span style={{ color: "transparent", WebkitTextStroke: `1px ${theme.colors.accent}` }}>Convergence</span>
                         </h2>
 
-                        <p className="text-base leading-relaxed max-w-lg" style={{ color: theme.colors.textDescription }}>
+                        <p className="text-base leading-relaxed max-w-lg font-body" style={{ color: theme.colors.textDescription }}>
                             RasRang is the heartbeat of the entire SRM Trichy Campus. Secure your festival pass to access 30+ events, electrifying pro-shows, and a cultural phenomenon spanning two unforgettable nights.
                         </p>
                     </motion.div>
@@ -115,7 +115,7 @@ export default function About() {
                             <div className="relative z-10 w-full h-full p-6 flex flex-col justify-between">
                                 <div className="flex justify-between items-start">
                                     <div>
-                                        <h4 className="text-3xl font-normal tracking-widest text-white uppercase" style={{ fontFamily: '"Round 8 Four", sans-serif', color: theme.colors.accent }}>RasRang '26</h4>
+                                        <h4 className="text-3xl font-normal tracking-widest text-white uppercase font-massive" style={{ color: theme.colors.accent }}>RasRang '26</h4>
                                         <p className="text-[10px] tracking-[0.3em] uppercase mt-1 opacity-80" style={{ color: theme.colors.textTitle }}>VIP Festival Pass</p>
                                     </div>
                                     <div className="w-10 h-10 border border-white/30 rounded-full flex items-center justify-center transform rotate-12" style={{ borderColor: theme.colors.accent }}>
@@ -156,7 +156,7 @@ export default function About() {
                 ========================================== */}
                 <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center">
                     
-                    <h3 className="text-2xl font-black uppercase tracking-[0.3em] mb-8" style={{ color: theme.colors.accent }}>
+                    <h3 className="text-2xl font-black uppercase tracking-[0.3em] mb-8 font-massive" style={{ color: theme.colors.accent }}>
                         The Curtains Open In
                     </h3>
 
@@ -165,9 +165,9 @@ export default function About() {
                         {Object.entries(timeLeft).map(([label, value]) => (
                             <div key={label} className="flex flex-col items-center">
                                 <div className="w-16 h-16 md:w-24 md:h-24 bg-[#0A0A0A]/80 backdrop-blur-md border border-white/10 rounded-lg flex items-center justify-center shadow-[0_0_30px_rgba(157,1,233,0.1)]">
-                                    <span className="text-2xl md:text-4xl font-black text-white">{value.toString().padStart(2, '0')}</span>
+                                    <span className="text-2xl md:text-4xl font-black text-white font-massive">{value.toString().padStart(2, '0')}</span>
                                 </div>
-                                <span className="text-[10px] md:text-xs uppercase tracking-[0.2em] mt-3" style={{ color: theme.colors.accent }}>{label}</span>
+                                <span className="text-[10px] md:text-xs uppercase tracking-[0.2em] mt-3 font-accent" style={{ color: theme.colors.accent }}>{label}</span>
                             </div>
                         ))}
                     </div>
@@ -185,7 +185,7 @@ export default function About() {
                                     <svg className="w-8 h-8 opacity-80 mb-2" style={{ color: theme.colors.accent }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
                                     </svg>
-                                    <p className="text-xs uppercase tracking-widest text-white/90 font-bold" style={{ color: theme.colors.textTitle }}>Main Stage Act</p>
+                                    <p className="text-xs uppercase tracking-widest text-white/90 font-bold font-massive" style={{ color: theme.colors.textTitle }}>Main Stage Act</p>
                                     <p className="text-[9px] uppercase tracking-widest text-white/50 mt-1">Unlocks in {item * 5} Days</p>
                                 </div>
                             </div>
@@ -198,7 +198,7 @@ export default function About() {
                 ========================================== */}
                 <div className="relative w-full h-[400px] border border-white/10 rounded-3xl overflow-hidden flex items-center justify-center group"
                      style={{ background: `radial-gradient(circle at center, ${theme.colors.bg}, #0B061A)` }}>
-                    <h3 className="absolute top-8 text-center text-sm uppercase tracking-[0.4em] z-20" style={{ color: theme.colors.accent }}>The Grand Stages</h3>
+                    <h3 className="absolute top-8 text-center text-sm uppercase tracking-[0.4em] z-20 font-cultural" style={{ color: theme.colors.accent }}>The Grand Stages</h3>
                     
                     {/* Glowing Light Beams */}
                     <svg className="absolute inset-0 w-full h-full z-10 pointer-events-none opacity-60">
@@ -235,7 +235,7 @@ export default function About() {
                                 {/* Tooltip on Hover */}
                                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 opacity-0 group-hover/node:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap">
                                     <div className="bg-[#0A0A0A] border border-white/20 px-4 py-2 rounded-lg text-center shadow-xl">
-                                        <p className="text-xs uppercase tracking-widest text-white font-bold">{college.name}</p>
+                                        <p className="text-xs uppercase tracking-widest text-white font-bold font-massive">{college.name}</p>
                                         <p className="text-[9px] uppercase tracking-widest" style={{ color: theme.colors.accent }}>Connected</p>
                                     </div>
                                     {/* Tooltip triangle arrow */}

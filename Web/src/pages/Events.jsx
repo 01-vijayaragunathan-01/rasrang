@@ -93,15 +93,15 @@ function HeadlinerCard({ headliner, theme }) {
                             </svg>
                         </div>
                         
-                        <h3 className="text-xl md:text-3xl font-black uppercase tracking-[0.2em] mb-4 text-white">Headline Act Sealed</h3>
-                        <p className="text-sm uppercase tracking-widest mb-6" style={{ color: theme.colors.accent }}>The curtain rises in</p>
+                        <h3 className="text-xl md:text-3xl font-black uppercase tracking-[0.2em] mb-4 text-white font-massive">Headline Act Sealed</h3>
+                        <p className="text-sm uppercase tracking-widest mb-6 font-accent" style={{ color: theme.colors.accent }}>The curtain rises in</p>
                         
                         {/* Countdown Glass Box */}
                         <div className="flex gap-3 md:gap-6 bg-white/10 backdrop-blur-md border border-white/20 px-6 py-4 rounded-2xl shadow-[0_0_30px_rgba(197,48,153,0.3)]">
                             {Object.entries(timeLeft).map(([unit, val]) => (
                                 <div key={unit} className="flex flex-col items-center w-12 md:w-16">
-                                    <span className="text-2xl md:text-4xl font-black text-white">{val}</span>
-                                    <span className="text-[10px] uppercase font-bold mt-1 text-white/60">{unit}</span>
+                                    <span className="text-2xl md:text-4xl font-black text-white font-massive">{val}</span>
+                                    <span className="text-[10px] uppercase font-bold mt-1 text-white/60 font-accent">{unit}</span>
                                 </div>
                             ))}
                         </div>
@@ -113,15 +113,15 @@ function HeadlinerCard({ headliner, theme }) {
                         initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.5 }}
                         className="absolute inset-0 flex flex-col justify-end p-8 md:p-12 bg-gradient-to-t from-[#020617] via-[#020617]/50 to-transparent"
                     >
-                        <span className="text-sm font-bold uppercase tracking-[0.3em] mb-2" style={{ color: theme.colors.accent }}>Main Stage</span>
-                        <h2 className="text-4xl md:text-6xl font-black uppercase text-white mb-3 tracking-wide drop-shadow-lg">
+                        <span className="text-sm font-bold uppercase tracking-[0.3em] mb-2 font-accent" style={{ color: theme.colors.accent }}>Main Stage</span>
+                        <h2 className="text-4xl md:text-6xl font-black uppercase text-white mb-3 tracking-wide drop-shadow-lg font-massive">
                             {headliner.name}
                         </h2>
-                        <p className="text-sm md:text-lg text-white/80 max-w-2xl mb-8 leading-relaxed">
+                        <p className="text-sm md:text-lg text-white/80 max-w-2xl mb-8 leading-relaxed font-body">
                             {headliner.description}
                         </p>
                         <button 
-                            className="w-fit px-10 py-4 rounded-full text-sm font-black uppercase tracking-[0.2em] text-[#020617] transition-all duration-300 hover:scale-105"
+                            className="w-fit px-10 py-4 rounded-full text-sm font-black uppercase tracking-[0.2em] text-[#020617] transition-all duration-300 hover:scale-105 font-massive"
                             style={{ 
                                 background: `linear-gradient(135deg, #22D3EE, #C53099)`, // Vibrant Cyan to Pink
                                 boxShadow: `0 10px 30px rgba(197, 48, 153, 0.4)`
@@ -170,16 +170,16 @@ function EventCard({ event, theme, index }) {
                 <div className="absolute inset-0 bg-gradient-to-t from-[#9D01E9]/80 to-transparent opacity-0 group-hover:opacity-60 transition-opacity duration-500" />
                 
                 {/* Floating Date Badge (Looks like a ticket stub) */}
-                <div className="absolute top-4 right-4 bg-[#FACC15] text-black px-4 py-2 rounded-full transform rotate-3 group-hover:rotate-0 transition-transform duration-300 shadow-[0_0_15px_rgba(250,204,21,0.6)]">
+                <div className="absolute top-4 right-4 bg-[#FACC15] text-black px-4 py-2 rounded-full transform rotate-3 group-hover:rotate-0 transition-transform duration-300 shadow-[0_0_15px_rgba(250,204,21,0.6)] font-massive">
                     <span className="text-xs font-black uppercase tracking-widest">{event.date}</span>
                 </div>
 
                 {/* Content Section (Pushed to the bottom) */}
                 <div className="absolute bottom-0 left-0 w-full p-6 z-10 flex flex-col justify-end">
-                    <span className="text-[10px] uppercase tracking-[0.3em] font-black text-[#22D3EE] mb-2 drop-shadow-md transform -translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+                    <span className="text-[10px] uppercase tracking-[0.3em] font-black text-[#22D3EE] mb-2 drop-shadow-md transform -translate-y-2 group-hover:translate-y-0 transition-transform duration-300 font-accent">
                         ✦ {event.category} ✦
                     </span>
-                    <h3 className="text-3xl font-black text-white mb-4 leading-tight transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]">
+                    <h3 className="text-3xl font-black text-white mb-4 leading-tight transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] font-massive">
                         {event.title}
                     </h3>
 
@@ -239,10 +239,10 @@ export default function Events() {
                 {/* SECTION A: The Grand Stages (Headliners) */}
                 <div className="space-y-10">
                     <div className="text-center">
-                        <h2 className="events-header text-4xl md:text-6xl font-black uppercase tracking-widest text-white mb-4 drop-shadow-[0_0_20px_rgba(157,1,233,0.5)]">
+                        <h2 className="events-header text-4xl md:text-6xl font-black uppercase tracking-widest text-white mb-4 drop-shadow-[0_0_20px_rgba(157,1,233,0.5)] font-massive">
                             The Grand Stages
                         </h2>
-                        <p className="events-header text-sm md:text-base uppercase tracking-[0.4em] font-bold" style={{ color: theme.colors.accent }}>
+                        <p className="events-header text-sm md:text-base uppercase tracking-[0.4em] font-bold font-accent" style={{ color: theme.colors.accent }}>
                             Experience the Magic
                         </p>
                     </div>
@@ -263,7 +263,7 @@ export default function Events() {
                             <button
                                 key={cat}
                                 onClick={() => setActiveCategory(cat)}
-                                className={`relative px-6 py-3 rounded-full text-xs font-black uppercase tracking-[0.2em] whitespace-nowrap transition-all duration-300 border
+                                className={`relative px-6 py-3 rounded-full text-xs font-black uppercase tracking-[0.2em] whitespace-nowrap transition-all duration-300 border font-massive
                                     ${activeCategory === cat 
                                         ? 'bg-white text-[#020617] border-white shadow-[0_0_20px_rgba(255,255,255,0.4)]' 
                                         : 'bg-transparent text-white/70 border-white/20 hover:border-white/50 hover:text-white'}`}
@@ -282,9 +282,9 @@ export default function Events() {
                         >
                             {Array.from({ length: 10 }).map((_, i) => (
                                 <div key={i} className="flex gap-8 items-center">
-                                    <span className="text-xl md:text-3xl font-black uppercase tracking-widest italic">Feel The Rhythm</span>
+                                    <span className="text-xl md:text-3xl font-black uppercase tracking-widest italic font-massive">Feel The Rhythm</span>
                                     <span className="text-yellow-300 text-2xl">✦</span>
-                                    <span className="text-xl md:text-3xl font-black uppercase tracking-widest italic">Where Culture Meets The Stars</span>
+                                    <span className="text-xl md:text-3xl font-black uppercase tracking-widest italic font-cultural">Where Culture Meets The Stars</span>
                                     <span className="text-[#22D3EE] text-2xl">✦</span>
                                 </div>
                             ))}

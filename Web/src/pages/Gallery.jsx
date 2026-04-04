@@ -52,7 +52,7 @@ function GalleryCard({ item, theme, onClick }) {
                 
                 {/* Caption */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
-                    <span className="text-white text-sm tracking-[0.2em] uppercase font-black px-4 py-2 rounded-full backdrop-blur-md border border-white/20"
+                    <span className="text-white text-sm tracking-[0.2em] uppercase font-black px-4 py-2 rounded-full backdrop-blur-md border border-white/20 font-massive"
                           style={{ background: `${theme.colors.primary}40` }}>
                         {item.caption}
                     </span>
@@ -83,16 +83,16 @@ export default function Gallery() {
                     viewport={{ once: true }}
                     className="text-center mb-20"
                 >
-                    <p className="text-xs tracking-[0.5em] uppercase mb-4 font-bold" style={{ color: theme.colors.accent }}>
+                    <p className="text-xs tracking-[0.5em] uppercase mb-4 font-bold font-accent" style={{ color: theme.colors.accent }}>
                         ✦ Visual Archives ✦
                     </p>
-                    <h2 className="text-5xl md:text-7xl font-black uppercase tracking-wider" style={{ color: theme.colors.textTitle }}>
+                    <h2 className="text-5xl md:text-7xl font-black uppercase tracking-wider font-massive" style={{ color: theme.colors.textTitle }}>
                         The{' '}
                         <span className="text-transparent bg-clip-text" style={{ backgroundImage: `linear-gradient(90deg, ${theme.colors.primary}, ${theme.colors.secondary})` }}>
                             Gallery
                         </span>
                     </h2>
-                    <p className="mt-5 text-lg italic opacity-80" style={{ color: theme.colors.textMuted }}>
+                    <p className="mt-5 text-lg italic opacity-80 font-accent" style={{ color: theme.colors.textMuted }}>
                         Moments frozen in celestial light.
                     </p>
                 </motion.div>
@@ -127,7 +127,7 @@ export default function Gallery() {
                             </div>
 
                             <div className="mt-6 text-center">
-                                <h4 className="tracking-[0.2em] uppercase text-lg font-black" style={{ color: theme.colors.accent }}>
+                                <h4 className="tracking-[0.2em] uppercase text-lg font-black font-massive" style={{ color: theme.colors.accent }}>
                                     {lightbox.caption}
                                 </h4>
                                 <button 

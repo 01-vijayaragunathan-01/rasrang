@@ -56,10 +56,10 @@ export default function PastEvents() {
                     viewport={{ once: true }}
                     className="text-center mb-24"
                 >
-                    <p className="text-xs tracking-[0.5em] uppercase mb-4 font-bold" style={{ color: theme.colors.accent }}>
+                    <p className="text-xs tracking-[0.5em] uppercase mb-4 font-bold font-accent" style={{ color: theme.colors.accent }}>
                         ✦ The Archives ✦
                     </p>
-                    <h2 className="text-5xl md:text-7xl font-black uppercase tracking-wider" style={{ color: theme.colors.textTitle }}>
+                    <h2 className="text-5xl md:text-7xl font-black uppercase tracking-wider font-massive" style={{ color: theme.colors.textTitle }}>
                         Past{' '}
                         <span className="text-transparent bg-clip-text" style={{ backgroundImage: `linear-gradient(90deg, ${theme.colors.primary}, ${theme.colors.secondary})` }}>
                             Editions
@@ -103,14 +103,14 @@ export default function PastEvents() {
                                 {/* Year Badge */}
                                 <div className="absolute top-4 left-4 px-4 py-1.5 rounded-full backdrop-blur-md border" 
                                      style={{ background: `${theme.colors.primary}30`, borderColor: `${theme.colors.primary}50` }}>
-                                    <span className="text-xs tracking-[0.3em] font-black" style={{ color: theme.colors.accent }}>
+                                    <span className="text-xs tracking-[0.3em] font-black font-massive" style={{ color: theme.colors.accent }}>
                                         {event.year}
                                     </span>
                                 </div>
 
                                 {/* Highlight */}
                                 <div className="absolute bottom-4 right-4">
-                                    <span className="text-[10px] tracking-widest font-bold" style={{ color: theme.colors.textMuted }}>
+                                    <span className="text-[10px] tracking-widest font-bold font-accent" style={{ color: theme.colors.textMuted }}>
                                         {event.highlight}
                                     </span>
                                 </div>
@@ -118,7 +118,7 @@ export default function PastEvents() {
 
                             {/* Content */}
                             <div className="p-6">
-                                <h3 className="text-xl font-black mb-3 transition-colors duration-300"
+                                <h3 className="text-xl font-black mb-3 transition-colors duration-300 font-massive"
                                     style={{ color: theme.colors.textTitle }}
                                     onMouseEnter={(e) => e.target.style.color = theme.colors.accent}
                                     onMouseLeave={(e) => e.target.style.color = theme.colors.textTitle}

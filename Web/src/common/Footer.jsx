@@ -23,8 +23,8 @@ export default function Footer() {
             <div className="flex items-center gap-4 mb-6">
               <img src="/Assets/rasrang.png" alt="RasRang Logo" className="h-14 w-auto object-contain" />
               <div>
-                <p className="text-2xl font-black tracking-[0.2em] uppercase"
-                  style={{ fontFamily: "'round_8four', sans-serif", color: theme.colors.accent }}>RASRANG</p>
+                <p className="text-2xl font-black tracking-[0.2em] uppercase font-massive"
+                  style={{ color: theme.colors.accent }}>RASRANG</p>
                 <p className="text-[9px] tracking-[0.4em] uppercase" style={{ color: theme.colors.textMuted }}>
                   SRM Trichy &bull; Cultural Fest '26
                 </p>

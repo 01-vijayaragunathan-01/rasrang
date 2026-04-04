@@ -57,11 +57,11 @@ export default function Hero() {
                         
                         {/* Event Date Block */}
                         <div>
-                            <p className="text-[10px] tracking-[0.4em] uppercase mb-2 opacity-70" style={{ color: theme.colors.textSubtitle }}>
+                            <p className="text-[10px] tracking-[0.4em] uppercase mb-2 opacity-70 font-accent" style={{ color: theme.colors.textSubtitle }}>
                                 Save The Date
                             </p>
                             <span 
-                                className="text-3xl md:text-4xl xl:text-5xl tracking-widest uppercase font-black leading-tight"
+                                className="text-3xl md:text-4xl xl:text-5xl tracking-widest uppercase font-black leading-tight font-massive"
                                 style={{ color: theme.colors.accent, textShadow: `0 0 20px ${theme.colors.primary}40` }}
                             >
                                 APR 09
@@ -73,7 +73,7 @@ export default function Hero() {
                         <div className="h-px w-16" style={{ background: theme.colors.primary }} />
 
                         {/* Body Copy */}
-                        <p className="text-sm leading-relaxed tracking-wide opacity-80 max-w-[280px]" style={{ color: theme.colors.textDescription }}>
+                        <p className="text-sm leading-relaxed tracking-wide opacity-80 max-w-[280px] font-body" style={{ color: theme.colors.textDescription }}>
                             A grand celebration of art, music, dance & theatre — where every performance tells a story etched in light.
                         </p>
                     </div>
@@ -105,7 +105,7 @@ export default function Hero() {
                     <div className="order-3 lg:order-3 lg:col-span-3 flex flex-col items-center lg:items-end text-center lg:text-right gap-6">
                         
                         {/* Poster Detail: Coordinates/Location or Subtitle */}
-                        <p className="text-[10px] md:text-xs tracking-[0.3em] uppercase opacity-70" style={{ color: theme.colors.textSubtitle }}>
+                        <p className="text-[10px] md:text-xs tracking-[0.3em] uppercase opacity-70 font-cultural" style={{ color: theme.colors.textSubtitle }}>
                             Where Culture Meets the Stars <br/> Edition 2026
                         </p>
 
@@ -113,7 +113,7 @@ export default function Hero() {
                             {/* Explore Events - Primary Button */}
                             <a
                                 href="/events"
-                                className="w-full py-4 text-xs font-black tracking-[0.25em] uppercase text-center transition-all duration-300 hover:-translate-y-1 rounded-sm"
+                                className="w-full py-4 text-xs font-black tracking-[0.25em] uppercase text-center transition-all duration-300 hover:-translate-y-1 rounded-sm font-massive"
                                 style={{
                                     color: theme.colors.textTitle,
                                     background: `linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.secondary})`,
@@ -126,7 +126,7 @@ export default function Hero() {
                             {/* Past Memories - Secondary Border Button */}
                             <a
                                 href="#past-events"
-                                className="w-full py-4 text-xs font-black tracking-[0.25em] uppercase text-center transition-all duration-300 hover:-translate-y-1 hover:bg-white/5 rounded-sm border"
+                                className="w-full py-4 text-xs font-black tracking-[0.25em] uppercase text-center transition-all duration-300 hover:-translate-y-1 hover:bg-white/5 rounded-sm border font-massive"
                                 style={{ 
                                     color: theme.colors.textTitle,
                                     borderColor: theme.colors.primary,

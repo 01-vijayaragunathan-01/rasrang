@@ -12,6 +12,7 @@ body {
   background-color: #000;
   color: #fff;
   overflow-x: hidden;
+  font-family: 'Inter Tight', sans-serif;
 }
 
 /* Custom scrollbar — Midnight Stage */
@@ -49,14 +50,16 @@ body {
   50% { opacity: 1; transform: scale(1.3); }
 }
 
-@font-face {
-    font-family: 'round_8four';
-    src: url('./font/ROUND 8-FOUR/Webfont/Web Font Kit/round8-four-webfont.woff2') format('woff2'),
-         url('./font/ROUND 8-FOUR/Webfont/Web Font Kit/round8-four-webfont.woff') format('woff'),
-         url('./font/ROUND 8-FOUR/Webfont/Web Font Kit/round8-four-webfont.ttf') format('truetype');
-    font-weight: normal;
-    font-style: normal;
-}
+/* Remove @font-face for round_8four as it was causing UX issues */
+/* Keep only for reference if needed, but primary is Syne */
+
+/* Great Vibes & Syne are loaded via Google Fonts in App.jsx */
+
+/* Typography Utilities */
+.font-massive { font-family: 'Syne', sans-serif; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; }
+.font-accent { font-family: 'Great Vibes', cursive; font-size: 1.25em; }
+.font-cultural { font-family: 'Cinzel', serif; }
+.font-body { font-family: 'Inter Tight', sans-serif; }
 
 .perspective-1000 {
     perspective: 1000px;
