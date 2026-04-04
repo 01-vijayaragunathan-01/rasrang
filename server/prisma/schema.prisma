@@ -42,6 +42,7 @@ model Event {
   description   String
   date          String
   capacity      Int
+  imageUrl      String?
   registrations Registration[]
 }
 

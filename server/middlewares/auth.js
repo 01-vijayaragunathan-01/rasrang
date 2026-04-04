@@ -73,3 +73,11 @@ export const isSuperAdmin = (req, res, next) => {
         res.status(403).json({ message: 'Require Platform Super Admin Role!' });
     }
 };
+
+export const isPlatformAdmin = (req, res, next) => {
+    if (req.user && req.user.role === 'COORDINATOR' && req.user.canManagePrivileges) {
+        next();
+    } else {
+        res.status(403).json({ error: 'Access denied: Platform Admin privileges required.' });
+    }
+};

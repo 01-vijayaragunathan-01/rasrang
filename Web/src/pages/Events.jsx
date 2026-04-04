@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
 import { useTheme } from "../context/ThemeContext";
 import gsap from "gsap";
+import FestivalModal from "../common/FestivalModal";
 
 // --- MOCK DATA ---
 const HEADLINERS = [
@@ -136,7 +137,7 @@ function HeadlinerCard({ headliner, theme }) {
     );
 }
 
-function EventCard({ event, theme, index }) {
+function EventCard({ event, theme, index, onClick }) {
     const x = useMotionValue(0);
     const y = useMotionValue(0);
     const rotateX = useTransform(y, [-1, 1], [10, -10]);
@@ -157,6 +158,7 @@ function EventCard({ event, theme, index }) {
             initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }} transition={{ duration: 0.5, delay: index * 0.1 }}
             className={`perspective-1000 w-full h-[450px] ${staggerClass}`}
             onMouseMove={handleMouseMove} onMouseLeave={() => { x.set(0); y.set(0); }}
+            onClick={onClick}
         >
             <motion.div 
                 style={{ rotateX, rotateY }}
@@ -202,6 +204,7 @@ function EventCard({ event, theme, index }) {
 export default function Events() {
     const { theme } = useTheme();
     const [activeCategory, setActiveCategory] = useState("All");
+    const [selectedEvent, setSelectedEvent] = useState(null);
     const containerRef = useRef(null);
 
     useEffect(() => {
@@ -274,7 +277,9 @@ export default function Events() {
                     </div>
 
                     {/* The Hype Tape (Scrolling Marquee) */}
-                    <div className="relative w-[110vw] -ml-[5vw] py-4 bg-[#E31E6E] transform -rotate-2 shadow-[0_0_30px_rgba(227,30,110,0.4)] z-0 overflow-hidden flex whitespace-nowrap mb-12">
+                    <div 
+                        className="relative w-[150vw] left-1/2 -translate-x-1/2 py-4 bg-[#E31E6E] transform -rotate-2 shadow-[0_0_30px_rgba(227,30,110,0.4)] z-0 overflow-hidden flex whitespace-nowrap mb-12"
+                    >
                         <motion.div 
                             animate={{ x: [0, -1000] }} 
                             transition={{ repeat: Infinity, duration: 20, ease: "linear" }}
@@ -295,7 +300,13 @@ export default function Events() {
                     <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-6 relative z-10">
                         <AnimatePresence mode="popLayout">
                             {filteredEvents.map((event, index) => (
-                                <EventCard key={event.id} event={event} theme={theme} index={index} />
+                                <EventCard 
+                                    key={event.id} 
+                                    event={event} 
+                                    theme={theme} 
+                                    index={index} 
+                                    onClick={() => setSelectedEvent(event)}
+                                />
                             ))}
                         </AnimatePresence>
                     </motion.div>
@@ -315,6 +326,57 @@ export default function Events() {
                 </div>
 
             </div>
+
+            {/* THE GENERIC MODAL RENDERED FOR EVENTS */}
+            <FestivalModal 
+                isOpen={!!selectedEvent} 
+                onClose={() => setSelectedEvent(null)}
+            >
+                {selectedEvent && (
+                    <div className="flex flex-col gap-6 text-white text-left">
+                        {/* Event Image Banner */}
+                        <div className="w-full h-48 md:h-64 border border-white/20 relative overflow-hidden -mt-4">
+                            <img 
+                                src={selectedEvent.image} 
+                                alt={selectedEvent.title} 
+                                className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-[#1E1B4B] to-transparent" />
+                            <div className="absolute bottom-4 left-4 bg-[#FACC15] text-black px-3 py-1 text-[10px] font-black uppercase tracking-widest">
+                                {selectedEvent.category}
+                            </div>
+                        </div>
+
+                        {/* Event Details */}
+                        <div>
+                            <h2 className="text-4xl md:text-5xl font-black uppercase italic tracking-wide text-white mb-2 font-massive">
+                                {selectedEvent.title}
+                            </h2>
+                            <p className="text-[#22D3EE] font-mono text-sm uppercase tracking-widest mb-6 font-accent">
+                                📅 Date: {selectedEvent.date} | 📍 Main Stage
+                            </p>
+
+                            <p className="text-white/70 leading-relaxed mb-8 font-body">
+                                {selectedEvent.description || "Get ready for the most explosive event of the festival. Bring your A-game, gather your crew, and prepare to leave your mark on the RasRang legacy."}
+                            </p>
+
+                            {/* Tags/Rules */}
+                            <div className="flex flex-wrap gap-2 mb-8">
+                                {selectedEvent.tags?.map(tag => (
+                                    <span key={tag} className="border border-[#C53099]/50 bg-[#C53099]/10 text-white text-[10px] px-3 py-1 font-bold uppercase tracking-wider font-massive">
+                                        {tag}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Call to Action */}
+                        <button className="w-full py-4 bg-[#9D01E9] text-white font-black uppercase tracking-[0.2em] hover:bg-white hover:text-[#020617] transition-all border border-[#9D01E9] hover:border-white shadow-[0_0_20px_rgba(157,1,233,0.4)] font-massive">
+                            Register Now
+                        </button>
+                    </div>
+                )}
+            </FestivalModal>
         </section>
     );
 }
