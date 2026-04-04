@@ -39,6 +39,49 @@ export default function EventForge() {
         if (activeMode === "manage") fetchEvents();
     }, [activeMode]);
 
+    const [isDragging, setIsDragging] = useState(false);
+
+    // CLIPBOARD INFILTRATION: Paste listener
+    useEffect(() => {
+        if (activeMode !== "add") return;
+
+        const handlePaste = (e) => {
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            for (const item of items) {
+                if (item.type.indexOf("image") === 0) {
+                    const blob = item.getAsFile();
+                    setImageFile(blob);
+                    setImagePreview(URL.createObjectURL(blob));
+                    break;
+                }
+            }
+        };
+
+        window.addEventListener("paste", handlePaste);
+        return () => window.removeEventListener("paste", handlePaste);
+    }, [activeMode]);
+
+    // DRAG & DROP PROTOCOLS
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        setIsDragging(true);
+    };
+
+    const handleDragLeave = (e) => {
+        e.preventDefault();
+        setIsDragging(false);
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        setIsDragging(false);
+        const file = e.dataTransfer.files[0];
+        if (file && file.type.startsWith("image/")) {
+            setImageFile(file);
+            setImagePreview(URL.createObjectURL(file));
+        }
+    };
+
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         if (file) {
@@ -272,14 +315,19 @@ export default function EventForge() {
                                 </label>
                                 <div 
                                     onClick={() => fileInputRef.current.click()}
-                                    className={`relative w-full aspect-square flex flex-col items-center justify-center border-4 border-dashed cursor-pointer transition-all ${imagePreview ? 'border-[#22D3EE] bg-black shadow-[0_0_20px_rgba(34,211,238,0.2)]' : 'border-white/20 hover:border-[#E31E6E]'}`}
+                                    onDragOver={handleDragOver}
+                                    onDragLeave={handleDragLeave}
+                                    onDrop={handleDrop}
+                                    className={`relative w-full aspect-square flex flex-col items-center justify-center border-4 border-dashed cursor-pointer transition-all 
+                                    ${isDragging ? 'border-[#E31E6E] bg-[#E31E6E]/10 scale-95 shadow-[0_0_30px_#E31E6E]' : (imagePreview ? 'border-[#22D3EE] bg-black' : 'border-white/20 hover:border-[#E31E6E]')}`}
                                 >
                                     <input type="file" ref={fileInputRef} onChange={handleImageChange} accept="image/*" className="hidden" />
                                     {imagePreview ? (
                                         <img src={imagePreview} alt="Preview" className="absolute inset-0 w-full h-full object-cover opacity-80 mix-blend-luminosity" />
                                     ) : (
                                         <div className="text-center p-6 text-white/40">
-                                            <p className="font-black uppercase tracking-widest text-lg">Inject Intel</p>
+                                            <p className="font-black uppercase tracking-widest text-lg">{isDragging ? "DROP INTEL NOW" : "Inject Intel"}</p>
+                                            <p className="text-[8px] mt-2 opacity-50 uppercase tracking-widest">DRAG, DROP OR CTRL+V</p>
                                         </div>
                                     )}
                                 </div>

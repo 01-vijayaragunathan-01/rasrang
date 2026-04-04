@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import UserManagement from "../components/profile/UserManagement";
 import EventForge from "../components/profile/EventForge";
 import { APP_THEME } from "../constants/theme";
+import { LayoutDashboard, ShieldCheck, Hammer, Zap } from "lucide-react";
 
 export default function Dashboard() {
     const { user } = useAuth();
@@ -26,10 +27,10 @@ export default function Dashboard() {
     }
 
     const sections = [
-        { id: "overview", label: "Overview", icon: "📊", show: true },
-        { id: "management", label: isPlatformAdmin ? "Platform Control" : "Overlord Protocol", icon: "⚙️", show: isPlatformAdmin },
-        { id: "forge", label: "The Event Forge", icon: "⚒️", show: isPlatformAdmin },
-        { id: "command", label: "Command Center", icon: "⚡", show: true },
+        { id: "overview", label: "Overview", icon: <LayoutDashboard className="w-4 h-4" />, show: true },
+        { id: "management", label: isPlatformAdmin ? "Platform Control" : "Overlord Protocol", icon: <ShieldCheck className="w-4 h-4" />, show: isPlatformAdmin },
+        { id: "forge", label: "The Event Forge", icon: <Hammer className="w-4 h-4" />, show: isPlatformAdmin },
+        { id: "command", label: "Command Center", icon: <Zap className="w-4 h-4" />, show: true },
     ];
 
     return (
@@ -45,7 +46,7 @@ export default function Dashboard() {
                         <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.5em] text-[#AF94D2] font-accent">System Dashboard</span>
                     </div>
                     <h1 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tight font-massive">
-                        The <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#9D01E9] via-[#C53099] to-[#E31E6E]">Nexus</span>
+                        The <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#9D01E9] via-[#C53099] to-[#E31E6E]">Command Tower</span>
                     </h1>
                 </header>
 

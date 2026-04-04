@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import BubbleMenu from "./common/BubbleMenu";
+import StaggeredMenu from "./common/StaggeredMenu";
 import { useTheme } from "./context/ThemeContext";
 import Footer from "./common/Footer";
 import Home from "./pages/Home";
@@ -21,13 +21,19 @@ function MainContent() {
   const isStaff = user && (user.role === 'VOLUNTEER' || user.role === 'COORDINATOR' || user.role === 'SUPER_ADMIN');
 
   const navItems = [
-    { label: 'Home', href: '/#home', rotation: -4, hoverStyles: { bgColor: theme.colors.interactive, textColor: theme.colors.textTitle } },
-    { label: 'Events', href: '/events', rotation: 4, hoverStyles: { bgColor: theme.colors.interactive, textColor: theme.colors.textTitle } },
-    { label: 'Gallery', href: '/gallery', rotation: -4, hoverStyles: { bgColor: theme.colors.interactive, textColor: theme.colors.textTitle } },
-    { label: 'Login', href: '/login', rotation: 4, hoverStyles: { bgColor: theme.colors.interactive, textColor: theme.colors.textTitle } },
-    { label: 'Profile', href: '/profile', rotation: -4, hoverStyles: { bgColor: theme.colors.interactive, textColor: theme.colors.textTitle } },
-    ...(isStaff ? [{ label: 'Dashboard', href: '/dashboard', rotation: 4, hoverStyles: { bgColor: theme.colors.interactive, textColor: theme.colors.textTitle } }] : []),
-    { label: 'Team', href: '/contributors', rotation: 4, hoverStyles: { bgColor: theme.colors.interactive, textColor: theme.colors.textTitle } }
+    { label: 'Home', link: '/', ariaLabel: 'Return to headquarters' },
+    { label: 'Events', link: '/events', ariaLabel: 'Explore active sectors' },
+    { label: 'Gallery', link: '/gallery', ariaLabel: 'Access visual archives' },
+    user ? { label: 'Profile', link: '/profile', ariaLabel: 'Open biometric vault' } 
+         : { label: 'Login', link: '/login', ariaLabel: 'User authentication' },
+    ...(isStaff ? [{ label: 'Dashboard', link: '/dashboard', ariaLabel: 'Command Tower access' }] : []),
+    { label: 'Team', link: '/contributors', ariaLabel: 'Meet the architects' }
+  ];
+
+  const socialItems = [
+    { label: 'Instagram', link: 'https://instagram.com/rasrang' },
+    { label: 'Twitter', link: 'https://twitter.com/rasrang' },
+    { label: 'LinkedIn', link: 'https://linkedin.com' }
   ];
 
   return (
@@ -52,13 +58,18 @@ function MainContent() {
       </div>
 
       {/* --- Fixed Navigation --- */}
-      <div className="z-[1002] fixed top-4 left-4 right-4">
-        <BubbleMenu 
-          logo="/Assets/rasrang.png" 
-          useFixedPosition={true}
-          menuContentColor={theme.colors.base}
-          menuBg={theme.colors.primary}
+      <div className="z-[1002] fixed inset-0 pointer-events-none">
+        <StaggeredMenu 
+          logoUrl="/Assets/rasrang.png" 
           items={navItems}
+          socialItems={socialItems}
+          colors={[theme.colors.primary, theme.colors.secondary]}
+          accentColor={theme.colors.highlight}
+          menuButtonColor="#ffffff"
+          openMenuButtonColor="#ffffff"
+          position="right"
+          isFixed={true}
+          displaySocials={false}
         />
       </div>
 
