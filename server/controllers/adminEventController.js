@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { uploadFile, deleteFile } from '../utils/minio.js';
+import logger from '../utils/logger.js';
 
 const prisma = new PrismaClient();
 
@@ -8,11 +9,10 @@ const prisma = new PrismaClient();
 // ==========================================
 export const createEvent = async (req, res) => {
     const { title, category, description, date, time, isHeadliner, imageUrl, rulebookUrl } = req.body;
-    console.log(`[adminEventController] createEvent → called by user: ${req.user?.id}`);
-    console.log(`[adminEventController] createEvent → payload:`, { title, category, date, time, isHeadliner, imageUrl, rulebookUrl });
+    logger.info(`Admin: Create Event initiated by ${req.user.id}`, { title, category, date, requestId: req.requestId });
     try {
         if (!title || !description || !date) {
-            console.log(`[adminEventController] createEvent → validation failed: missing required fields`);
+            logger.warn(`Event creation failed: Missing required fields`, { requestId: req.requestId });
             return res.status(400).json({ error: "Missing required fields" });
         }
 
@@ -32,10 +32,10 @@ export const createEvent = async (req, res) => {
             }
         });
 
-        console.log(`[adminEventController] createEvent → success: created event "${newEvent.title}" with id: ${newEvent.id}`);
+        logger.info(`Event created successfully: "${newEvent.title}" (${newEvent.id})`, { requestId: req.requestId });
         res.status(201).json({ message: "Event created successfully", event: newEvent });
     } catch (err) {
-        console.error("[adminEventController] createEvent → ERROR:", err);
+        logger.error(`Event creation critical failure`, { error: err.message, requestId: req.requestId });
         res.status(500).json({ error: `Failed to create event: ${err.message}` });
     }
 };
@@ -46,24 +46,23 @@ export const createEvent = async (req, res) => {
 export const updateEvent = async (req, res) => {
     const { eventId } = req.params;
     const { title, category, description, date, time, isHeadliner, imageUrl, rulebookUrl } = req.body;
-    console.log(`[adminEventController] updateEvent → id: ${eventId}`);
-    console.log(`[adminEventController] updateEvent → bodyKeys: ${Object.keys(req.body)}`);
+    logger.info(`Admin: Update Event requested`, { eventId, requestId: req.requestId });
 
     try {
         // Validate UUID format manually to prevent Prisma crash 500
         const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
         if (!uuidRegex.test(eventId)) {
-            console.log(`[adminEventController] updateEvent → ERR: Invalid UUID format "${eventId}"`);
+            logger.warn(`Update aborted: Invalid Event ID format ${eventId}`, { requestId: req.requestId });
             return res.status(400).json({ error: "System Error: Invalid Event ID format." });
         }
 
         const existingEvent = await prisma.event.findUnique({ where: { id: eventId } });
         if (!existingEvent) {
-            console.log(`[adminEventController] updateEvent → NOT FOUND: eventId ${eventId}`);
+            logger.warn(`Update failed: Event ${eventId} not found`, { requestId: req.requestId });
             return res.status(404).json({ error: "Event not found" });
         }
 
-        console.log(`[adminEventController] updateEvent → processing update for "${existingEvent.title}"`);
+        logger.info(`Processing update for event "${existingEvent.title}"`, { requestId: req.requestId });
         
         // --- Explicit Type Consolidation ---
         const finalIsHeadliner = isHeadliner !== undefined ? (isHeadliner === 'true' || isHeadliner === true) : existingEvent.isHeadliner;
@@ -84,10 +83,10 @@ export const updateEvent = async (req, res) => {
             data: updateData
         });
 
-        console.log(`[adminEventController] updateEvent → success: event "${updatedEvent.title}" (${eventId}) updated`);
+        logger.info(`Event update SUCCESS: "${updatedEvent.title}"`, { requestId: req.requestId });
         res.status(200).json({ message: "Event updated", event: updatedEvent });
     } catch (err) {
-        console.error(`[adminEventController] updateEvent → ERROR for eventId ${eventId}:`, err);
+        logger.error(`Event update critical failure`, { eventId, error: err.message, requestId: req.requestId });
         res.status(500).json({ error: `Failed to update event: ${err.message}` });
     }
 };
@@ -97,12 +96,12 @@ export const updateEvent = async (req, res) => {
 // ==========================================
 export const deleteEvent = async (req, res) => {
     const { eventId } = req.params;
-    console.log(`[adminEventController] deleteEvent → called by user: ${req.user?.id} for eventId: ${eventId}`);
+    logger.warn(`Admin: DELETE Event request by ${req.user.id}`, { eventId, requestId: req.requestId });
     try {
         // Fetch to get imageUrl before deletion
         const event = await prisma.event.findUnique({ where: { id: eventId } });
         if (!event) {
-            console.log(`[adminEventController] deleteEvent → NOT FOUND: eventId ${eventId}`);
+            logger.warn(`Delete failed: Event ${eventId} not found`, { requestId: req.requestId });
             return res.status(404).json({ error: "Event not found" });
         }
 
@@ -112,22 +111,22 @@ export const deleteEvent = async (req, res) => {
             where: { id: eventId }
         });
 
-        console.log(`[adminEventController] deleteEvent → DB record deleted for event "${event.title}" (${eventId})`);
+        logger.info(`Event DB record deleted for "${event.title}"`, { requestId: req.requestId });
 
         // Background cleanup 
         if (event.imageUrl) {
-            console.log(`[adminEventController] deleteEvent → triggering MinIO cleanup for image: ${event.imageUrl}`);
+            logger.info(`Triggered MinIO asset cleanup (image) for deleted event`, { url: event.imageUrl, requestId: req.requestId });
             deleteFile(event.imageUrl);
         }
         if (event.rulebookUrl) {
-            console.log(`[adminEventController] deleteEvent → triggering MinIO cleanup for rulebook: ${event.rulebookUrl}`);
+            logger.info(`Triggered MinIO asset cleanup (rulebook) for deleted event`, { url: event.rulebookUrl, requestId: req.requestId });
             deleteFile(event.rulebookUrl);
         }
 
-        console.log(`[adminEventController] deleteEvent → success: event "${event.title}" fully terminated`);
+        logger.info(`Event destruction complete: "${event.title}"`, { requestId: req.requestId });
         res.status(200).json({ message: "Event successfully deleted" });
     } catch (err) {
-        console.error(`[adminEventController] deleteEvent → ERROR for eventId ${eventId}:`, err);
+        logger.error(`Event deletion critical failure`, { eventId, error: err.message, requestId: req.requestId });
         res.status(500).json({ error: 'Failed to delete event.' });
     }
 };

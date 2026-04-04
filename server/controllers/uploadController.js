@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { uploadFileFromDisk } from '../utils/minio.js';
+import logger from '../utils/logger.js';
 
 export const uploadChunk = async (req, res) => {
     try {
@@ -9,6 +10,7 @@ export const uploadChunk = async (req, res) => {
         const chunk = req.file;
 
         if (!chunk) {
+            logger.warn(`Chunk upload: Missing data for ${fileName}`, { requestId: req.requestId });
             return res.status(400).json({ error: "Missing chunk data." });
         }
 
@@ -19,11 +21,11 @@ export const uploadChunk = async (req, res) => {
         // Append this chunk to the temp file
         fs.appendFileSync(tempFilePath, chunk.buffer);
 
-        console.log(`[uploadController] Uploaded chunk ${parseInt(chunkIndex) + 1}/${totalChunks} for ${fileName}`);
+        logger.info(`Chunk ${parseInt(chunkIndex) + 1}/${totalChunks} received for ${fileName}`, { requestId: req.requestId });
 
         // If this is the final chunk
         if (parseInt(chunkIndex) === parseInt(totalChunks) - 1) {
-            console.log(`[uploadController] File complete. Pushing to MinIO...`);
+            logger.info(`Final chunk received for ${fileName}. Finalizing upload...`, { requestId: req.requestId });
             
             // Upload entire file from local disk to MinIO efficiently
             const publicUrl = await uploadFileFromDisk(tempFilePath, fileName, mimetype);
@@ -31,7 +33,7 @@ export const uploadChunk = async (req, res) => {
             // Cleanup temp file
             fs.unlinkSync(tempFilePath);
             
-            console.log(`[uploadController] Upload verified. URL generated.`);
+            logger.info(`Upload COMPLETE: Visual archive update verified`, { url: publicUrl, requestId: req.requestId });
             return res.status(200).json({ complete: true, url: publicUrl });
         }
 
@@ -39,7 +41,7 @@ export const uploadChunk = async (req, res) => {
         return res.status(200).json({ complete: false });
 
     } catch (error) {
-        console.error("[uploadController] Error processing chunk:", error);
+        logger.error(`Chunked upload failure`, { error: error.message, requestId: req.requestId });
         return res.status(500).json({ error: "Chunk processing collapsed." });
     }
 };

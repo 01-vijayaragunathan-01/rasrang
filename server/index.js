@@ -12,6 +12,8 @@ import adminRoutes from './routes/adminRoutes.js';
 import uploadRoutes from './routes/upload.js';
 import galleryRoutes from './routes/galleryRoutes.js';
 import { initMinio } from './utils/minio.js';
+import logger from './utils/logger.js';
+import requestLogger from './middlewares/requestLogger.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -22,6 +24,9 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(cookieParser());
+
+// --- ADVANCED LOGGING INFRA ---
+app.use(requestLogger);
 
 // Initialize Passport
 app.use(passport.initialize());
@@ -38,7 +43,26 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', message: 'RasRang API is running smoothly' });
 });
 
+// GLOBAL ERROR HANDLER
+app.use((err, req, res, next) => {
+    logger.error(`[GLOBAL ERROR HANDLER] ${req.method} ${req.url}`, {
+        error: err.message,
+        stack: err.stack,
+        requestId: req.requestId
+    });
+    
+    // Check if headers have already been sent to avoid "Unhandled Error" crashes
+    if (res.headersSent) {
+        return next(err);
+    }
+
+    res.status(err.status || 500).json({
+        error: err.message || 'Internal Server Error',
+        details: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    });
+});
+
 app.listen(PORT, async () => {
-    console.log(`Server running on port ${PORT}`);
+    logger.info(`RasRang Backend Powering Up on port ${PORT} 🚀`);
     await initMinio();
 });

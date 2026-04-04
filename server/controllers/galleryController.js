@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { uploadFile, deleteFile } from '../utils/minio.js';
+import logger from '../utils/logger.js';
 
 const prisma = new PrismaClient();
 
@@ -7,15 +8,14 @@ const prisma = new PrismaClient();
 // 1. GET ALL GALLERY ITEMS (Public)
 // ==========================================
 export const getGallery = async (req, res) => {
-    console.log(`[galleryController] getGallery → request received`);
     try {
         const items = await prisma.gallery.findMany({
             orderBy: { createdAt: 'desc' }
         });
-        console.log(`[galleryController] getGallery → success: returned ${items.length} items`);
+        logger.info(`Fetched gallery archives: ${items.length} items returned`, { requestId: req.requestId });
         res.status(200).json(items);
     } catch (err) {
-        console.error("[galleryController] getGallery → ERROR:", err);
+        logger.error(`Failed to retrieve gallery archives`, { error: err.message, requestId: req.requestId });
         res.status(500).json({ error: 'Failed to retrieve visual archives' });
     }
 };
@@ -25,21 +25,20 @@ export const getGallery = async (req, res) => {
 // ==========================================
 export const createGalleryItem = async (req, res) => {
     const { caption, category } = req.body;
-    console.log(`[galleryController] createGalleryItem → called by user: ${req.user?.id}`);
-    console.log(`[galleryController] createGalleryItem → payload:`, { caption, category, hasFile: !!req.file });
+    logger.info(`Admin: Adding gallery item`, { caption, category, requestId: req.requestId });
     try {
         if (!req.file) {
-            console.log(`[galleryController] createGalleryItem → validation failed: no image file provided`);
+            logger.warn(`Gallery upload failed: No file provided`, { requestId: req.requestId });
             return res.status(400).json({ error: "Missing image file" });
         }
 
-        console.log(`[galleryController] createGalleryItem → uploading image: ${req.file.originalname} (${req.file.mimetype}, ${req.file.size} bytes)`);
+        logger.info(`Gallery: Pushing asset to MinIO`, { fileName: req.file.originalname, requestId: req.requestId });
         const imageUrl = await uploadFile(
             req.file.buffer, 
             req.file.originalname, 
             req.file.mimetype
         );
-        console.log(`[galleryController] createGalleryItem → image uploaded to: ${imageUrl}`);
+        logger.info(`Gallery: Asset verified at ${imageUrl}`, { requestId: req.requestId });
 
         const newItem = await prisma.gallery.create({
             data: {
@@ -49,10 +48,10 @@ export const createGalleryItem = async (req, res) => {
             }
         });
 
-        console.log(`[galleryController] createGalleryItem → success: created gallery item with id: ${newItem.id}`);
+        logger.info(`Gallery archive SUCCESS: Created item ${newItem.id}`, { requestId: req.requestId });
         res.status(201).json({ message: "Gallery item added successfully", item: newItem });
     } catch (err) {
-        console.error("[galleryController] createGalleryItem → ERROR:", err);
+        logger.error(`Gallery archive failure`, { error: err.message, requestId: req.requestId });
         res.status(500).json({ error: 'Failed to upload photo to archives' });
     }
 };
@@ -62,11 +61,11 @@ export const createGalleryItem = async (req, res) => {
 // ==========================================
 export const deleteGalleryItem = async (req, res) => {
     const { id } = req.params;
-    console.log(`[galleryController] deleteGalleryItem → called by user: ${req.user?.id} for item id: ${id}`);
+    logger.warn(`Admin: DELETE gallery item requested`, { id, requestId: req.requestId });
     try {
         const item = await prisma.gallery.findUnique({ where: { id } });
         if (!item) {
-            console.log(`[galleryController] deleteGalleryItem → NOT FOUND: item id ${id}`);
+            logger.warn(`Delete failed: Item ${id} not found in archives`, { requestId: req.requestId });
             return res.status(404).json({ error: "Item not found" });
         }
 
@@ -76,18 +75,18 @@ export const deleteGalleryItem = async (req, res) => {
             where: { id }
         });
 
-        console.log(`[galleryController] deleteGalleryItem → DB record deleted for item ${id}`);
+        logger.info(`Gallery DB record purged for item ${id}`, { requestId: req.requestId });
 
         // Background cleanup 
         if (item.imageUrl) {
-            console.log(`[galleryController] deleteGalleryItem → triggering MinIO cleanup for: ${item.imageUrl}`);
+            logger.info(`Triggered MinIO asset cleanup for purged gallery item`, { url: item.imageUrl, requestId: req.requestId });
             deleteFile(item.imageUrl);
         }
 
-        console.log(`[galleryController] deleteGalleryItem → success: item ${id} fully purged`);
+        logger.info(`Gallery item ${id} fully terminated from system`, { requestId: req.requestId });
         res.status(200).json({ message: "Item successfully purged from archives" });
     } catch (err) {
-        console.error(`[galleryController] deleteGalleryItem → ERROR for id ${id}:`, err);
+        logger.error(`Gallery item deletion CRITICAL failure`, { id, error: err.message, requestId: req.requestId });
         res.status(500).json({ error: 'Failed to delete gallery item' });
     }
 };

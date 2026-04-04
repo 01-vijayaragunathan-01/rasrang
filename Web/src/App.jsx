@@ -47,7 +47,7 @@ function MainContent() {
           color: theme.colors.textTitle,
       }}
     >
-      <div className="fixed inset-0 z-0 pointer-events-none">
+      <div className="fixed inset-0 z-[1] pointer-events-none">
         <Particles
           particleColors={["#ffffff", theme.colors.primary, theme.colors.secondary]}
           particleCount={400}

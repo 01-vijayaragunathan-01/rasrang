@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
+import logger from '../utils/logger.js';
 
 const prisma = new PrismaClient();
 
@@ -20,6 +21,7 @@ export const authenticateJWT = async (req, res, next) => {
         // CSRF Verification: Only for mutating requests (POST, PUT, DELETE)
         if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
             if (!csrfToken || csrfToken !== decoded.csrf) {
+                logger.warn(`Security Event: CSRF Mismatch`, { requestId: req.requestId, ip: req.ip });
                 return res.status(403).json({ error: 'CSRF token mismatch' });
             }
         }
@@ -29,9 +31,11 @@ export const authenticateJWT = async (req, res, next) => {
             req.user = user;
             next();
         } else {
+            logger.warn(`Auth failed: Ghost user session detected for ${decoded.id}`, { requestId: req.requestId });
             res.status(401).json({ error: 'User no longer exists' });
         }
     } catch (error) {
+        logger.error(`Authentication Middleware Error`, { error: error.message, requestId: req.requestId });
         // Access token expired - frontend should now hit /refresh-token
         res.status(401).json({ error: 'Token expired', code: 'TOKEN_EXPIRED' });
     }

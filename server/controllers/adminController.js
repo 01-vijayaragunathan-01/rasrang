@@ -1,9 +1,10 @@
 import { PrismaClient } from '@prisma/client';
 import { AsyncParser } from '@json2csv/node';
+import logger from '../utils/logger.js';
 const prisma = new PrismaClient();
 
 export const getEventStats = async (req, res) => {
-    console.log(`[adminController] getEventStats → called by user: ${req.user?.id} (${req.user?.role})`);
+    logger.info(`Admin stats request`, { userId: req.user.id, role: req.user.role, requestId: req.requestId });
     try {
         const events = await prisma.event.findMany({
             include: {
@@ -12,24 +13,22 @@ export const getEventStats = async (req, res) => {
                 }
             }
         });
-        console.log(`[adminController] getEventStats → success: returned ${events.length} events`);
+        logger.info(`Event stats compiled for ${events.length} events`, { requestId: req.requestId });
         res.json(events);
     } catch (err) {
-        console.error('[adminController] getEventStats → ERROR:', err);
+        logger.error(`Failed to fetch admin stats`, { error: err.message, requestId: req.requestId });
         res.status(500).json({ error: 'Failed to fetch stats' });
     }
 };
 
 export const exportCsv = async (req, res) => {
     const { eventId } = req.params;
-    console.log(`[adminController] exportCsv → called by user: ${req.user?.id} for eventId: ${eventId}`);
+    logger.info(`Admin CSV export initiated`, { eventId, userId: req.user.id, requestId: req.requestId });
     try {
         const registrations = await prisma.registration.findMany({
             where: { eventId },
             include: { user: true }
         });
-
-        console.log(`[adminController] exportCsv → found ${registrations.length} registrations for event ${eventId}`);
 
         const csvData = registrations.map(r => ({
             Name: r.user.name,
@@ -40,25 +39,25 @@ export const exportCsv = async (req, res) => {
         }));
 
         if (csvData.length === 0) {
-            console.log(`[adminController] exportCsv → no registrations found for event ${eventId}`);
+            logger.warn(`CSV export aborted: No registrations for event ${eventId}`, { requestId: req.requestId });
             return res.status(404).json({ error: 'No registrations found for this event' });
         }
 
         const parser = new AsyncParser();
         const csv = await parser.parse(csvData).promise();
 
-        console.log(`[adminController] exportCsv → success: CSV generated for event ${eventId}`);
+        logger.info(`CSV file generated successfully`, { rowCount: csvData.length, eventId, requestId: req.requestId });
         res.header('Content-Type', 'text/csv');
         res.attachment(`event-${eventId}-attendees.csv`);
         res.send(csv);
     } catch (err) {
-        console.error(`[adminController] exportCsv → ERROR for eventId ${eventId}:`, err);
+        logger.error(`CSV export failure`, { eventId, error: err.message, requestId: req.requestId });
         res.status(500).json({ error: 'Failed to generate CSV' });
     }
 };
 
 export const getUsers = async (req, res) => {
-    console.log(`[adminController] getUsers → called by user: ${req.user?.id} (${req.user?.role})`);
+    logger.info(`Admin user list requested`, { userId: req.user.id, requestId: req.requestId });
     try {
         const users = await prisma.user.findMany({
             select: {
@@ -71,27 +70,27 @@ export const getUsers = async (req, res) => {
                 isOnboarded: true
             }
         });
-        console.log(`[adminController] getUsers → success: returned ${users.length} users`);
+        logger.info(`User directory compiled for ${users.length} unique identities`, { requestId: req.requestId });
         res.json(users);
     } catch (err) {
-        console.error('[adminController] getUsers → ERROR:', err);
+        logger.error(`Failed to fetch user directory`, { error: err.message, requestId: req.requestId });
         res.status(500).json({ error: 'Failed to fetch users' });
     }
 };
 
 export const updateUserRole = async (req, res) => {
     const { userId, role, canManagePrivileges } = req.body;
-    console.log(`[adminController] updateUserRole → called by user: ${req.user?.id} | target: ${userId} | new role: ${role} | canManagePrivileges: ${canManagePrivileges}`);
+    logger.warn(`CRITICAL: User role update initiated`, { actor: req.user.id, target: userId, newRole: role, requestId: req.requestId });
     try {
         const validRoles = ['STUDENT', 'VOLUNTEER', 'COORDINATOR', 'SUPER_ADMIN'];
         if (!validRoles.includes(role)) {
-            console.log(`[adminController] updateUserRole → invalid role attempted: "${role}"`);
+            logger.warn(`Role update failed: Forbidden role name "${role}"`, { requestId: req.requestId });
             return res.status(400).json({ error: 'Invalid role' });
         }
 
         // Only a SUPER_ADMIN can promote someone to SUPER_ADMIN
         if (role === 'SUPER_ADMIN' && req.user.role !== 'SUPER_ADMIN') {
-            console.log(`[adminController] updateUserRole → FORBIDDEN: user ${req.user?.id} tried to grant SUPER_ADMIN`);
+            logger.error(`PRIVILEGE ESCALATION ATTEMPTED by ${req.user.id}`, { target: userId, requestId: req.requestId });
             return res.status(403).json({ error: 'Only Platform Admins can grant Super Admin status.' });
         }
 
@@ -105,10 +104,10 @@ export const updateUserRole = async (req, res) => {
             data: dataToUpdate
         });
 
-        console.log(`[adminController] updateUserRole → success: user ${userId} updated to role "${role}"`);
+        logger.info(`Role update SUCCESS: user ${userId} is now ${role}`, { requestId: req.requestId });
         res.json({ success: true, message: 'User role updated', user: updatedUser });
     } catch (err) {
-        console.error(`[adminController] updateUserRole → ERROR for userId ${userId}:`, err);
+        logger.error(`Role update failure`, { userId, error: err.message, requestId: req.requestId });
         res.status(500).json({ error: 'Failed to update user role', details: err.message });
     }
 };
@@ -119,7 +118,7 @@ export const updateUserRole = async (req, res) => {
 
 // 1. GET ATTENDEES (With Event Filter & Search)
 export const getAttendees = async (req, res) => {
-    console.log(`[adminController] getAttendees → called by user: ${req.user?.id} (${req.user?.role})`);
+    logger.info(`Attendee registry scan requested`, { userId: req.user.id, requestId: req.requestId });
     try {
         const { eventId, search } = req.query;
 
@@ -158,17 +157,17 @@ export const getAttendees = async (req, res) => {
             orderBy: { name: 'asc' }
         });
 
-        console.log(`[adminController] getAttendees → success: returned ${attendees.length} attendees`);
+        logger.info(`Attendee scan results: ${attendees.length} identities found`, { requestId: req.requestId });
         res.status(200).json(attendees);
     } catch (error) {
-        console.error("[adminController] getAttendees → ERROR:", error);
+        logger.error(`Attendee registry scan failure`, { error: error.message, requestId: req.requestId });
         res.status(500).json({ error: "Failed to fetch attendees." });
     }
 };
 
 // 2. EXPORT ATTENDEES TO CSV (Server-side stream)
 export const exportAttendeesCsv = async (req, res) => {
-    console.log(`[adminController] exportAttendeesCsv → called by user: ${req.user?.id}`);
+    logger.info(`Master attendee export requested`, { userId: req.user.id, requestId: req.requestId });
     try {
         const { eventId } = req.query;
 
@@ -202,20 +201,20 @@ export const exportAttendeesCsv = async (req, res) => {
         });
 
         if (csvData.length === 0) {
-            console.log(`[adminController] exportAttendeesCsv → no attendees found`);
+            logger.warn(`Master CSV export aborted: No attendees found`, { requestId: req.requestId });
             return res.status(404).json({ error: "No attendees found for this filter." });
         }
 
         const parser = new AsyncParser();
         const csv = await parser.parse(csvData).promise();
 
-        console.log(`[adminController] exportAttendeesCsv → success: CSV generated with ${csvData.length} rows`);
+        logger.info(`Master CSV successfully compiled`, { rowCount: csvData.length, requestId: req.requestId });
         res.header('Content-Type', 'text/csv');
         res.attachment(`RasRang-Attendees-${eventId && eventId !== 'All' ? eventId : 'All'}.csv`);
         res.send(csv);
 
     } catch (error) {
-        console.error("[adminController] exportAttendeesCsv → ERROR:", error);
+        logger.error(`Master CSV export failure`, { error: error.message, requestId: req.requestId });
         res.status(500).json({ error: "Failed to generate CSV." });
     }
 };
