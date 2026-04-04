@@ -3,17 +3,18 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "../context/ThemeContext";
 import devData from "../data/dev.json";
 
-function DevCredit({ member, theme }) {
+function DevCredit({ member, theme, onSelect }) {
   const [isHovered, setIsHovered] = useState(false);
 
   // Map teammate ID to their respective brand color from the theme
   const accentColors = [theme.colors.primary, theme.colors.secondary, theme.colors.accent];
-  const myColor = accentColors[(member.id - 1) % accentColors.length];
+  const myColor = accentColors[(member.id - 1) % accentColors.length] || theme.colors.primary;
 
   return (
     <div className="relative inline-block mx-1"
          onMouseEnter={() => setIsHovered(true)}
-         onMouseLeave={() => setIsHovered(false)}>
+         onMouseLeave={() => setIsHovered(false)}
+         onClick={() => onSelect(member)}>
       
       {/* The Glow Capsule */}
       <motion.span 
@@ -38,7 +39,7 @@ function DevCredit({ member, theme }) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="absolute bottom-full left-1/2 -translate-x-1/2 mb-5 min-w-[320px] rounded-2xl z-[9999]"
+            className="absolute bottom-full left-1/2 -translate-x-1/2 mb-5 min-w-[320px] rounded-2xl z-[9999] hidden md:block"
             style={{ 
                 background: "rgba(10, 10, 10, 0.98)",
                 backdropFilter: "blur(25px)",
@@ -99,25 +100,134 @@ function DevCredit({ member, theme }) {
   );
 }
 
+function MortalPortal({ member, theme, onClose }) {
+    if (!member) return null;
+
+    const accentColors = [theme.colors.primary, theme.colors.secondary, theme.colors.accent];
+    const myColor = accentColors[(member.id - 1) % accentColors.length] || theme.colors.primary;
+
+    return (
+        <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[10000] flex items-center justify-center p-4 md:hidden pointer-events-auto"
+            onClick={onClose}
+        >
+            {/* Backdrop Blur */}
+            <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 bg-black/80 backdrop-blur-3xl" 
+            />
+
+            {/* Modal Content */}
+            <motion.div
+                initial={{ scale: 0.9, y: 50, opacity: 0 }}
+                animate={{ scale: 1, y: 0, opacity: 1 }}
+                exit={{ scale: 0.9, y: 50, opacity: 0 }}
+                transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                className="relative w-full max-w-sm rounded-[2.5rem] border overflow-hidden"
+                style={{ 
+                    backgroundColor: "rgba(10, 10, 10, 0.95)",
+                    borderColor: `${myColor}40`,
+                    boxShadow: `0 0 50px ${myColor}20`
+                }}
+                onClick={(e) => e.stopPropagation()}
+            >
+                {/* Header Glow */}
+                <div className="absolute top-0 left-0 w-full h-32 opacity-20"
+                    style={{ background: `linear-gradient(to bottom, ${myColor}, transparent)` }} />
+
+                <div className="relative p-8 pt-10">
+                    <button onClick={onClose} className="absolute top-6 right-6 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/50 hover:text-white transition-all">
+                        <span className="text-xl leading-none">&times;</span>
+                    </button>
+
+                    <div className="flex flex-col items-center text-center mb-8">
+                        <div className="w-20 h-20 rounded-3xl mb-4 flex items-center justify-center text-3xl font-black border"
+                             style={{ background: `${myColor}10`, borderColor: `${myColor}40`, color: myColor }}>
+                            {member.name.charAt(0)}
+                        </div>
+                        <p className="text-[10px] uppercase tracking-[0.4em] font-black mb-1" style={{ color: myColor }}>{member.role}</p>
+                        <h3 className="text-2xl font-black uppercase tracking-tighter text-white" style={{ fontFamily: "Cinzel, serif" }}>{member.name}</h3>
+                    </div>
+
+                    <div className="space-y-6 pt-6 border-t border-white/5">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <p className="text-[8px] uppercase tracking-widest text-white/30 mb-1">Reg No</p>
+                                <p className="text-sm font-bold text-white/90">{member.regno}</p>
+                            </div>
+                            <div>
+                                <p className="text-[8px] uppercase tracking-widest text-white/30 mb-1">Dept</p>
+                                <p className="text-sm font-bold text-white/90">{member.dept}</p>
+                            </div>
+                            <div className="col-span-2">
+                                <p className="text-[8px] uppercase tracking-widest text-white/30 mb-1">College</p>
+                                <p className="text-sm font-bold text-white/90">{member.clg}</p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p className="text-[8px] uppercase tracking-widest text-white/30 mb-2">Short Bio</p>
+                            <p className="text-xs text-white/50 leading-relaxed font-medium italic">"{member.bio}"</p>
+                        </div>
+                    </div>
+
+                    <div className="mt-8 pt-6 border-t border-white/10">
+                        <a href={member.github} target="_blank" rel="noopener noreferrer" 
+                           className="w-full py-4 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-widest text-white hover:bg-white hover:text-black transition-all">
+                            GitHub Profile
+                        </a>
+                    </div>
+                </div>
+
+                {/* Bottom Accents */}
+                <div className="h-1 shadow-[0_-5px_20px_rgba(255,255,255,0.1)]" style={{ background: `linear-gradient(90deg, ${myColor}, transparent, ${myColor})` }} />
+            </motion.div>
+        </motion.div>
+    );
+}
+
 export default function Footer() {
   const year = new Date().getFullYear();
   const { theme } = useTheme();
+  const [activeMember, setActiveMember] = useState(null);
+
+  const handleSelectMember = (member) => {
+    // Only trigger portal on mobile-ish screens
+    if (window.innerWidth < 768) {
+        setActiveMember(member);
+    }
+  };
 
   return (
     <footer id="contact" className="relative" style={{ backgroundColor: theme.colors.base }}>
       
-      {/* Top Glow Divider (replaces film strips) */}
+      {/* ── [Rest of Footer Content Remains Unchanged] ── */}
+      {/* ... keeping the full structure ... */}
+
+      <AnimatePresence>
+        {activeMember && (
+            <MortalPortal 
+                member={activeMember} 
+                theme={theme} 
+                onClose={() => setActiveMember(null)} 
+            />
+        )}
+      </AnimatePresence>
+
       <div className="w-full h-px" style={{ background: `linear-gradient(90deg, transparent, ${theme.colors.primary}, ${theme.colors.secondary}, transparent)` }} />
       <div className="w-full h-px mt-px opacity-40" style={{ background: `linear-gradient(90deg, transparent, ${theme.colors.accent}, transparent)` }} />
 
-      {/* Ambient glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] pointer-events-none opacity-20 blur-[100px]"
         style={{ background: `radial-gradient(ellipse, ${theme.colors.primary}, transparent 70%)` }} />
 
       <div className="relative max-w-7xl mx-auto px-6 py-20">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
           
-          {/* Brand */}
           <div className="md:col-span-1">
             <div className="flex items-center gap-4 mb-6">
               <img src="/Assets/rasrang.png" alt="RasRang Logo" className="h-14 w-auto object-contain" />
@@ -134,7 +244,6 @@ export default function Footer() {
             </p>
           </div>
 
-          {/* Quick Links */}
           <div>
             <p className="text-[10px] tracking-[0.4em] uppercase mb-6 font-bold" style={{ color: theme.colors.accent }}>
               Navigation
@@ -162,7 +271,6 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Contact */}
           <div>
             <p className="text-[10px] tracking-[0.4em] uppercase mb-6 font-bold" style={{ color: theme.colors.accent }}>
               Get In Touch
@@ -184,7 +292,6 @@ export default function Footer() {
               ))}
             </div>
 
-            {/* Social Icons */}
             <div className="flex gap-3 mt-8">
               {["Instagram", "YouTube", "Twitter"].map((s) => (
                 <a key={s} href="#"
@@ -212,7 +319,6 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Bottom Bar */}
         <div className="mt-20 pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 mb-16">
           <p className="text-[10px] tracking-[0.25em] uppercase font-bold" style={{ color: theme.colors.textMuted, opacity: 0.6 }}>
             © {year} RASRANG. All rights reserved.
@@ -227,7 +333,6 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* New Dev Team Redesign: Premium Credits Capsule */}
         <div className="relative py-12 px-8 rounded-[2rem] text-center" 
              style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
           
@@ -247,7 +352,7 @@ export default function Footer() {
 
             <div className="flex flex-wrap items-center justify-center gap-4">
               {devData.teammates.map((member) => (
-                <DevCredit key={member.id} member={member} theme={theme} />
+                <DevCredit key={member.id} member={member} theme={theme} onSelect={handleSelectMember} />
               ))}
             </div>
           </div>

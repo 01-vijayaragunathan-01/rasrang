@@ -155,7 +155,7 @@ function EventCard({ event, index, onClick }) {
   );
 }
 
-// ─── MODAL (Elegant Frosted Panel) ──────────────────────────────────────────────
+// ─── MODAL (Elegant Frosted Panel - No Fade) ──────────────────────────────────────────────
 function EventModal({ event, onClose, onRegister, registering, onShare }) {
   if (!event) return null;
   return (
@@ -175,11 +175,10 @@ function EventModal({ event, onClose, onRegister, registering, onShare }) {
             className="relative w-full max-w-4xl bg-[#1A0B2E] border border-white/10 rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh]"
             onClick={e => e.stopPropagation()}
           >
-            {/* Visual Side */}
-            <div className="relative w-full md:w-[45%] h-64 md:h-auto">
+            {/* Visual Side (Fade Removed) */}
+            <div className="relative w-full md:w-[45%] h-64 md:h-auto overflow-hidden">
               <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#1A0B2E] hidden md:block" />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#1A0B2E] to-transparent md:hidden" />
+              {/* Removed the absolute inset-0 bg-gradient-to-t overlay here */}
             </div>
 
             {/* Content Side */}
@@ -199,7 +198,7 @@ function EventModal({ event, onClose, onRegister, registering, onShare }) {
                 <Share2 size={16} />
               </button>
 
-              <div className="flex-1">
+              <div className="flex-1 mt-10 md:mt-0">
                   <span className="inline-block px-3 py-1 bg-[#E4BD8D]/20 text-[#E4BD8D] text-[10px] font-bold uppercase tracking-widest rounded-full mb-4">
                       {event.category}
                   </span>
@@ -255,6 +254,7 @@ function EventModal({ event, onClose, onRegister, registering, onShare }) {
     </AnimatePresence>
   );
 }
+
 
 // ─── MAIN PAGE ──────────────────────────────────────────────────────
 export default function Events() {

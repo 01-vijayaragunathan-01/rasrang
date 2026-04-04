@@ -2,27 +2,11 @@ import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "../context/ThemeContext";
 import { useToast } from "../context/ToastContext";
-import { Play, X, Maximize2, ChevronRight, ChevronLeft } from "lucide-react";
+import { Play, X, Maximize2, ChevronRight, ChevronLeft, RefreshCcw, AlertTriangle } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
-
-// ─── VISUAL SEEDER ✦ (Fallback Data for Cinematic Preview) ───
-const MOCK_GALLERY = [
-    { id: "m1", type: "image", imageUrl: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=800", caption: "Midnight Jam: Strings of the Night", ratio: "aspect-[4/3]" },
-    { id: "m2", type: "image", imageUrl: "https://images.unsplash.com/photo-1540039155732-d69282f9fb71?q=80&w=800", caption: "Main Stage Energy", ratio: "aspect-video" },
-    { id: "m3", type: "image", imageUrl: "https://images.unsplash.com/photo-1547153760-18fc86324498?q=80&w=600", caption: "Classical Fusion", ratio: "aspect-[3/4]" },
-    { id: "m4", type: "image", imageUrl: "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?q=80&w=800", caption: "Artistic Canvas Live", ratio: "aspect-square" },
-    { id: "m5", type: "image", imageUrl: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=600", caption: "Tech Wars: Cyber Ritual", ratio: "aspect-[9/16]" },
-    { id: "m6", type: "image", imageUrl: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=800", caption: "Celestial Vocals", ratio: "aspect-[4/3]" },
-    { id: "m7", type: "image", imageUrl: "https://images.unsplash.com/photo-1469334031218-e382a71b716b?q=80&w=800", caption: "Fashion Walk: Threads of Light", ratio: "aspect-[3/4]" },
-    { id: "m8", type: "image", imageUrl: "https://images.unsplash.com/photo-1542840410-3092f99611a3?q=80&w=1000", caption: "Strings & Poetry: Silent Verse", ratio: "aspect-[16/9]" },
-    { id: "m9", type: "image", imageUrl: "https://images.unsplash.com/photo-1525362081669-2b476bb628c3?q=80&w=600", caption: "Neon Nights Showcase", ratio: "aspect-square" },
-    { id: "m10", type: "image", imageUrl: "/Assets/hero/DSC03609.webp", caption: "The Midnight Pulse", ratio: "aspect-square" },
-    { id: "m11", type: "image", imageUrl: "/Assets/hero/DSC_2248.webp", caption: "Ataccato: Crimson Harmonies", ratio: "aspect-[3/4]" },
-    { id: "m12", type: "image", imageUrl: "/Assets/hero/DSC_2221.webp", caption: "Ataccato: Vocal Intensity", ratio: "aspect-[3/4]" },
-];
 
 export default function Gallery() {
     const { theme } = useTheme();
@@ -30,31 +14,38 @@ export default function Gallery() {
     const [items, setItems] = useState([]);
     const [columns, setColumns] = useState(3);
     const [lightbox, setLightbox] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
     const containerRef = useRef(null);
     const gridRef = useRef(null);
 
-    // ─── DATA FETCHING & SEEDING ───
-    useEffect(() => {
-        const fetchGallery = async () => {
-            try {
-                const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/gallery`);
-                const data = await res.json();
-                if (res.ok && data.length > 0) {
-                    // Enrich existing items with dynamic ratios
-                    const enriched = data.map((item, i) => ({
-                        ...item,
-                        type: "image", // Default to image
-                        ratio: i % 4 === 0 ? "aspect-[3/4]" : i % 3 === 0 ? "aspect-video" : "aspect-square"
-                    }));
-                    setItems(enriched);
-                } else {
-                    setItems(MOCK_GALLERY); // Fallback to seeder if empty
-                }
-            } catch (err) {
-                toast.error("Global archives unreachable. Displaying cached seeder.");
-                setItems(MOCK_GALLERY);
+    // ─── DATA FETCHING ───
+    const fetchGallery = async () => {
+        setLoading(true);
+        setError(false);
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/gallery`);
+            const data = await res.json();
+            if (res.ok) {
+                // Enrich existing items with dynamic ratios
+                const enriched = data.map((item, i) => ({
+                    ...item,
+                    type: "image", // Default to image
+                    ratio: i % 4 === 0 ? "aspect-[3/4]" : i % 3 === 0 ? "aspect-video" : "aspect-square"
+                }));
+                setItems(enriched);
+            } else {
+                throw new Error("Failed to fetch");
             }
-        };
+        } catch (err) {
+            toast.error("Global archives unreachable.");
+            setError(true);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
         fetchGallery();
     }, []);
 
@@ -112,52 +103,79 @@ export default function Gallery() {
                 </div>
 
                 {/* ── MASONRY GRID ── */}
-                <div ref={gridRef} className="flex gap-6 md:gap-8 items-start">
-                    {chunkedMedia.map((column, colIndex) => (
-                        <div key={colIndex} className="flex flex-col gap-6 md:gap-8 w-full">
-                            {column.map((item, itemIndex) => (
-                                <motion.div
-                                    key={item.id}
-                                    initial={{ opacity: 0, y: 40 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    viewport={{ once: true, margin: "-50px" }}
-                                    transition={{ duration: 0.8, ease: "easeOut" }}
-                                    onClick={() => setLightbox(item)}
-                                    className="mosaic-item group relative w-full rounded-2xl overflow-hidden cursor-pointer border border-white/10 transition-all duration-700 hover:shadow-[0_0_40px_rgba(228,189,141,0.1)]"
-                                >
-                                    {/* Media Asset container */}
-                                    <div className={`relative w-full ${item.ratio} overflow-hidden`}>
-                                        <img 
-                                            src={item.imageUrl} 
-                                            alt={item.caption} 
-                                            className="w-full h-full object-cover object-center opacity-100 transition-transform duration-[1200ms] ease-out group-hover:scale-105"
-                                        />
-                                        
-                                        {/* Golden Hover Overlay Frame */}
-                                        <div className="absolute inset-4 border border-[#E4BD8D]/10 group-hover:border-[#E4BD8D]/30 rounded-xl transition-all duration-700 pointer-events-none z-10" />
+                {loading ? (
+                    <div className="flex justify-center items-center py-32">
+                        <div className="w-12 h-12 border-4 border-[#22D3EE]/20 border-t-[#22D3EE] rounded-full animate-spin" />
+                    </div>
+                ) : error ? (
+                    <div className="flex flex-col items-center justify-center py-32 text-center bg-white/5 rounded-3xl border border-white/10">
+                        <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mb-6">
+                            <AlertTriangle className="w-10 h-10 text-red-500 animate-pulse" />
+                        </div>
+                        <h2 className="text-3xl font-bold text-white mb-4 font-massive">Connection Severed</h2>
+                        <p className="text-white/60 max-w-md mx-auto mb-8">
+                            Unable to retrieve visual archives from the mainframe. Check your uplink and try again.
+                        </p>
+                        <button
+                            onClick={fetchGallery}
+                            className="flex items-center gap-3 px-8 py-4 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold uppercase tracking-widest border border-white/20 transition-all shadow-[0_0_20px_rgba(255,255,255,0.05)] mx-auto"
+                        >
+                            <RefreshCcw className="w-4 h-4" /> Retry Uplink
+                        </button>
+                    </div>
+                ) : items.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-32 text-center bg-white/5 rounded-3xl border border-white/10">
+                        <h2 className="text-3xl font-bold text-white mb-4 font-massive">Archives Empty</h2>
+                        <p className="text-white/60 max-w-md mx-auto">No images have been uploaded to the registry yet.</p>
+                    </div>
+                ) : (
+                    <div ref={gridRef} className="flex gap-6 md:gap-8 items-start">
+                        {chunkedMedia.map((column, colIndex) => (
+                            <div key={colIndex} className="flex flex-col gap-6 md:gap-8 w-full">
+                                {column.map((item) => (
+                                    <motion.div
+                                        key={item.id}
+                                        initial={{ opacity: 0, y: 40 }}
+                                        whileInView={{ opacity: 1, y: 0 }}
+                                        viewport={{ once: true, margin: "-50px" }}
+                                        transition={{ duration: 0.8, ease: "easeOut" }}
+                                        onClick={() => setLightbox(item)}
+                                        className="mosaic-item group relative w-full rounded-2xl overflow-hidden cursor-pointer border border-white/10 transition-all duration-700 hover:shadow-[0_0_40px_rgba(228,189,141,0.1)]"
+                                    >
+                                        {/* Media Asset container */}
+                                        <div className={`relative w-full ${item.ratio} overflow-hidden`}>
+                                            <img 
+                                                src={item.imageUrl} 
+                                                alt={item.caption} 
+                                                className="w-full h-full object-cover object-center opacity-100 transition-transform duration-[1200ms] ease-out group-hover:scale-105"
+                                            />
+                                            
+                                            {/* Golden Hover Overlay Frame */}
+                                            <div className="absolute inset-4 border border-[#E4BD8D]/10 group-hover:border-[#E4BD8D]/30 rounded-xl transition-all duration-700 pointer-events-none z-10" />
 
-                                        {/* Info Overlay */}
-                                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-500 backdrop-blur-[2px] flex flex-col justify-end p-8">
-                                            <div className="translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
-                                                <h3 className="text-lg font-black text-white font-massive leading-tight mb-2">
-                                                    {item.caption}
-                                                </h3>
-                                                <div className="flex items-center gap-2">
-                                                    <Maximize2 size={12} style={{ color: theme.colors.accent }} />
-                                                    <span className="text-[9px] tracking-[0.3em] uppercase font-bold text-white/60">Expand Frame</span>
+                                            {/* Info Overlay */}
+                                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-500 backdrop-blur-[2px] flex flex-col justify-end p-8">
+                                                <div className="translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                                                    <h3 className="text-lg font-black text-white font-massive leading-tight mb-2">
+                                                        {item.caption}
+                                                    </h3>
+                                                    <div className="flex items-center gap-2">
+                                                        <Maximize2 size={12} style={{ color: theme.colors.accent }} />
+                                                        <span className="text-[9px] tracking-[0.3em] uppercase font-bold text-white/60">Expand Frame</span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    
-                                    {/* Subtle Gradient Line */}
-                                    <div className="absolute bottom-0 left-0 w-0 h-[2px] group-hover:w-full transition-all duration-700"
-                                         style={{ background: `linear-gradient(90deg, transparent, ${theme.colors.accent}, transparent)` }} />
-                                </motion.div>
-                            ))}
-                        </div>
-                    ))}
-                </div>
+                                        
+                                        {/* Subtle Gradient Line */}
+                                        <div className="absolute bottom-0 left-0 w-0 h-[2px] group-hover:w-full transition-all duration-700"
+                                             style={{ background: `linear-gradient(90deg, transparent, ${theme.colors.accent}, transparent)` }} />
+                                    </motion.div>
+                                ))}
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
 
             {/* ── CINEMATIC LIGHTBOX ── */}
