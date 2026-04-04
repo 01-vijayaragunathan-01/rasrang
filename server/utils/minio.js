@@ -63,8 +63,11 @@ export const uploadFile = async (fileBuffer, fileName, mimetype) => {
         await minioClient.putObject(bucketName, objectName, fileBuffer, fileBuffer.length, metaData);
         
         // Construct the public URL
+        const publicBase = process.env.MINIO_PUBLIC_URL;
         const protocol = process.env.MINIO_USE_SSL === 'true' ? 'https' : 'http';
-        const url = `${protocol}://${process.env.MINIO_ENDPOINT}:${process.env.MINIO_PORT}/${bucketName}/${objectName}`;
+        const url = publicBase 
+            ? `${publicBase}/${bucketName}/${objectName}`
+            : `${protocol}://${process.env.MINIO_ENDPOINT}:${process.env.MINIO_PORT}/${bucketName}/${objectName}`;
         
         return url;
     } catch (err) {
@@ -87,8 +90,11 @@ export const uploadFileFromDisk = async (filePath, fileName, mimetype) => {
         await minioClient.fPutObject(bucketName, objectName, filePath, metaData);
         
         // Construct the public URL
+        const publicBase = process.env.MINIO_PUBLIC_URL;
         const protocol = process.env.MINIO_USE_SSL === 'true' ? 'https' : 'http';
-        const url = `${protocol}://${process.env.MINIO_ENDPOINT}:${process.env.MINIO_PORT}/${bucketName}/${objectName}`;
+        const url = publicBase 
+            ? `${publicBase}/${bucketName}/${objectName}`
+            : `${protocol}://${process.env.MINIO_ENDPOINT}:${process.env.MINIO_PORT}/${bucketName}/${objectName}`;
         
         return url;
     } catch (err) {

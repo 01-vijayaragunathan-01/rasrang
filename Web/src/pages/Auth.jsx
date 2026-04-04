@@ -21,7 +21,7 @@ export default function Auth() {
     const [loading, setLoading] = useState(false);
 
     const handleGoogleLogin = () => {
-        window.location.href = "http://localhost:5000/api/auth/google";
+        window.location.href = `${import.meta.env.VITE_API_BASE_URL}/api/auth/google`;
     };
 
     const handleChange = (e) => {
@@ -37,7 +37,7 @@ export default function Auth() {
             ? { identifier: formData.identifier, password: formData.password }
             : formData;
         try {
-            const res = await fetch(`http://localhost:5000${endpoint}`, {
+            const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}${endpoint}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(body),

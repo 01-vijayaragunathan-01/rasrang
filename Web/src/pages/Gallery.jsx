@@ -37,7 +37,7 @@ export default function Gallery() {
     useEffect(() => {
         const fetchGallery = async () => {
             try {
-                const res = await fetch("http://localhost:5000/api/gallery");
+                const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/gallery`);
                 const data = await res.json();
                 if (res.ok && data.length > 0) {
                     // Enrich existing items with dynamic ratios

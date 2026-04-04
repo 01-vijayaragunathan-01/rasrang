@@ -99,7 +99,7 @@ function MasterPassModal({ master, onClose }) {
 
                         {/* Download */}
                         <a
-                            href={`http://localhost:5000/api/events/download-master-ticket/${encodeURIComponent(master.date)}`}
+                            href={`${import.meta.env.VITE_API_BASE_URL}/api/events/download-master-ticket/${encodeURIComponent(master.date)}`}
                             target="_blank"
                             rel="noreferrer"
                             className="mt-6 w-full py-3 bg-white/5 border border-white/20 hover:bg-white/10 text-center text-xs font-bold uppercase tracking-widest transition-colors rounded-xl flex items-center justify-center gap-2 text-white/70 hover:text-white"
@@ -247,7 +247,7 @@ export default function TicketSlider({ tickets }) {
                                 </div>
 
                                 <a
-                                    href={`http://localhost:5000/api/events/download-ticket/${ticket.id}`}
+                                    href={`${import.meta.env.VITE_API_BASE_URL}/api/events/download-ticket/${ticket.id}`}
                                     target="_blank"
                                     rel="noreferrer"
                                     className="w-full py-2.5 text-center text-[10px] font-bold uppercase tracking-widest rounded-lg border border-white/10 hover:border-[#22D3EE] hover:bg-[#22D3EE]/10 hover:text-[#22D3EE] transition-all flex items-center justify-center gap-2"

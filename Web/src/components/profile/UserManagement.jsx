@@ -14,7 +14,7 @@ export default function UserManagement({ isSuper }) {
 
     const fetchUsers = async () => {
         try {
-            const res = await fetch("http://localhost:5000/api/admin/users", { credentials: "include" });
+            const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/users`, { credentials: "include" });
             const data = await res.json();
             if (res.ok) {
                 if (Array.isArray(data)) setUsers(data);
@@ -34,7 +34,7 @@ export default function UserManagement({ isSuper }) {
 
     const handleRoleUpdate = async (userId, newRole, canManage = false) => {
         try {
-            const res = await fetch("http://localhost:5000/api/admin/role", {
+            const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/role`, {
                 method: "PUT",
                 headers: { 
                     "Content-Type": "application/json",

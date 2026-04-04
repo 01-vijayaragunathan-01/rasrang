@@ -11,7 +11,7 @@ export const AuthProvider = ({ children }) => {
 
     const checkAuth = async () => {
         try {
-            const res = await fetch("http://localhost:5000/api/auth/profile", { credentials: "include" });
+            const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/profile`, { credentials: "include" });
             if (res.status === 401) {
                  setUser(null);
                  setLoading(false);
@@ -36,7 +36,7 @@ export const AuthProvider = ({ children }) => {
         try {
             setUser(null);
             setCsrfToken(null);
-            await fetch("http://localhost:5000/api/auth/logout", { method: "POST", credentials: "include" });
+            await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/logout`, { method: "POST", credentials: "include" });
         } catch (err) {
             console.error("Logout API failed, but clearing session anyway.");
         } finally {

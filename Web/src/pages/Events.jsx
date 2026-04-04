@@ -277,7 +277,7 @@ export default function Events() {
     setLoading(true);
     setError(false);
     try {
-      const res = await fetch("http://localhost:5000/api/events");
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/events`);
       if (!res.ok) throw new Error("Status " + res.status);
       const data = await res.json();
       if (data && Array.isArray(data)) {
@@ -329,7 +329,7 @@ export default function Events() {
 
     setRegistering(true);
     try {
-      const res = await fetch("http://localhost:5000/api/events/register", {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/events/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-csrf-token": csrfToken },
         body: JSON.stringify({ eventId }),

@@ -45,7 +45,7 @@ export const setupApiInterceptor = () => {
 
     try {
       // Attempt to refresh the session
-      const refreshRes = await originalFetch("http://localhost:5000/api/auth/refresh-token", {
+      const refreshRes = await originalFetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/refresh-token`, {
         method: "GET",
         credentials: "include"
       });

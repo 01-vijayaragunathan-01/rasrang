@@ -33,7 +33,7 @@ export default function Profile() {
         if (!user) return;
 
         // Fetch Tickets
-        fetch("http://localhost:5000/api/events/my-registrations", {credentials: "include"})
+        fetch(`${import.meta.env.VITE_API_BASE_URL}/api/events/my-registrations`, {credentials: "include"})
             .then(res => {
                 if (res.status === 401) throw new Error("Unauthorized");
                 return res.json();
@@ -57,7 +57,7 @@ export default function Profile() {
 
         setIsEditing(false);
         try {
-            const endpoint = user.isOnboarded ? "http://localhost:5000/api/auth/profile" : "http://localhost:5000/api/auth/onboard";
+            const endpoint = user.isOnboarded ? `${import.meta.env.VITE_API_BASE_URL}/api/auth/profile` : `${import.meta.env.VITE_API_BASE_URL}/api/auth/onboard`;
             const method = user.isOnboarded ? "PUT" : "POST";
 
             const res = await fetch(endpoint, {
@@ -85,7 +85,7 @@ export default function Profile() {
 
     const handleSaveAvatar = async () => {
         try {
-            const res = await fetch("http://localhost:5000/api/auth/profile", {
+            const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/profile`, {
                 method: "PUT",
                 headers: { 
                     "Content-Type": "application/json",

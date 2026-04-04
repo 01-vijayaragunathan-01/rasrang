@@ -17,7 +17,7 @@ export default function AttendeeRegistry() {
 
     // Fetch Events for the Dropdown
     useEffect(() => {
-        fetch("http://localhost:5000/api/events")
+        fetch(`${import.meta.env.VITE_API_BASE_URL}/api/events`)
             .then(res => res.json())
             .then(data => { if (Array.isArray(data)) setEvents(data); })
             .catch(err => console.error("Error fetching events:", err));
@@ -31,7 +31,7 @@ export default function AttendeeRegistry() {
             if (selectedEventId !== "All") queryParams.append("eventId", selectedEventId);
             if (searchQuery) queryParams.append("search", searchQuery);
 
-            const res = await fetch(`http://localhost:5000/api/admin/attendees?${queryParams.toString()}`, {
+            const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/attendees?${queryParams.toString()}`, {
                 credentials: "include"
             });
             if (!res.ok) throw new Error("Failed to fetch");
@@ -58,7 +58,7 @@ export default function AttendeeRegistry() {
     const handleDownloadCSV = () => {
         const queryParams = new URLSearchParams();
         if (selectedEventId !== "All") queryParams.append("eventId", selectedEventId);
-        window.open(`http://localhost:5000/api/admin/attendees/export?${queryParams.toString()}`, '_blank');
+        window.open(`${import.meta.env.VITE_API_BASE_URL}/api/admin/attendees/export?${queryParams.toString()}`, '_blank');
         toast.success("Registry export initiated.");
     };
 

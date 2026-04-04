@@ -28,7 +28,7 @@ export default function GalleryForge() {
     // 1. Fetch Gallery for Registry
     const fetchGallery = async () => {
         try {
-            const res = await fetch("http://localhost:5000/api/gallery");
+            const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/gallery`);
             const data = await res.json();
             if (res.ok) {
                 setItems(data);
@@ -92,7 +92,7 @@ export default function GalleryForge() {
 
     const triggerDelete = async (id) => {
         try {
-            const res = await fetch(`http://localhost:5000/api/admin/gallery/${id}`, {
+            const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/gallery/${id}`, {
                 method: "DELETE",
                 headers: { "x-csrf-token": csrfToken },
                 credentials: "include"
@@ -116,7 +116,7 @@ export default function GalleryForge() {
         data.append("galleryImage", imageFile);
 
         try {
-            const response = await fetch("http://localhost:5000/api/admin/gallery", {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/gallery`, {
                 method: "POST",
                 headers: { "x-csrf-token": csrfToken },
                 body: data,

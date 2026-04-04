@@ -40,7 +40,7 @@ export default function EventForge() {
     // 1. Fetch Events for Registry
     const fetchEvents = async () => {
         try {
-            const res = await fetch("http://localhost:5000/api/events");
+            const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/events`);
             const data = await res.json();
             setEvents(data);
         } catch (err) {
@@ -118,7 +118,7 @@ export default function EventForge() {
 
     const triggerDelete = async (id) => {
         try {
-            const res = await fetch(`http://localhost:5000/api/admin/events/${id}`, {
+            const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/events/${id}`, {
                 method: "DELETE",
                 headers: { "x-csrf-token": csrfToken },
                 credentials: "include"
@@ -164,7 +164,7 @@ export default function EventForge() {
             chunkForm.append("fileName", file.name);
             chunkForm.append("mimetype", file.type);
 
-            const res = await fetch("http://localhost:5000/api/admin/upload-chunk", {
+            const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/upload-chunk`, {
                 method: "POST",
                 headers: { "x-csrf-token": csrfToken },
                 body: chunkForm,
@@ -206,8 +206,8 @@ export default function EventForge() {
             if (finalRulebookUrl) payload.rulebookUrl = finalRulebookUrl;
 
             const url = editingEventId 
-                ? `http://localhost:5000/api/admin/events/${editingEventId}`
-                : "http://localhost:5000/api/admin/events";
+                ? `${import.meta.env.VITE_API_BASE_URL}/api/admin/events/${editingEventId}`
+                : `${import.meta.env.VITE_API_BASE_URL}/api/admin/events`;
             
             const method = editingEventId ? "PUT" : "POST";
 
