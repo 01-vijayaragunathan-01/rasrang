@@ -10,9 +10,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@internationalized/date": "^3.12.0",
-    "@react-stately/utils": "^3.11.0",
-    "@untitledui/icons": "^0.0.22",
     "clsx": "^2.1.1",
     "framer-motion": "^12.38.0",
     "gsap": "^3.14.2",

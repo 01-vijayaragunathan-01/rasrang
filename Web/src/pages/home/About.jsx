@@ -4,7 +4,7 @@ import { useTheme } from "../../context/ThemeContext";
 
 export default function About() {
     const { theme } = useTheme();
-    
+
     // --- 1. COUNTDOWN LOGIC ---
     const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
@@ -32,7 +32,7 @@ export default function About() {
     const ticketY = useMotionValue(0);
     const rotateX = useTransform(ticketY, [-200, 200], [20, -20]);
     const rotateY = useTransform(ticketX, [-200, 200], [-20, 20]);
-    
+
     // Holographic glare effect for the ticket
     const glareX = useTransform(ticketX, [-200, 200], ["-100%", "200%"]);
     const glareY = useTransform(ticketY, [-200, 200], ["-100%", "200%"]);
@@ -58,11 +58,11 @@ export default function About() {
 
     return (
         <section id="about" className="relative w-full py-24 overflow-hidden" style={{ backgroundColor: "transparent" }}>
-            
+
             {/* Animated Cultural Background */}
             <div className="absolute inset-0 z-0 opacity-20 pointer-events-none flex items-center justify-center overflow-hidden">
-                <motion.div 
-                    animate={{ rotate: 360 }} 
+                <motion.div
+                    animate={{ rotate: 360 }}
                     transition={{ duration: 150, repeat: Infinity, ease: "linear" }}
                     className="w-[150vw] h-[150vw] sm:w-[100vw] sm:h-[100vw] absolute opacity-30"
                     style={{
@@ -76,7 +76,7 @@ export default function About() {
             </div>
 
             <div className="max-w-7xl mx-auto px-6 relative z-10 space-y-32">
-                
+
                 {/* =========================================
                     PART 1: INTRO & 3D FESTIVAL TICKET
                 ========================================== */}
@@ -110,7 +110,7 @@ export default function About() {
                         >
                             {/* Ticket Background */}
                             <div className="absolute inset-0 bg-gradient-to-br from-[#0A0A0A] to-[#0A0520] border border-white/20 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)]" />
-                            
+
                             {/* Ticket Content */}
                             <div className="relative z-10 w-full h-full p-6 flex flex-col justify-between">
                                 <div className="flex justify-between items-start">
@@ -125,7 +125,7 @@ export default function About() {
                                         </svg>
                                     </div>
                                 </div>
-                                
+
                                 <div className="flex justify-between items-end border-t border-white/10 pt-4 mt-4">
                                     <div>
                                         <p className="text-[8px] uppercase tracking-widest text-white/50 mb-1">Dates</p>
@@ -139,7 +139,7 @@ export default function About() {
                             </div>
 
                             {/* Holographic Shimmer Effect */}
-                            <motion.div 
+                            <motion.div
                                 className="absolute inset-0 z-20 pointer-events-none mix-blend-color-dodge opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                                 style={{
                                     background: `linear-gradient(105deg, transparent 20%, ${theme.colors.primary}80 25%, ${theme.colors.secondary}80 50%, transparent 55%)`,
@@ -155,7 +155,7 @@ export default function About() {
                     PART 2: COUNTDOWN & MYSTERY LINEUP
                 ========================================== */}
                 <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center">
-                    
+
                     <h3 className="text-2xl font-black uppercase tracking-[0.3em] mb-8 font-massive" style={{ color: theme.colors.accent }}>
                         The Curtains Open In
                     </h3>
@@ -179,7 +179,7 @@ export default function About() {
                                 <div className="absolute inset-0 backdrop-blur-xl z-10" />
                                 {/* Fake blurred content behind */}
                                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full blur-2xl opacity-40 group-hover:opacity-80 transition-opacity duration-500" />
-                                
+
                                 <div className="relative z-20 flex flex-col items-center">
                                     {/* Star / Stage Icon */}
                                     <svg className="w-8 h-8 opacity-80 mb-2" style={{ color: theme.colors.accent }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -193,59 +193,114 @@ export default function About() {
                     </div>
                 </motion.div>
 
-                {/* =========================================
-                    PART 3: COSMIC CONSTELLATION MAP
-                ========================================== */}
-                <div className="relative w-full h-[400px] border border-white/10 rounded-3xl overflow-hidden flex items-center justify-center group"
-                     style={{ background: `radial-gradient(circle at center, ${theme.colors.bg}, #0B061A)` }}>
-                    <h3 className="absolute top-8 text-center text-sm uppercase tracking-[0.4em] z-20 font-cultural" style={{ color: theme.colors.accent }}>The Grand Stages</h3>
-                    
-                    {/* Glowing Light Beams */}
-                    <svg className="absolute inset-0 w-full h-full z-10 pointer-events-none opacity-60">
-                        <defs>
-                            <linearGradient id="beamGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stopColor={theme.colors.accent} stopOpacity="0" />
-                                <stop offset="50%" stopColor={theme.colors.accent} stopOpacity="0.8" />
-                                <stop offset="100%" stopColor={theme.colors.accent} stopOpacity="0" />
-                            </linearGradient>
-                        </defs>
-                        <line x1="15%" y1="40%" x2="35%" y2="70%" stroke="url(#beamGrad)" strokeWidth="2" strokeDasharray="10 5" className="animate-pulse" />
-                        <line x1="35%" y1="70%" x2="50%" y2="20%" stroke="url(#beamGrad)" strokeWidth="2" strokeDasharray="10 5" className="animate-pulse" style={{ animationDelay: '0.2s' }} />
-                        <line x1="50%" y1="20%" x2="70%" y2="60%" stroke="url(#beamGrad)" strokeWidth="2" strokeDasharray="10 5" className="animate-pulse" style={{ animationDelay: '0.4s' }} />
-                        <line x1="70%" y1="60%" x2="85%" y2="35%" stroke="url(#beamGrad)" strokeWidth="2" strokeDasharray="10 5" className="animate-pulse" style={{ animationDelay: '0.6s' }} />
-                        <line x1="15%" y1="40%" x2="50%" y2="20%" stroke="url(#beamGrad)" strokeWidth="2" strokeDasharray="10 5" className="animate-pulse" style={{ animationDelay: '0.8s' }} />
-                    </svg>
+  
+                <div className="relative w-full py-16">
+                    <div className="text-center mb-12">
 
-                    {/* Interactive College Nodes */}
-                    {colleges.map((college, idx) => (
-                        <motion.div 
-                            key={idx}
-                            initial={{ scale: 0 }}
-                            whileInView={{ scale: 1 }}
+                        <motion.div
+                            initial={{ opacity: 0, y: 30 }}
+                            whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
-                            transition={{ delay: idx * 0.2, type: "spring" }}
-                            className="absolute z-20"
-                            style={{ left: college.x, top: college.y }}
+                            className="text-center mb-24"
                         >
-                            {/* The Star/Stage Node */}
-                            <div className="relative group/node cursor-pointer">
-                                <div className="w-3 h-3 rounded-full relative z-10" style={{ backgroundColor: theme.colors.accent, boxShadow: `0 0 20px ${theme.colors.accent}` }} />
-                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full animate-ping opacity-30" style={{ backgroundColor: theme.colors.accent }} />
-                                
-                                {/* Tooltip on Hover */}
-                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 opacity-0 group-hover/node:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap">
-                                    <div className="bg-[#0A0A0A] border border-white/20 px-4 py-2 rounded-lg text-center shadow-xl">
-                                        <p className="text-xs uppercase tracking-widest text-white font-bold font-massive">{college.name}</p>
-                                        <p className="text-[9px] uppercase tracking-widest" style={{ color: theme.colors.accent }}>Connected</p>
-                                    </div>
-                                    {/* Tooltip triangle arrow */}
-                                    <div className="w-2 h-2 bg-[#0A0A0A] border-b border-r border-white/20 rotate-45 mx-auto -mt-1.5" />
-                                </div>
+                            <p className="text-xs tracking-[0.5em] uppercase mb-4 font-bold font-accent" style={{ color: theme.colors.accent }}>
+                                ✦ Soon ✦
+                            </p>
+                            <h2 className="text-5xl md:text-7xl font-black uppercase tracking-wider font-massive" style={{ color: theme.colors.textTitle }}>
+                                Incomming{' '}
+                                <span className="text-transparent bg-clip-text" style={{ backgroundImage: `linear-gradient(90deg, ${theme.colors.primary}, ${theme.colors.secondary})` }}>
+                                    Stars
+                                </span>
+                            </h2>
+                            <div className="flex items-center justify-center gap-4 mt-6">
+                                <div className="h-px w-20" style={{ background: `linear-gradient(to right, transparent, ${theme.colors.primary}60)` }} />
+                                <div className="w-2 h-2 rotate-45" style={{ backgroundColor: `${theme.colors.accent}60` }} />
+                                <div className="h-px w-20" style={{ background: `linear-gradient(to left, transparent, ${theme.colors.primary}60)` }} />
                             </div>
                         </motion.div>
-                    ))}
-                </div>
+                    </div>
 
+                    <div className="flex flex-wrap justify-center gap-8 max-w-5xl mx-auto px-6">
+                        {[
+                            {
+                                id: 1,
+                                code: "ACT-01",
+                                role: "The Sonic Queen",
+                                intel: "Global chart-topper. High-octane vocals.",
+                                img: "https://images.unsplash.com/photo-1525362081669-2b476bb628c3?q=80&w=600"
+                            },
+                            {
+                                id: 2,
+                                code: "ACT-02",
+                                role: "Rhythm Architect",
+                                intel: "Master of the underground beat. 120BPM energy.",
+                                img: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?q=80&w=600"
+                            }
+                        ].map((celeb) => (
+                            <motion.div
+                                key={celeb.id}
+                                initial={{ opacity: 0, y: 30 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                whileHover={{ y: -8, scale: 1.02 }}
+                                className="relative w-full sm:w-[280px] aspect-[10/14] rounded-2xl overflow-hidden group cursor-none"
+                            >
+                                {/* 1. THE HIDDEN IMAGE (Reveals on hover) */}
+                                <div className="absolute inset-0 bg-[#050505]">
+                                    <img
+                                        src={celeb.img}
+                                        className="w-full h-full object-cover opacity-0 group-hover:opacity-40 group-hover:scale-110 transition-all duration-1000 blur-sm grayscale"
+                                        alt="Mystery"
+                                    />
+                                    {/* Dark Scanline Overlay for Image */}
+                                    <div className="absolute inset-0 bg-[repeating-linear-gradient(0deg,transparent,transparent_2px,black_2px,black_4px)] opacity-20 pointer-events-none" />
+                                </div>
+
+                                {/* 2. THE BLACK "UNREVEALED" OVERLAY */}
+                                <div className="absolute inset-0 z-10 bg-gradient-to-br from-[#0a0a0a] to-black group-hover:opacity-0 transition-opacity duration-700">
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <span className="text-4xl font-black text-white/5 tracking-tighter italic">SURPRISE</span>
+                                    </div>
+                                </div>
+
+                                {/* 3. PREMIUM CONTENT STYLING */}
+                                <div className="absolute inset-0 z-20 p-6 flex flex-col justify-between border border-white/5 rounded-2xl group-hover:border-cyan-500/50 transition-colors">
+                                    <div className="flex justify-between items-start">
+                                        <span className="text-[10px] font-mono text-cyan-400 font-bold bg-cyan-400/10 px-2 py-0.5 rounded-md">
+                                            {celeb.code}
+                                        </span>
+                                        <div className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse shadow-[0_0_10px_red]" />
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <div className="space-y-1">
+                                            <h4 className="text-xl font-black italic uppercase text-white group-hover:text-cyan-300 transition-colors">
+                                                {celeb.role}
+                                            </h4>
+                                            <p className="text-[9px] leading-relaxed text-gray-500 font-bold uppercase tracking-widest">
+                                                {celeb.intel}
+                                            </p>
+                                        </div>
+
+                                        {/* Interactive Status Bar */}
+                                        <div className="w-full h-[2px] bg-white/5 relative overflow-hidden">
+                                            <motion.div
+                                                animate={{ x: ['-100%', '100%'] }}
+                                                transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+                                                className="absolute inset-0 w-1/3 bg-gradient-to-r from-transparent via-cyan-400 to-transparent"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* 4. CUSTOM "SIGHT" CURSOR (Visible on hover) */}
+                                <div className="absolute inset-0 z-30 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 border border-cyan-400/50 rounded-full animate-ping" />
+                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-1 bg-cyan-400 rounded-full shadow-[0_0_15px_cyan]" />
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+                </div>
             </div>
         </section>
     );
