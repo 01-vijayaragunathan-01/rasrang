@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import multiavatar from '@multiavatar/multiavatar/esm';
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
 import { APP_THEME } from "../../constants/theme";
@@ -6,6 +7,10 @@ import { APP_THEME } from "../../constants/theme";
 export default function ProfileLayout({ children, activeTab, setActiveTab }) {
     const { user, logout } = useAuth();
     const { colors } = APP_THEME;
+
+    const avatarSvg = useMemo(() => {
+        return multiavatar(user?.avatarSeed || user?.email || user?.name || "rasrang-guest");
+    }, [user?.avatarSeed, user?.email, user?.name]);
 
     const navItems = [
         { id: "passport", icon: "🆔", label: "Passport", show: true },
@@ -66,9 +71,10 @@ export default function ProfileLayout({ children, activeTab, setActiveTab }) {
                         {/* Actual Avatar */}
                         <div className="w-full h-full rounded-full relative z-10 p-[3px]" 
                              style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.highlight})` }}>
-                            <div className="w-full h-full bg-[#0D0620] rounded-full flex items-center justify-center text-4xl font-black shadow-[0_0_30px_rgba(157,1,233,0.3)]">
-                                {user?.name?.charAt(0)}
-                            </div>
+                            <div 
+                                className="w-full h-full bg-[#0D0620] rounded-full flex items-center justify-center overflow-hidden"
+                                dangerouslySetInnerHTML={{ __html: avatarSvg }}
+                            />
                         </div>
 
                         {/* Scan Line Animation */}

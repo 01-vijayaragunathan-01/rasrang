@@ -29,6 +29,7 @@ model User {
   branch        String?
   section       String?
   phoneNo       String?        @unique
+  avatarSeed    String?
   isOnboarded   Boolean        @default(false)
   canManagePrivileges Boolean  @default(false)
   registrations Registration[]

@@ -63,6 +63,7 @@ export const localSignup = async (req, res) => {
                 branch,
                 section,
                 phoneNo,
+                avatarSeed: req.body.avatarSeed || email,
                 isOnboarded: true,
             }
         });
@@ -76,7 +77,7 @@ export const localSignup = async (req, res) => {
 export const onboard = async (req, res) => {
     try {
         const userId = req.user.id;
-        const { regNo, clgName, year, dept, branch, section, phoneNo } = req.body;
+        const { regNo, clgName, year, dept, branch, section, phoneNo, avatarSeed } = req.body;
 
         if (!regNo || !phoneNo) {
             return res.status(400).json({ error: 'Registration number and phone number are required' });
@@ -111,6 +112,7 @@ export const onboard = async (req, res) => {
                 branch,
                 section,
                 phoneNo,
+                avatarSeed,
                 isOnboarded: true
             }
         });
@@ -177,7 +179,7 @@ export const logout = async (req, res) => {
 export const updateProfile = async (req, res) => {
     try {
         const userId = req.user.id;
-        const { clgName, year, dept, branch, section } = req.body;
+        const { clgName, year, dept, branch, section, avatarSeed } = req.body;
         
         // Note: regNo and phoneNo are explicitly ignored/locked
 
@@ -188,7 +190,8 @@ export const updateProfile = async (req, res) => {
                 year,
                 dept,
                 branch,
-                section
+                section,
+                avatarSeed
             }
         });
 

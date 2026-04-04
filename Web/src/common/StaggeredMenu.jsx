@@ -374,28 +374,16 @@ export const StaggeredMenu = ({
           className="staggered-menu-header absolute top-0 left-0 w-full flex items-center justify-between p-[2em] bg-transparent pointer-events-none z-20"
           aria-label="Main navigation header"
         >
-          {/* Left: SRM Logo */}
-          <div className="sm-logo flex items-center select-none pointer-events-auto" aria-label="SRM Logo">
-            <img
-              src="/Assets/SRM_Logo.png"
-              alt="SRM Logo"
-              className="sm-logo-img block h-8 md:h-20 w-auto object-contain"
-              draggable={false}
-            />
-          </div>
-
-          {/* Middle: Rasrang Logo */}
-          <Link 
-            to="/" 
-            className="absolute left-1/2 -translate-x-1/2 flex items-center select-none pointer-events-auto cursor-pointer" 
-            aria-label="Rasrang Home"
-          >
-            <img
-              src={logoUrl || '/Assets/rasrang.png'}
-              alt="Rasrang Logo"
-              className="block h-6 md:h-16 w-auto object-contain"
-              draggable={false}
-            />
+          {/* Left: SRM Logo (With balanced sizes) */}
+          <Link to="/">
+              <div className="sm-logo flex items-center select-none pointer-events-auto" aria-label="SRM Logo">
+                <img
+                  src="/Assets/SRM_Logo.jpeg"
+                  alt="SRM Logo"
+                  className="sm-logo-img block h-10 md:h-14 w-auto object-contain transition-all duration-300"
+                  draggable={false}
+                />
+              </div>
           </Link>
 
           <button
@@ -505,12 +493,13 @@ export const StaggeredMenu = ({
         </aside>
       </div>
 
+      {/* ─── UPDATED CSS BLOCK ─── */}
       <style>{`
 .sm-scope .staggered-menu-wrapper { position: relative; width: 100%; height: 100%; z-index: 40; pointer-events: none; }
 .sm-scope .staggered-menu-header { position: absolute; top: 0; left: 0; width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 2em; background: transparent; pointer-events: none; z-index: 20; }
 .sm-scope .staggered-menu-header > * { pointer-events: auto; }
 .sm-scope .sm-logo { display: flex; align-items: center; user-select: none; }
-.sm-scope .sm-logo-img { display: block; height: 32px; width: auto; object-fit: contain; }
+.sm-scope .sm-logo-img { display: block; width: auto; max-height: 60px; object-fit: contain; }
 .sm-scope .sm-toggle { position: relative; display: inline-flex; align-items: center; gap: 0.3rem; background: transparent; border: none; cursor: pointer; color: #e9e9ef; font-weight: 500; line-height: 1; overflow: visible; }
 .sm-scope .sm-toggle:focus-visible { outline: 2px solid #ffffffaa; outline-offset: 4px; border-radius: 4px; }
 .sm-scope .sm-line:last-of-type { margin-top: 6px; }

@@ -1,14 +1,21 @@
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect, useMemo } from "react";
+import multiavatar from '@multiavatar/multiavatar/esm';
+import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import ProfileLayout from "../components/profile/ProfileLayout";
 import TicketSlider from "../components/profile/TicketSlider";
 import { useToast } from "../context/ToastContext";
 import { APP_THEME } from "../constants/theme";
+import AvatarPicker from "../components/profile/AvatarPicker";
+import { X, Fingerprint, ShieldCheck } from "lucide-react";
 
 export default function Profile() {
     const { user, setUser, csrfToken } = useAuth();
+
+    const avatarSvg = useMemo(() => {
+        return multiavatar(user?.avatarSeed || user?.email || user?.name || "rasrang-guest");
+    }, [user?.avatarSeed, user?.email, user?.name]);
     const location = useLocation();
     const toast = useToast();
     const { colors } = APP_THEME;
@@ -17,6 +24,10 @@ export default function Profile() {
     // Automatically open edit mode if they just arrived from Events requiring onboarding, or if they aren't onboarded yet.
     const [isEditing, setIsEditing] = useState(location.state?.requireOnboarding || (user && !user.isOnboarded) ? true : false);
     const [tickets, setTickets] = useState({ individualTickets: [], masterTickets: [] });
+    
+    // Identity Hub Modal State
+    const [showAvatarModal, setShowAvatarModal] = useState(false);
+    const [tempSeed, setTempSeed] = useState(user?.avatarSeed || user?.email || "rasrang-guest");
 
     useEffect(() => {
         if (!user) return;
@@ -72,6 +83,30 @@ export default function Profile() {
         }
     };
 
+    const handleSaveAvatar = async () => {
+        try {
+            const res = await fetch("http://localhost:5000/api/auth/profile", {
+                method: "PUT",
+                headers: { 
+                    "Content-Type": "application/json",
+                    "x-csrf-token": csrfToken 
+                },
+                body: JSON.stringify({ ...user, avatarSeed: tempSeed }),
+                credentials: "include"
+            });
+            const data = await res.json();
+            if (res.ok) {
+                if (data.user) setUser(data.user);
+                toast.success("IDENTITY PATTERN REWRITTEN: New visuals synchronized.");
+                setShowAvatarModal(false);
+            } else {
+                toast.error(`ERROR: ${data.error || "SYNC FAILED"}`);
+            }
+        } catch (err) {
+            toast.error("CONNECTION LOSS: Identity hub unreachable.");
+        }
+    };
+
     // ── 3D TILT LOGIC ──
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
     const handleMouseMove = (e) => {
@@ -86,11 +121,12 @@ export default function Profile() {
 
     // Determine fields
     const editFields = user.isOnboarded 
-        ? ['clgName', 'dept', 'year', 'branch', 'section']
-        : ['regNo', 'phoneNo', 'clgName', 'dept', 'year', 'branch', 'section'];
+        ? ['avatarSeed', 'clgName', 'dept', 'year', 'branch', 'section']
+        : ['avatarSeed', 'regNo', 'phoneNo', 'clgName', 'dept', 'year', 'branch', 'section'];
 
     const getFieldLabel = (field) => {
         const labels = {
+            avatarSeed: "Biometric Identity Seed",
             regNo: "Registration No.",
             phoneNo: "Mobile Protocol",
             clgName: "Institute / College",
@@ -150,8 +186,31 @@ export default function Profile() {
                                         <p className="text-sm font-black uppercase tracking-wider text-white">2026.IV.01</p>
                                     </div>
                                 </div>
-                                <div className="p-3 bg-white/5 border border-white/10 rounded-2xl">
-                                    <div className="w-12 h-12 flex items-center justify-center opacity-30 text-2xl">🧬</div>
+                                <div className="flex flex-col items-center gap-3">
+                                    <button 
+                                        onClick={() => {
+                                            setTempSeed(user?.avatarSeed || user?.email || "rasrang-guest");
+                                            setShowAvatarModal(true);
+                                        }}
+                                        className={`relative p-1 bg-gradient-to-tr from-[#9D01E9] to-[#E31E6E] rounded-full w-24 h-24 shadow-[0_0_30px_rgba(157,1,233,0.3)] transition-all duration-300 group/avatar hover:scale-110 active:scale-95 cursor-pointer ring-4 ring-[#9D01E9]/10 hover:ring-[#9D01E9]/30 hover:shadow-[0_0_50px_rgba(157,1,233,0.4)]`}
+                                    >
+                                        <div 
+                                            className="w-full h-full bg-[#0D0620] rounded-full flex items-center justify-center overflow-hidden relative"
+                                            dangerouslySetInnerHTML={{ __html: avatarSvg }}
+                                        />
+                                        <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity">
+                                            <span className="text-xl font-black">🔄</span>
+                                        </div>
+                                    </button>
+                                    <button 
+                                        onClick={() => {
+                                            setTempSeed(user?.avatarSeed || user?.email || "rasrang-guest");
+                                            setShowAvatarModal(true);
+                                        }}
+                                        className="text-[9px] uppercase tracking-[0.3em] font-black text-[#AF94D2]/60 hover:text-[#9D01E9] transition-colors"
+                                    >
+                                        [ Change Identity ]
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -192,12 +251,23 @@ export default function Profile() {
                                         onChange={(e) => setUser({...user, [field]: e.target.value})}
                                         placeholder={isEditing ? `ENTER ${field.toUpperCase()}` : "NOT SET"}
                                         className={`w-full bg-white/[0.03] border border-white/10 rounded-xl px-5 py-4 text-sm outline-none transition-all duration-300 font-bold
-                                            ${isEditing ? 'focus:border-[#9D01E9] focus:bg-white/[0.07] focus:shadow-[0_0_20px_rgba(157,1,233,0.15)]' : 'border-dashed opacity-80'}
+                                            ${isEditing ? 'focus:border-[#9D01E9] focus:bg-white/[0.07] focus:shadow-[0_0_20px_rgba(157,1,233,0.15)] pr-12' : 'border-dashed opacity-80'}
                                             ${!isEditing && !user[field] ? 'text-red-400 border-red-500/30' : 'text-white'}
                                         `}
                                     />
                                     {isEditing && (
-                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-[#9D01E9]/40 animate-ping" />
+                                        <button 
+                                            type="button"
+                                            onClick={() => {
+                                                if (field === 'avatarSeed') {
+                                                    const newSeed = Math.random().toString(36).substring(7);
+                                                    setUser({...user, avatarSeed: newSeed});
+                                                }
+                                            }}
+                                            className={`absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors ${field !== 'avatarSeed' ? 'pointer-events-none' : ''}`}
+                                        >
+                                            <div className={`w-1.5 h-1.5 rounded-full bg-[#9D01E9]/40 ${field === 'avatarSeed' ? 'animate-pulse' : 'animate-ping'}`} />
+                                        </button>
                                     )}
                                 </div>
                             ))}
@@ -231,6 +301,57 @@ export default function Profile() {
                 </div>
             )}
 
+            {/* ── IDENTITY HUB MODAL ── */}
+            <AnimatePresence>
+                {showAvatarModal && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                        <motion.div 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setShowAvatarModal(false)}
+                            className="absolute inset-0 bg-black/80 backdrop-blur-md"
+                        />
+                        
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                            className="relative w-full max-w-md bg-[#0D0620] border border-white/10 rounded-[3rem] p-10 shadow-[0_0_100px_rgba(157,1,233,0.2)] overflow-hidden"
+                        >
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#9D01E9] via-[#E31E6E] to-[#9D01E9]" />
+                            
+                            <div className="flex justify-between items-center mb-10">
+                                <div className="space-y-1">
+                                    <h2 className="text-2xl font-black uppercase tracking-tighter flex items-center gap-3">
+                                        <Fingerprint className="text-[#9D01E9]" size={24} />
+                                        Identity Hub
+                                    </h2>
+                                    <p className="text-[10px] uppercase font-bold text-[#AF94D2]/40 tracking-widest">Visual Reconstruction System</p>
+                                </div>
+                                <button 
+                                    onClick={() => setShowAvatarModal(false)}
+                                    className="p-2 hover:bg-white/5 rounded-full transition-colors text-white/40 hover:text-white"
+                                >
+                                    <X size={20} />
+                                </button>
+                            </div>
+
+                            <div className="py-6">
+                                <AvatarPicker seed={tempSeed} setSeed={setTempSeed} size={160} />
+                            </div>
+
+                            <button
+                                onClick={handleSaveAvatar}
+                                className="w-full mt-10 py-5 bg-gradient-to-r from-[#9D01E9] to-[#E31E6E] text-white font-black uppercase tracking-[0.3em] text-[10px] rounded-2xl shadow-[0_10px_30px_rgba(157,1,233,0.3)] hover:shadow-[0_15px_40px_rgba(157,1,233,0.5)] transition-all active:scale-95 group flex items-center justify-center gap-3"
+                            >
+                                <ShieldCheck size={16} className="group-hover:scale-110 transition-transform" />
+                                Synchronize Pattern
+                            </button>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </ProfileLayout>
     );
 }

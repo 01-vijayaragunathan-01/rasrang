@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
+import AvatarPicker from "../components/profile/AvatarPicker";
 
 export default function Onboarding() {
     const { user, setUser, csrfToken } = useAuth();
@@ -19,6 +20,7 @@ export default function Onboarding() {
         branch: "",
         section: ""
     });
+    const [avatarSeed, setAvatarSeed] = useState(user?.email || "rasrang-" + Math.random().toString(36).substring(7));
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
@@ -48,7 +50,7 @@ export default function Onboarding() {
                     "Content-Type": "application/json",
                     "x-csrf-token": csrfToken 
                 },
-                body: JSON.stringify({ ...formData }),
+                body: JSON.stringify({ ...formData, avatarSeed }),
                 credentials: "include"
             });
             const data = await res.json();
@@ -84,18 +86,21 @@ export default function Onboarding() {
                     className="relative rounded-[2.5rem] bg-[#0D0620]/80 backdrop-blur-3xl border border-white/10 p-8 sm:p-12 shadow-2xl overflow-hidden"
                 >
                     {/* Header */}
-                    <div className="flex flex-col items-center mb-10 text-center">
-                        <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-[#9D01E9] to-[#E31E6E] p-[2px] mb-6">
-                            <div className="w-full h-full rounded-full bg-[#0D0620] flex items-center justify-center">
-                                <span className="text-3xl">🧬</span>
-                            </div>
+                    {/* Header with Identity Generation */}
+                    <div className="flex flex-col items-center mb-12 text-center">
+                        <AvatarPicker 
+                            seed={avatarSeed} 
+                            setSeed={setAvatarSeed} 
+                            size={140} 
+                        />
+                        <div className="mt-8">
+                            <h1 className="text-4xl font-black text-white mb-2 tracking-tight uppercase" style={{ fontFamily: "'Cinzel', serif" }}>
+                                Initialize <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#9D01E9] to-[#E31E6E]">Identity</span>
+                            </h1>
+                            <p className="text-[#AF94D2]/60 text-[9px] uppercase tracking-[0.4em] font-bold">
+                                Protocol Phase 02: Onboarding
+                            </p>
                         </div>
-                        <h1 className="text-4xl font-black text-white mb-3" style={{ fontFamily: "'Playfair Display', serif" }}>
-                            Identity Initialization
-                        </h1>
-                        <p className="text-[#AF94D2] text-[10px] uppercase tracking-[0.4em] font-bold">
-                            Finalizing your Bio-Metric Vault
-                        </p>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
