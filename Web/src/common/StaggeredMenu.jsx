@@ -22,6 +22,15 @@ export const StaggeredMenu = ({
 }) => {
   const [open, setOpen] = useState(false);
   const openRef = useRef(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  React.useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const panelRef = useRef(null);
   const preLayersRef = useRef(null);
@@ -372,7 +381,11 @@ export const StaggeredMenu = ({
         </div>
 
         <header
-          className="staggered-menu-header absolute top-0 left-0 w-full flex items-center justify-between p-[2em] bg-transparent pointer-events-none z-20"
+          className={`staggered-menu-header fixed top-0 left-0 w-full flex items-center justify-between px-6 md:px-12 transition-all duration-300 z-20 ${
+            scrolled 
+              ? 'py-3 bg-black/40 backdrop-blur-md border-b border-white/10 shadow-lg' 
+              : 'py-6 bg-transparent border-b border-transparent'
+          }`}
           aria-label="Main navigation header"
         >
           {/* Left: SRM Logo (With balanced sizes) */}
@@ -522,7 +535,7 @@ export const StaggeredMenu = ({
       {/* ─── UPDATED CSS BLOCK ─── */}
       <style>{`
 .sm-scope .staggered-menu-wrapper { position: relative; width: 100%; height: 100%; z-index: 40; pointer-events: none; }
-.sm-scope .staggered-menu-header { position: absolute; top: 0; left: 0; width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 2em; background: transparent; pointer-events: none; z-index: 20; }
+.sm-scope .staggered-menu-header { pointer-events: none; }
 .sm-scope .staggered-menu-header > * { pointer-events: auto; }
 .sm-scope .sm-logo { display: flex; align-items: center; user-select: none; }
 .sm-scope .sm-logo-img { display: block; width: auto; max-height: 60px; object-fit: contain; }
