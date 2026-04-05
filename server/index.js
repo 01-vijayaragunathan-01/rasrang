@@ -1,6 +1,26 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
+// --- PROCESS-LEVEL RESILIENCE SHIELD ---
+// Prevent total system collapse from unexpected errors outside the request cycle
+process.on('unhandledRejection', (reason, promise) => {
+    logger.error('CRITICAL: Unhandled Rejection at Promise', { 
+        reason: reason instanceof Error ? reason.message : reason, 
+        stack: reason instanceof Error ? reason.stack : undefined 
+    });
+    // In production, we might want to gracefully shutdown if state is corrupted,
+    // but in development/this environment, we log it and keep the server alive.
+});
+
+process.on('uncaughtException', (err) => {
+    logger.error('CRITICAL: Uncaught Exception detected!', { 
+        error: err.message, 
+        stack: err.stack 
+    });
+    // For extreme safety, some teams exit here. We'll log and keep running unless it's fatal.
+});
+
+
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -81,24 +101,39 @@ app.get('/api/health', (req, res) => {
 
 // GLOBAL ERROR HANDLER
 app.use((err, req, res, next) => {
-    // If it's a CORS error, send a clean 403 response instead of a massive 500 crash
+    // 1. Handle CORS errors gracefully
     if (err.message === 'Not allowed by CORS') {
-        return res.status(403).json({ error: 'Origin blocked by CORS policy.' });
+        return res.status(403).json({ 
+            error: 'Uplink Rejection: Origin blocked by security policy.',
+            origin: req.get('origin')
+        });
     }
 
-    logger.error(`[GLOBAL ERROR HANDLER] ${req.method} ${req.url}`, {
+    // 2. Handle Prisma specific errors if database connection drops
+    if (err.code && err.code.startsWith('P')) {
+        logger.error(`[DATABASE ERROR] ${err.code}`, { error: err.message, requestId: req.requestId });
+        return res.status(503).json({ error: "Database synchronization failure. Please try again soon." });
+    }
+
+    // 3. Log the general error with full context
+    logger.error(`[GLOBAL ERROR] ${req.method} ${req.url}`, {
         error: err.message,
         stack: err.stack,
-        requestId: req.requestId
+        requestId: req.requestId,
+        body: req.method !== 'GET' ? req.body : undefined // Be careful not to log passwords!
     });
     
-    // Check if headers have already been sent to avoid "Unhandled Error" crashes
+    // 4. Ensure we don't try to send multiple responses
     if (res.headersSent) {
         return next(err);
     }
 
-    res.status(err.status || 500).json({
-        error: err.message || 'Internal Server Error',
+    // 5. Mission Failure Response
+    const statusCode = err.status || 500;
+    res.status(statusCode).json({
+        success: false,
+        error: err.message || 'Mission Critical: Internal Server Failure',
+        code: statusCode === 500 ? 'INTERNAL_ERROR' : 'REQUEST_ERROR',
         details: process.env.NODE_ENV === 'development' ? err.stack : undefined
     });
 });
