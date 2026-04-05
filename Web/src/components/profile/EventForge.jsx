@@ -8,7 +8,8 @@ import ConfirmModal from "../../common/ConfirmModal";
 import { DatePicker } from "../application/date-picker/date-picker";
 import { parseDate, getLocalTimeZone } from "@internationalized/date";
 import TimePicker from "../../common/TimePicker";
-
+import ReactQuill from "react-quill-new";
+import "react-quill-new/dist/quill.snow.css";
 export default function EventForge() {
     const { csrfToken } = useAuth();
     const toast = useToast();
@@ -389,11 +390,52 @@ export default function EventForge() {
                                 </div>
                                 <div>
                                     <label className="text-[10px] uppercase tracking-[0.3em] text-[#AF94D2] font-black mb-3 block">Mission Briefing</label>
-                                    <textarea 
-                                        required rows="4" placeholder="Detail the tactical chaos here..."
-                                        value={eventData.description} onChange={e => setEventData({...eventData, description: e.target.value})}
-                                        className="w-full bg-white/5 border border-white/10 rounded-2xl p-6 font-medium text-sm text-white/80 outline-none focus:border-[#22D3EE] focus:bg-white/10 transition-all resize-none italic"
-                                    />
+                                    <div className="custom-quill-wrapper">
+                                        <ReactQuill 
+                                            theme="snow"
+                                            placeholder="Detail the tactical chaos here..."
+                                            value={eventData.description} 
+                                            onChange={(val) => setEventData({...eventData, description: val})}
+                                        />
+                                    </div>
+                                    <style>{`
+                                        .custom-quill-wrapper .ql-container.ql-snow {
+                                            border: 1px solid rgba(255, 255, 255, 0.1);
+                                            border-bottom-left-radius: 1rem;
+                                            border-bottom-right-radius: 1rem;
+                                            background: rgba(255, 255, 255, 0.05);
+                                            min-height: 150px;
+                                            color: rgba(255, 255, 255, 0.8);
+                                            font-size: 0.875rem;
+                                            font-family: inherit;
+                                        }
+                                        .custom-quill-wrapper .ql-toolbar.ql-snow {
+                                            border: 1px solid rgba(255, 255, 255, 0.1);
+                                            border-top-left-radius: 1rem;
+                                            border-top-right-radius: 1rem;
+                                            background: rgba(255, 255, 255, 0.1);
+                                        }
+                                        .custom-quill-wrapper .ql-snow .ql-stroke {
+                                            stroke: rgba(255, 255, 255, 0.7);
+                                        }
+                                        .custom-quill-wrapper .ql-snow .ql-fill, .custom-quill-wrapper .ql-snow .ql-stroke.ql-fill {
+                                            fill: rgba(255, 255, 255, 0.7);
+                                        }
+                                        .custom-quill-wrapper .ql-snow .ql-picker {
+                                            color: rgba(255, 255, 255, 0.7);
+                                        }
+                                        .custom-quill-wrapper .ql-snow.ql-toolbar button:hover .ql-stroke,
+                                        .custom-quill-wrapper .ql-snow .ql-toolbar button:hover .ql-stroke {
+                                            stroke: #22D3EE;
+                                        }
+                                        .custom-quill-wrapper .ql-editor.ql-blank::before {
+                                            color: rgba(255, 255, 255, 0.2);
+                                            font-style: italic;
+                                        }
+                                        .custom-quill-wrapper .ql-editor {
+                                            padding: 1.5rem;
+                                        }
+                                    `}</style>
                                 </div>
                             </div>
 

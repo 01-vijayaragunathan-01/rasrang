@@ -9,6 +9,7 @@ import FestivalModal from "../common/FestivalModal";
 import Particles from "../pages/home/Particles";
 import { useTheme } from "../context/ThemeContext";
 import { HeadlinerSkeleton, EventSkeleton } from "../common/Skeleton";
+import DOMPurify from "dompurify";
 
 // ─── HOOKS ─────────────────────────────────────────────────────────────
 function useCountdown(unlockDate) {
@@ -81,9 +82,10 @@ function HeadlinerCard({ headliner }) {
             <h2 className="text-4xl sm:text-5xl font-bold text-white mb-4 leading-tight drop-shadow-lg" style={{ fontFamily: "'Playfair Display', serif" }}>
                 {headliner.title}
             </h2>
-            <p className="text-sm text-white/80 max-w-lg mb-8 leading-relaxed">
-                {headliner.description}
-            </p>
+            <div 
+                className="text-sm text-white/80 max-w-lg mb-8 leading-relaxed quill-content"
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(headliner.description) }}
+            />
             <button 
                 className="w-fit flex items-center gap-3 px-8 py-4 rounded-full text-xs font-bold uppercase tracking-widest text-white transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-[0_0_30px_rgba(227,30,110,0.4)]"
                 style={{ background: `linear-gradient(135deg, #C53099, #9D01E9)` }}
@@ -135,9 +137,10 @@ function EventCard({ event, index, onClick }) {
             <h3 className="text-2xl font-bold text-white mb-2 leading-tight group-hover:text-[#E4BD8D] transition-colors" style={{ fontFamily: "'Playfair Display', serif" }}>
                 {event.title}
             </h3>
-            <p className="text-sm text-white/50 line-clamp-2 leading-relaxed">
-                {event.description}
-            </p>
+            <div 
+                className="text-sm text-white/50 line-clamp-2 leading-relaxed quill-content"
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(event.description) }}
+            />
           </div>
 
           <div className="flex items-center justify-between pt-4 border-t border-white/10 mt-4">
@@ -225,7 +228,10 @@ function EventModal({ event, onClose, onRegister, registering, onShare }) {
 
                   <div className="mb-10">
                     <h4 className="text-sm font-bold text-white uppercase tracking-widest mb-3">About the Event</h4>
-                    <p className="text-white/60 text-sm leading-relaxed">{event.description}</p>
+                    <div 
+                        className="text-white/60 text-sm leading-relaxed quill-content"
+                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(event.description) }}
+                    />
                     
                   </div>
               </div>

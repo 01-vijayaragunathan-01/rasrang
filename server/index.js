@@ -99,6 +99,10 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', message: 'RasRang API is running smoothly' });
 });
 
+app.get((req, res) => {
+    res.json({ status: 'OK', message: 'RasRang API is running smoothly' });
+});
+
 // GLOBAL ERROR HANDLER
 app.use((err, req, res, next) => {
     // 1. Handle CORS errors gracefully
