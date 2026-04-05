@@ -19,7 +19,7 @@ export default function ProfileLayout({ children, activeTab, setActiveTab }) {
     ];
 
     return (
-        <div className="flex flex-col md:flex-row h-screen text-white md:pt-20 overflow-hidden relative" style={{ backgroundColor: colors.base }}>
+        <div className="flex flex-col md:flex-row min-h-screen text-white md:pt-20 relative" style={{ backgroundColor: colors.base }}>
             
             {/* ── BACKGROUND ATMOSPHERE (Orbs) ── */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
@@ -51,7 +51,7 @@ export default function ProfileLayout({ children, activeTab, setActiveTab }) {
             <motion.aside 
                 initial={{ x: -100, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
-                className="hidden md:flex w-72 backdrop-blur-3xl border-r flex-col p-8 z-20 relative"
+                className="hidden md:flex w-72 backdrop-blur-3xl border-r flex-col p-8 z-20 sticky top-20 max-h-[calc(100vh-80px)] overflow-y-auto overflow-x-hidden hide-scrollbar"
                 style={{ backgroundColor: `${colors.surface}CC`, borderColor: `${colors.primary}26` }}
             >
                 {/* ── Biometric Scan Avatar ── */}
@@ -173,7 +173,7 @@ export default function ProfileLayout({ children, activeTab, setActiveTab }) {
             </div>
 
             {/* Main Content Container */}
-            <main className="flex-1 overflow-y-auto p-4 md:p-8 relative md:pt-0 pt-40 mb-20 md:mb-0">
+            <main className="flex-1 p-4 md:p-8 relative md:pt-0 pt-40 pb-20 md:pb-0">
                  <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full blur-[120px] pointer-events-none" style={{ backgroundColor: `${colors.primary}0D` }} />
                  <AnimatePresence mode="wait">
                     <motion.div

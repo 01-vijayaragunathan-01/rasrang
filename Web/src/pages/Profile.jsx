@@ -330,7 +330,7 @@ export default function Profile() {
                         </div>
 
                         {/* ── SECURITY SECTOR: PASSWORD CHANGE ── */}
-                        <div className="mt-16 pt-12 border-t border-white/5 space-y-10">
+                        <div className="mt-16 pt-12 border-t border-white/5 space-y-10 pb-12">
                             <div className="space-y-1">
                                 <h3 className="text-xl font-black uppercase tracking-widest flex items-center gap-4 text-white">
                                     <span className="w-8 h-px bg-[#E31E6E]/30"></span>
@@ -372,13 +372,14 @@ export default function Profile() {
                                 </div>
                             </div>
 
-                            <div className="flex justify-end">
+                            <div className="flex justify-end pt-4">
                                 <button 
                                     onClick={handlePasswordChange}
                                     disabled={isUpdatingPassword}
-                                    className="relative group px-8 py-4 overflow-hidden rounded-xl bg-[#E31E6E]/10 border border-[#E31E6E]/20 hover:bg-[#E31E6E] text-[#E31E6E] hover:text-white transition-all duration-300 disabled:opacity-50"
+                                    className="relative group px-10 py-5 overflow-hidden rounded-2xl bg-[#E31E6E] text-white font-black uppercase tracking-[0.3em] text-[10px] transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_10px_30px_rgba(227,30,110,0.3)] disabled:opacity-50 disabled:hover:scale-100"
                                 >
-                                    <span className="relative z-10 font-black uppercase tracking-[0.3em] text-[9px]">
+                                    <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <span className="relative z-10">
                                         {isUpdatingPassword ? "Synchronizing..." : "Update Security Pattern"}
                                     </span>
                                 </button>
