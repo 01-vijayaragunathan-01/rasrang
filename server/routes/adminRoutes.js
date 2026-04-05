@@ -5,6 +5,7 @@ import { createEvent, updateEvent, deleteEvent } from '../controllers/adminEvent
 import { uploadChunk } from '../controllers/uploadController.js';
 import { createGalleryItem, deleteGalleryItem } from '../controllers/galleryController.js';
 import { authenticateJWT, isCoordinator, isVolunteer, isSuperCoordinator, isPlatformAdmin } from '../middlewares/auth.js';
+import { globalLimiter, scannerLimiter } from '../middlewares/rateLimiter.js';
 
 const router = express.Router();
 
@@ -47,7 +48,7 @@ router.get('/attendees/export', authenticateJWT, isVolunteer, exportAttendeesCsv
 
 // ── SCANNER RBAC MODULE ───────────────────────────────────────
 // Verify ticket entry — accessible to all scanning staff (Volunteer+)
-router.post('/verify-entry', authenticateJWT, isVolunteer, verifyEventEntry);
+router.post('/verify-entry', authenticateJWT, isVolunteer, scannerLimiter, verifyEventEntry);
 
 // Get events this volunteer is authorized to scan (personalized dropdown)
 router.get('/my-managed-events', authenticateJWT, isVolunteer, getMyManagedEvents);

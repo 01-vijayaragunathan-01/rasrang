@@ -26,3 +26,16 @@ export const authLimiter = rateLimit({
         status: 429
     }
 });
+
+// Scanner Rate Limiter: High throughput for staff/volunteers scanning tickets
+// Allows ~66 scans per minute to accommodate peak crowd flow
+export const scannerLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 1000, 
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: {
+        error: 'Scanner throughput limit reached. Please wait a moment for the system to process.',
+        status: 429
+    }
+});
