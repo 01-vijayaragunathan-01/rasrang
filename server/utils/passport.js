@@ -2,9 +2,7 @@ import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as LocalStrategy } from 'passport-local';
 import bcrypt from 'bcryptjs';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import prisma from '../db.js'; // H-1 FIX: Shared Prisma singleton
 
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID || 'dummy_id',

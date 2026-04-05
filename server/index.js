@@ -57,9 +57,12 @@ app.set('trust proxy', 1); // Trust the first proxy/load balancer (Required for 
 
 // Apply Middlewares
 app.use(cors(corsOptions));
-app.use(express.json());
+app.use(express.json({ limit: '10kb' })); // H-5 FIX: Prevent oversized JSON payload attacks
 app.use(cookieParser());
 app.use(globalLimiter);
+
+// --- ADVANCED LOGGING INFRA --- (M-1 FIX: Restored)
+app.use(requestLogger);
 
 // Initialize Passport
 app.use(passport.initialize());

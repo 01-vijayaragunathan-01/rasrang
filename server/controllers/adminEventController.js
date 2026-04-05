@@ -1,8 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { uploadFile, deleteFile } from '../utils/minio.js';
 import logger from '../utils/logger.js';
-
-const prisma = new PrismaClient();
+import prisma from '../db.js'; // H-1 FIX: Shared Prisma singleton
 
 // ==========================================
 // 1. CREATE EVENT (Admin Only)

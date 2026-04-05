@@ -46,15 +46,27 @@ export const AuthProvider = ({ children }) => {
     };
 
     useEffect(() => {
-        // Capture CSRF from URL if present (after Google Redirect)
-        const params = new URLSearchParams(window.location.search);
-        const csrf = params.get('csrf');
-        if (csrf) {
-            setCsrfToken(csrf);
-            // Clean URL
-            const url = new URL(window.location);
-            url.searchParams.delete('csrf');
-            window.history.replaceState({}, '', url);
+        // H-1 FIX: Read CSRF token from the short-lived _csrf_init cookie set by the backend
+        // after Google OAuth redirect — NOT from the URL query param (which leaks to history/logs)
+        const csrfFromCookie = document.cookie
+            .split('; ')
+            .find(r => r.startsWith('_csrf_init='))
+            ?.split('=')[1];
+
+        if (csrfFromCookie) {
+            setCsrfToken(csrfFromCookie);
+            // Immediately clear the one-time cookie — it's been consumed
+            document.cookie = '_csrf_init=; Max-Age=0; path=/; SameSite=Lax';
+        } else {
+            // Fallback: support old ?csrf= URL param for backward compatibility during transition
+            const params = new URLSearchParams(window.location.search);
+            const csrf = params.get('csrf');
+            if (csrf) {
+                setCsrfToken(csrf);
+                const url = new URL(window.location);
+                url.searchParams.delete('csrf');
+                window.history.replaceState({}, '', url);
+            }
         }
 
         checkAuth();

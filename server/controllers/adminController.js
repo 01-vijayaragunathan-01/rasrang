@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { AsyncParser } from '@json2csv/node';
 import logger from '../utils/logger.js';
-const prisma = new PrismaClient();
+import prisma from '../db.js'; // H-1 FIX: Shared Prisma singleton
 
 export const getEventStats = async (req, res) => {
     logger.info(`Admin stats request`, { userId: req.user.id, role: req.user.role, requestId: req.requestId });
@@ -104,8 +104,10 @@ export const updateUserRole = async (req, res) => {
             data: dataToUpdate
         });
 
+        // H-3 FIX: Only return safe fields, never expose password hash or refreshToken
+        const { password, refreshToken, ...safeUser } = updatedUser;
         logger.info(`Role update SUCCESS: user ${userId} is now ${role}`, { requestId: req.requestId });
-        res.json({ success: true, message: 'User role updated', user: updatedUser });
+        res.json({ success: true, message: 'User role updated', user: safeUser });
     } catch (err) {
         logger.error(`Role update failure`, { userId, error: err.message, requestId: req.requestId });
         res.status(500).json({ error: 'Failed to update user role', details: err.message });

@@ -2,10 +2,8 @@ import jwt from 'jsonwebtoken';
 import passport from '../utils/passport.js';
 import bcrypt from 'bcryptjs';
 import { sendTokenResponse, generateTokens } from '../utils/tokenProvider.js';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../db.js'; // H-1 FIX: Shared Prisma singleton
 import logger from '../utils/logger.js';
-
-const prisma = new PrismaClient();
 
 export const googleCallback = async (req, res) => {
     const { accessToken, refreshToken, csrfToken } = generateTokens(req.user);
@@ -26,10 +24,19 @@ export const googleCallback = async (req, res) => {
     res.cookie('accessToken', accessToken, { ...cookieOptions, maxAge: 15 * 60 * 1000 });
     res.cookie('refreshToken', refreshToken, cookieOptions);
 
+    // H-4 FIX: Pass CSRF token via a short-lived secure cookie instead of URL query param
+    // This prevents it from leaking into browser history, logs, or Referer headers
+    res.cookie('_csrf_init', csrfToken, {
+        httpOnly: false, // Must be readable by JS so frontend can pick it up
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 60 * 1000 // 1 minute — frontend must read and discard this immediately
+    });
+
     const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
     const redirectUrl = req.user.isOnboarded 
-        ? `${clientUrl}/?csrf=${csrfToken}` 
-        : `${clientUrl}/onboarding?csrf=${csrfToken}`;
+        ? `${clientUrl}/` 
+        : `${clientUrl}/onboarding`;
 
     res.redirect(redirectUrl);
 };
@@ -78,7 +85,7 @@ export const localSignup = async (req, res) => {
         await sendTokenResponse(prisma, newUser, 201, res);
     } catch (err) {
         logger.error(`Signup failed: Unhandled exception`, { error: err.message, requestId: req.requestId });
-        res.status(500).json({ error: 'Signup failed', details: err.message });
+        res.status(500).json({ error: 'Signup failed' });
     }
 };
 
@@ -89,13 +96,13 @@ export const onboard = async (req, res) => {
         const { regNo, clgName, year, dept, branch, section, phoneNo, avatarSeed } = req.body;
 
         if (!regNo || !phoneNo) {
-            console.log(`[authController] onboard → VALIDATION FAILED: missing regNo/phoneNo`);
+            logger.warn(`Onboard validation failed: missing regNo/phoneNo`, { requestId: req.requestId });
             return res.status(400).json({ error: 'Registration number and phone number are required' });
         }
 
         const user = await prisma.user.findUnique({ where: { id: userId } });
         if (!user) {
-            console.log(`[authController] onboard → NOT FOUND: userId ${userId}`);
+            logger.warn(`Onboard: user not found: ${userId}`, { requestId: req.requestId });
             return res.status(404).json({ error: 'User not found' });
         }
         
@@ -103,7 +110,6 @@ export const onboard = async (req, res) => {
              return res.status(400).json({ error: 'User is already onboarded' });
         }
 
-        // Check uniqueness of regNo and phoneNo
         const existing = await prisma.user.findFirst({
             where: {
                 id: { not: userId },
@@ -118,24 +124,14 @@ export const onboard = async (req, res) => {
 
         const updatedUser = await prisma.user.update({
             where: { id: userId },
-            data: {
-                regNo,
-                clgName,
-                year,
-                dept,
-                branch,
-                section,
-                phoneNo,
-                avatarSeed,
-                isOnboarded: true
-            }
+            data: { regNo, clgName, year, dept, branch, section, phoneNo, avatarSeed, isOnboarded: true }
         });
 
         logger.info(`Onboarding SUCCESS for user ${userId}`, { requestId: req.requestId });
         res.json({ success: true, message: 'Onboarding complete', user: { id: updatedUser.id, role: updatedUser.role, name: updatedUser.name, isOnboarded: updatedUser.isOnboarded } });
     } catch (err) {
         logger.error(`Onboarding failed`, { userId: req.user.id, error: err.message, requestId: req.requestId });
-        res.status(500).json({ error: 'Onboarding failed', details: err.message });
+        res.status(500).json({ error: 'Onboarding failed' });
     }
 };
 
@@ -200,28 +196,31 @@ export const logout = async (req, res) => {
         }
     }
 
-    res.clearCookie('accessToken');
-    res.clearCookie('refreshToken');
+    // M-2 FIX: clearCookie must use the same options it was set with
+    const cookieClearOptions = {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict'
+    };
+    res.clearCookie('accessToken', cookieClearOptions);
+    res.clearCookie('refreshToken', cookieClearOptions);
     res.json({ success: true, message: 'Logged out successfully' });
 };
 
 export const updateProfile = async (req, res) => {
-    console.log(`[authController] updateProfile → user: ${req.user.id}`);
+    logger.info(`Profile update initiated`, { userId: req.user.id, requestId: req.requestId });
     try {
         const userId = req.user.id;
         const { clgName, year, dept, branch, section, avatarSeed } = req.body;
-        
-        // Note: regNo and phoneNo are explicitly ignored/locked
 
         const updatedUser = await prisma.user.update({
             where: { id: userId },
-            data: {
-                clgName,
-                year,
-                dept,
-                branch,
-                section,
-                avatarSeed
+            data: { clgName, year, dept, branch, section, avatarSeed },
+            // H-2 FIX: Only select safe, non-sensitive fields to return
+            select: {
+                id: true, name: true, email: true, role: true,
+                regNo: true, clgName: true, year: true, dept: true,
+                branch: true, section: true, avatarSeed: true, isOnboarded: true
             }
         });
 
@@ -229,6 +228,6 @@ export const updateProfile = async (req, res) => {
         res.json({ success: true, message: 'Profile updated', user: updatedUser });
     } catch (err) {
         logger.error(`Profile Update failed`, { userId: req.user.id, error: err.message, requestId: req.requestId });
-        res.status(500).json({ error: 'Profile update failed', details: err.message });
+        res.status(500).json({ error: 'Profile update failed' });
     }
 };

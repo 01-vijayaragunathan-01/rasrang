@@ -61,14 +61,13 @@ async function main() {
                 category: 'Music',
                 description: 'The ultimate music showdown.',
                 date: 'MARCH 15',
-                capacity: 100,
+                // M-1 FIX: 'capacity' removed — field does not exist in the Event schema
             },
             {
                 title: 'Hackathon',
-                category: 'Tech',
+                category: 'Technical',
                 description: '24 hour coding marathon.',
                 date: 'MARCH 16',
-                capacity: 50,
             }
         ]
     });

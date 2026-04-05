@@ -72,6 +72,8 @@ export const uploadFile = async (fileBuffer, fileName, mimetype) => {
         return url;
     } catch (err) {
         console.error("MinIO Upload Error:", err);
+        // M-3 FIX: Throw instead of silently returning undefined, to prevent null imageUrls in DB
+        throw new Error(`Storage upload failed: ${err.message}`);
     }
 };
 

@@ -16,7 +16,9 @@ export const uploadChunk = async (req, res) => {
 
         // Use OS temp dir to prevent cluttering project scope
         const tempDir = os.tmpdir();
-        const tempFilePath = path.join(tempDir, `${uploadId}_${fileName}`);
+        // C-4 FIX: path.basename() strips all directory separators to prevent path traversal
+        const safeFileName = path.basename(fileName);
+        const tempFilePath = path.join(tempDir, `${uploadId}_${safeFileName}`);
 
         // Append this chunk to the temp file
         fs.appendFileSync(tempFilePath, chunk.buffer);

@@ -1,8 +1,6 @@
 import jwt from 'jsonwebtoken';
-import { PrismaClient } from '@prisma/client';
 import logger from '../utils/logger.js';
-
-const prisma = new PrismaClient();
+import prisma from '../db.js'; // H-1 FIX: Shared Prisma singleton
 
 export const authenticateJWT = async (req, res, next) => {
     // 1. Get Access Token from Cookies
