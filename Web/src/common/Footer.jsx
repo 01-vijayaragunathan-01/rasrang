@@ -88,6 +88,9 @@ function DevCredit({ member, theme, onSelect }) {
                   <a href={member.github} target="_blank" rel="noopener noreferrer" className="text-[10px] uppercase tracking-widest font-black transition-colors" style={{ color: theme.colors.accent }}>
                       GitHub
                   </a>
+                  <a href={member.linkedin} target="_blank" rel="noopener noreferrer" className="text-[10px] uppercase tracking-widest font-black transition-colors" style={{ color: myColor }}>
+                      LinkedIn
+                  </a>
                 </div>
               </div>
             </div>
@@ -177,10 +180,15 @@ function MortalPortal({ member, theme, onClose }) {
                         </div>
                     </div>
 
-                    <div className="mt-8 pt-6 border-t border-white/10">
+                    <div className="mt-8 pt-6 border-t border-white/10 flex flex-col gap-3">
                         <a href={member.github} target="_blank" rel="noopener noreferrer" 
                            className="w-full py-4 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-widest text-white hover:bg-white hover:text-black transition-all">
                             GitHub Profile
+                        </a>
+                        <a href={member.linkedin} target="_blank" rel="noopener noreferrer" 
+                           className="w-full py-4 rounded-2xl border flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-widest text-white hover:bg-white hover:text-black transition-all"
+                           style={{ backgroundColor: `${myColor}10`, borderColor: `${myColor}40` }}>
+                            Connect on LinkedIn
                         </a>
                     </div>
                 </div>
@@ -278,7 +286,7 @@ export default function Footer() {
             </p>
             <div className="space-y-4">
               {[
-                { label: "Email", value: "rasrang@srmtrichy.edu.in" },
+                { label: "Email", value: "rasrang25@gmail.com" },
                 { label: "Phone", value: "+91 98765 43210" },
                 { label: "Venue", value: "SRM Trichy, Main Campus" },
               ].map(({ label, value }) => (
