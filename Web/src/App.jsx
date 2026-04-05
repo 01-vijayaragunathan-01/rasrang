@@ -78,7 +78,7 @@ import Onboarding from "./pages/Onboarding";
 
 function MainContent() {
   const { theme } = useTheme();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   const isStaff = user && (user.role === 'VOLUNTEER' || user.role === 'COORDINATOR' || user.role === 'SUPER_ADMIN');
 
@@ -99,7 +99,8 @@ function MainContent() {
     user ? { label: 'Profile', link: '/profile', ariaLabel: 'Open biometric vault' } 
          : { label: 'Login', link: '/login', ariaLabel: 'User authentication' },
     ...(isStaff ? [{ label: 'Dashboard', link: '/dashboard', ariaLabel: 'Command Tower access' }] : []),
-    { label: 'Team', link: '/contributors', ariaLabel: 'Meet the architects' }
+    { label: 'Team', link: '/contributors', ariaLabel: 'Meet the architects' },
+    ...(user ? [{ label: 'Logout', action: logout, ariaLabel: 'Terminate session' }] : [])
   ];
 
   const socialItems = [

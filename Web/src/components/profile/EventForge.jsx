@@ -29,6 +29,7 @@ export default function EventForge() {
         date: "",
         time: "",
         description: "",
+        venue: "",
         isHeadliner: false
     });
 
@@ -130,6 +131,7 @@ export default function EventForge() {
             date: event.date,
             time: event.time || "",
             description: event.description,
+            venue: event.venue || "",
             isHeadliner: event.isHeadliner
         });
         setImagePreview(event.imageUrl);
@@ -185,6 +187,7 @@ export default function EventForge() {
                 date: eventData.date,
                 time: eventData.time,
                 description: eventData.description,
+                venue: eventData.venue,
                 isHeadliner: eventData.isHeadliner,
             };
 
@@ -223,7 +226,7 @@ export default function EventForge() {
     };
 
     const resetForm = () => {
-        setEventData({ title: "", category: "Main Stage", date: "", time: "", description: "", isHeadliner: false });
+        setEventData({ title: "", category: "Main Stage", date: "", time: "", description: "", venue: "", isHeadliner: false });
         setImageFile(null);
         setImagePreview(null);
         setWhatsappLink("");
@@ -375,6 +378,14 @@ export default function EventForge() {
                                             onChange={(val) => setEventData({ ...eventData, time: val })}
                                         />
                                     </div>
+                                </div>
+                                <div>
+                                    <label className="text-[10px] uppercase tracking-[0.3em] text-[#AF94D2] font-black mb-3 block">Mission Location (Venue)</label>
+                                    <input 
+                                        type="text" placeholder="e.g. SRM AUDITORIUM"
+                                        value={eventData.venue} onChange={e => setEventData({...eventData, venue: e.target.value})}
+                                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-sm font-bold text-white outline-none focus:border-[#22D3EE] focus:bg-white/10 transition-all placeholder:text-white/5"
+                                    />
                                 </div>
                                 <div>
                                     <label className="text-[10px] uppercase tracking-[0.3em] text-[#AF94D2] font-black mb-3 block">Mission Briefing</label>

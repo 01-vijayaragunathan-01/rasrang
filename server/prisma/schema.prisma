@@ -46,6 +46,7 @@ model Event {
   date          String
   time          String?
   imageUrl      String?
+  venue         String?
   whatsappLink  String?
   isHeadliner   Boolean        @default(false)
   registrations Registration[]

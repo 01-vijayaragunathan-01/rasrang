@@ -23,6 +23,12 @@ const upload = multer({
     }
 });
 
+// Chunks should not be strictly filtered by mimetype because blobs often default to octet-stream
+const chunkUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 10 * 1024 * 1024 } // 10MB per chunk
+});
+
 router.get('/event-stats', authenticateJWT, isCoordinator, getEventStats);
 router.get('/export-csv/:eventId', authenticateJWT, isCoordinator, exportCsv);
 
@@ -36,7 +42,7 @@ router.put('/events/:eventId', authenticateJWT, isPlatformAdmin, updateEvent);
 router.delete('/events/:eventId', authenticateJWT, isPlatformAdmin, deleteEvent);
 
 // Chunk Upload
-router.post('/upload-chunk', authenticateJWT, isPlatformAdmin, upload.single('chunk'), uploadChunk);
+router.post('/upload-chunk', authenticateJWT, isPlatformAdmin, chunkUpload.single('chunk'), uploadChunk);
 
 // Gallery management
 router.post('/gallery', authenticateJWT, isPlatformAdmin, upload.single('galleryImage'), createGalleryItem);

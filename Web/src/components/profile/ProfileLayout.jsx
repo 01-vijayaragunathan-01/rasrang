@@ -19,7 +19,7 @@ export default function ProfileLayout({ children, activeTab, setActiveTab }) {
     ];
 
     return (
-        <div className="flex flex-col md:flex-row min-h-screen text-white md:pt-20 overflow-hidden relative" style={{ backgroundColor: colors.base }}>
+        <div className="flex flex-col md:flex-row h-screen text-white md:pt-20 overflow-hidden relative" style={{ backgroundColor: colors.base }}>
             
             {/* ── BACKGROUND ATMOSPHERE (Orbs) ── */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
@@ -162,6 +162,13 @@ export default function ProfileLayout({ children, activeTab, setActiveTab }) {
                             </div>
                         </button>
                     ))}
+                    
+                    <button
+                        onClick={logout}
+                        className="w-14 flex items-center justify-center relative z-10 py-3 rounded-xl transition-all duration-500 overflow-hidden group hover:bg-[#E31E6E]/10"
+                    >
+                        <Power className="w-5 h-5 text-[#E31E6E]/60 group-hover:text-[#E31E6E]" />
+                    </button>
                 </div>
             </div>
 

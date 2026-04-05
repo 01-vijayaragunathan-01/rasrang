@@ -7,7 +7,7 @@ import prisma from '../db.js'; // H-1 FIX: Shared Prisma singleton
 // 1. CREATE EVENT (Admin Only)
 // ==========================================
 export const createEvent = async (req, res) => {
-    const { title, category, description, date, time, isHeadliner, imageUrl, whatsappLink } = req.body;
+    const { title, category, description, date, time, isHeadliner, imageUrl, whatsappLink, venue } = req.body;
     logger.info(`Admin: Create Event initiated by ${req.user.id}`, { title, category, date, requestId: req.requestId });
     try {
         if (!title || !description || !date) {
@@ -27,6 +27,7 @@ export const createEvent = async (req, res) => {
                 time: time || null,
                 imageUrl: imageUrl || null,
                 whatsappLink: whatsappLink || null,
+                venue: venue || null,
                 isHeadliner: finalIsHeadliner
             }
         });
@@ -44,7 +45,7 @@ export const createEvent = async (req, res) => {
 // ==========================================
 export const updateEvent = async (req, res) => {
     const { eventId } = req.params;
-    const { title, category, description, date, time, isHeadliner, imageUrl, whatsappLink } = req.body;
+    const { title, category, description, date, time, isHeadliner, imageUrl, whatsappLink, venue } = req.body;
     logger.info(`Admin: Update Event requested`, { eventId, requestId: req.requestId });
 
     try {
@@ -74,6 +75,7 @@ export const updateEvent = async (req, res) => {
             time: time !== undefined ? time : existingEvent.time,
             imageUrl: imageUrl !== undefined ? imageUrl : existingEvent.imageUrl,
             whatsappLink: whatsappLink !== undefined ? whatsappLink : existingEvent.whatsappLink,
+            venue: venue !== undefined ? venue : existingEvent.venue,
             isHeadliner: finalIsHeadliner
         };
 

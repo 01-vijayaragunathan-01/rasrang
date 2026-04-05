@@ -143,7 +143,7 @@ function EventCard({ event, index, onClick }) {
           <div className="flex items-center justify-between pt-4 border-t border-white/10 mt-4">
               <div className="flex items-center gap-1.5 text-xs text-white/60 font-medium">
                   <MapPin className="w-3.5 h-3.5 text-[#22D3EE]" />
-                  <span>{event.venue}</span>
+                  <span>{event.venue || "Main Campus"}</span>
               </div>
               <div className="w-8 h-8 rounded-full bg-[#9D01E9]/20 flex items-center justify-center group-hover:bg-[#9D01E9] transition-colors">
                   <ArrowRight className="w-4 h-4 text-white" />
