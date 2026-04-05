@@ -7,7 +7,7 @@ import prisma from '../db.js'; // H-1 FIX: Shared Prisma singleton
 // 1. CREATE EVENT (Admin Only)
 // ==========================================
 export const createEvent = async (req, res) => {
-    const { title, category, description, date, time, isHeadliner, imageUrl, rulebookUrl } = req.body;
+    const { title, category, description, date, time, isHeadliner, imageUrl, whatsappLink } = req.body;
     logger.info(`Admin: Create Event initiated by ${req.user.id}`, { title, category, date, requestId: req.requestId });
     try {
         if (!title || !description || !date) {
@@ -26,7 +26,7 @@ export const createEvent = async (req, res) => {
                 date,
                 time: time || null,
                 imageUrl: imageUrl || null,
-                rulebookUrl: rulebookUrl || null,
+                whatsappLink: whatsappLink || null,
                 isHeadliner: finalIsHeadliner
             }
         });
@@ -44,7 +44,7 @@ export const createEvent = async (req, res) => {
 // ==========================================
 export const updateEvent = async (req, res) => {
     const { eventId } = req.params;
-    const { title, category, description, date, time, isHeadliner, imageUrl, rulebookUrl } = req.body;
+    const { title, category, description, date, time, isHeadliner, imageUrl, whatsappLink } = req.body;
     logger.info(`Admin: Update Event requested`, { eventId, requestId: req.requestId });
 
     try {
@@ -73,7 +73,7 @@ export const updateEvent = async (req, res) => {
             date: date || existingEvent.date,
             time: time !== undefined ? time : existingEvent.time,
             imageUrl: imageUrl !== undefined ? imageUrl : existingEvent.imageUrl,
-            rulebookUrl: rulebookUrl !== undefined ? rulebookUrl : existingEvent.rulebookUrl,
+            whatsappLink: whatsappLink !== undefined ? whatsappLink : existingEvent.whatsappLink,
             isHeadliner: finalIsHeadliner
         };
 
@@ -116,10 +116,6 @@ export const deleteEvent = async (req, res) => {
         if (event.imageUrl) {
             logger.info(`Triggered MinIO asset cleanup (image) for deleted event`, { url: event.imageUrl, requestId: req.requestId });
             deleteFile(event.imageUrl);
-        }
-        if (event.rulebookUrl) {
-            logger.info(`Triggered MinIO asset cleanup (rulebook) for deleted event`, { url: event.rulebookUrl, requestId: req.requestId });
-            deleteFile(event.rulebookUrl);
         }
 
         logger.info(`Event destruction complete: "${event.title}"`, { requestId: req.requestId });

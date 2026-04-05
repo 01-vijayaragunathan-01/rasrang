@@ -21,10 +21,8 @@ export default function EventForge() {
     // Form State
     const [imagePreview, setImagePreview] = useState(null);
     const [imageFile, setImageFile] = useState(null);
-    const [rulebookFile, setRulebookFile] = useState(null);
-    const [rulebookUrl, setRulebookUrl] = useState(null);
+    const [whatsappLink, setWhatsappLink] = useState("");
     const fileInputRef = useRef(null);
-    const rulebookInputRef = useRef(null);
     const [eventData, setEventData] = useState({
         title: "",
         category: "Main Stage",
@@ -103,13 +101,6 @@ export default function EventForge() {
         }
     };
 
-    const handleRulebookChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            setRulebookFile(file);
-        }
-    };
-
     // 2. Delete Logic
     const handleDelete = (id) => {
         setConfirmAction(() => () => triggerDelete(id));
@@ -142,8 +133,7 @@ export default function EventForge() {
             isHeadliner: event.isHeadliner
         });
         setImagePreview(event.imageUrl);
-        setRulebookUrl(event.rulebookUrl);
-        setRulebookFile(null);
+        setWhatsappLink(event.whatsappLink || "");
         setActiveMode("add");
     };
 
@@ -184,13 +174,9 @@ export default function EventForge() {
 
         try {
             let finalImageUrl = undefined;
-            let finalRulebookUrl = undefined;
 
             if (imageFile) {
                 finalImageUrl = await uploadFileInChunks(imageFile);
-            }
-            if (rulebookFile) {
-                finalRulebookUrl = await uploadFileInChunks(rulebookFile);
             }
 
             const payload = {
@@ -203,7 +189,7 @@ export default function EventForge() {
             };
 
             if (finalImageUrl) payload.imageUrl = finalImageUrl;
-            if (finalRulebookUrl) payload.rulebookUrl = finalRulebookUrl;
+            if (whatsappLink) payload.whatsappLink = whatsappLink;
 
             const url = editingEventId 
                 ? `${import.meta.env.VITE_API_BASE_URL}/api/admin/events/${editingEventId}`
@@ -240,8 +226,7 @@ export default function EventForge() {
         setEventData({ title: "", category: "Main Stage", date: "", time: "", description: "", isHeadliner: false });
         setImageFile(null);
         setImagePreview(null);
-        setRulebookFile(null);
-        setRulebookUrl(null);
+        setWhatsappLink("");
         setEditingEventId(null);
     };
 
@@ -428,35 +413,23 @@ export default function EventForge() {
                                     )}
                                 </div>
 
-                                {/* Rulebook Upload Section */}
+                                {/* WhatsApp Link Section */}
                                 <div className="p-6 bg-white/5 rounded-2xl border border-white/10 flex flex-col gap-4">
                                     <div className="flex flex-col">
-                                        <label className="text-[10px] uppercase font-black text-[#AF94D2] tracking-widest mb-1 flex items-center gap-2">
-                                            Mission Details (Rulebook)
+                                        <label className="text-[10px] uppercase font-black text-[#25D366] tracking-widest mb-1 flex items-center gap-2">
+                                            Community Access (WhatsApp)
                                         </label>
-                                        <p className="text-[8px] text-white/40 uppercase tracking-widest">Attach PDF containing comprehensive guidelines.</p>
+                                        <p className="text-[8px] text-white/40 uppercase tracking-widest">Optional invite link for event attendees.</p>
                                     </div>
                                     <div className="flex items-center justify-between gap-4">
                                         <input 
-                                            type="file" 
-                                            ref={rulebookInputRef} 
-                                            onChange={handleRulebookChange} 
-                                            accept=".pdf,.doc,.docx" 
-                                            className="hidden" 
+                                            type="url"
+                                            value={whatsappLink}
+                                            onChange={(e) => setWhatsappLink(e.target.value)}
+                                            placeholder="https://chat.whatsapp.com/..."
+                                            className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#25D366]/50 placeholder:text-white/20 transition-all font-medium"
                                         />
-                                        <button 
-                                            type="button"
-                                            onClick={() => rulebookInputRef.current.click()}
-                                            className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border border-white/10 w-full"
-                                        >
-                                            {rulebookFile ? rulebookFile.name : (rulebookUrl ? "UPDATE ATTACHED RULEBOOK" : "ATTACH DOCUMENT")}
-                                        </button>
                                     </div>
-                                    {rulebookUrl && !rulebookFile && (
-                                        <a href={rulebookUrl} target="_blank" rel="noreferrer" className="text-[10px] text-[#22D3EE] font-bold uppercase tracking-widest underline decoration-[#22D3EE]/30 hover:decoration-[#22D3EE]">
-                                            VERIFY CURRENT RULEBOOK
-                                        </a>
-                                    )}
                                 </div>
 
                                 <button 

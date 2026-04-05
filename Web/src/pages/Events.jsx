@@ -227,11 +227,6 @@ function EventModal({ event, onClose, onRegister, registering, onShare }) {
                     <h4 className="text-sm font-bold text-white uppercase tracking-widest mb-3">About the Event</h4>
                     <p className="text-white/60 text-sm leading-relaxed">{event.description}</p>
                     
-                    {event.rulebookUrl && (
-                        <a href={event.rulebookUrl} target="_blank" rel="noreferrer" className="mt-6 inline-flex items-center justify-center gap-2 px-6 py-3 bg-white/10 hover:bg-[#E4BD8D]/20 text-[#E4BD8D] rounded-xl text-xs font-bold uppercase tracking-widest border border-white/10 hover:border-[#E4BD8D]/50 transition-all w-full sm:w-auto">
-                            View Rulebook Protocol
-                        </a>
-                    )}
                   </div>
               </div>
 
@@ -272,6 +267,7 @@ export default function Events() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [registering, setRegistering] = useState(false);
+  const [whatsappPrompt, setWhatsappPrompt] = useState(null);
 
   const fetchEvents = async () => {
     setLoading(true);
@@ -339,6 +335,12 @@ export default function Events() {
       if (res.ok) {
         toast.success("Pass reserved successfully! Check your profile.");
         setSelectedEvent(null);
+        
+        // Trigger WhatsApp prompt if the event has an associated WhatsApp link
+        const eventInfo = headliners.find(e => e.id === eventId) || events.find(e => e.id === eventId);
+        if (eventInfo && eventInfo.whatsappLink) {
+            setWhatsappPrompt(eventInfo.whatsappLink);
+        }
       } else {
         toast.error(data.error || "Registration failed.");
       }
@@ -543,6 +545,48 @@ export default function Events() {
         registering={registering}
         onShare={handleShare}
       />
+
+      {/* ── MISSION SUCCESS: WHATSAPP PROMPT ── */}
+      <AnimatePresence>
+        {whatsappPrompt && (
+          <div className="fixed inset-0 z-[3000] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative w-full max-w-sm bg-[#13072E] border-2 border-[#25D366]/40 rounded-3xl p-8 shadow-[0_0_50px_rgba(37,211,102,0.2)] text-center"
+            >
+              <div className="w-16 h-16 bg-[#25D366]/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-[#25D366]/50 shadow-[0_0_20px_rgba(37,211,102,0.4)]">
+                <Sparkles className="w-8 h-8 text-[#25D366]" />
+              </div>
+              <h3 className="text-2xl font-black uppercase tracking-widest text-[#25D366] mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>
+                Mission Success
+              </h3>
+              <p className="text-white/70 text-sm font-medium mb-8">
+                Your pass has been secured. Join the official comms channel to stay updated on critical intelligence for this event.
+              </p>
+              
+              <div className="flex flex-col gap-3">
+                <a 
+                  href={whatsappPrompt} target="_blank" rel="noreferrer"
+                  onClick={() => setWhatsappPrompt(null)}
+                  className="w-full py-4 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all bg-[#25D366] text-[#13072E] hover:bg-white hover:text-black shadow-xl hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] flex items-center justify-center gap-2"
+                >
+                  Join WhatsApp Comms
+                </a>
+                <button 
+                  onClick={() => setWhatsappPrompt(null)}
+                  className="w-full py-3 rounded-xl font-bold uppercase tracking-widest text-[10px] text-white/40 hover:text-white transition-all bg-white/5 hover:bg-white/10 border border-white/10"
+                >
+                  Dismiss / Join Later
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }

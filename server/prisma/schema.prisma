@@ -46,7 +46,7 @@ model Event {
   date          String
   time          String?
   imageUrl      String?
-  rulebookUrl   String?
+  whatsappLink  String?
   isHeadliner   Boolean        @default(false)
   registrations Registration[]
   // DELEGATED SCANNING: volunteers assigned to this event
