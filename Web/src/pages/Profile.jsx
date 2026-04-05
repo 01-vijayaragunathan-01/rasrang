@@ -8,7 +8,7 @@ import TicketSlider from "../components/profile/TicketSlider";
 import { useToast } from "../context/ToastContext";
 import { APP_THEME } from "../constants/theme";
 import AvatarPicker from "../components/profile/AvatarPicker";
-import { X, Fingerprint, ShieldCheck } from "lucide-react";
+import { X, Fingerprint, ShieldCheck, RefreshCw } from "lucide-react";
 
 export default function Profile() {
     const { user, setUser, csrfToken } = useAuth();
@@ -240,8 +240,8 @@ export default function Profile() {
                                             className="w-full h-full bg-[#0D0620] rounded-full flex items-center justify-center overflow-hidden relative"
                                             dangerouslySetInnerHTML={{ __html: avatarSvg }}
                                         />
-                                        <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity">
-                                            <span className="text-xl font-black">🔄</span>
+                                        <div className="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity">
+                                            <RefreshCw size={24} className="text-white animate-spin" />
                                         </div>
                                     </button>
                                     <button 

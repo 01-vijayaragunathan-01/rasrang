@@ -33,6 +33,15 @@ export default function Auth() {
         setError("");
         setLoading(true);
         const endpoint = isLogin ? "/api/auth/login" : "/api/auth/signup";
+
+        // Phone Validation (Signup Only)
+        if (!isLogin && !/^[6-9]\d{9}$/.test(formData.phoneNo)) {
+            setError("Invalid Phone Number. Must be 10 digits starting with 6-9.");
+            toast.error("INVALID IDENTITY: Check your mobile number.");
+            setLoading(false);
+            return;
+        }
+
         const body = isLogin
             ? { identifier: formData.identifier, password: formData.password }
             : formData;
@@ -215,7 +224,15 @@ export default function Auth() {
                                     <input name="email" type="email" onChange={handleChange} placeholder="Email" required className={`${inputClass} col-span-2`} />
                                     <input name="password" type="password" onChange={handleChange} placeholder="Password" required className={`${inputClass} col-span-2`} />
                                     <input name="regNo" onChange={handleChange} placeholder="Register Number" required className={inputClass} />
-                                    <input name="phoneNo" onChange={handleChange} placeholder="Phone Number" required className={inputClass} />
+                                    <input
+                                        type="tel"
+                                        name="phoneNo"
+                                        onChange={handleChange}
+                                        placeholder="Phone Number"
+                                        maxLength="10"
+                                        required
+                                        className={inputClass}
+                                    />
                                     <input name="clgName" onChange={handleChange} placeholder="College Name" className={inputClass} />
                                     <input name="year" onChange={handleChange} placeholder="Year (e.g. 3rd)" className={inputClass} />
                                     <input name="dept" onChange={handleChange} placeholder="Department" className={`${inputClass} col-span-2`} />

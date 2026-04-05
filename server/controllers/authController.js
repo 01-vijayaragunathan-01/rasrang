@@ -3,6 +3,8 @@ import passport from '../utils/passport.js';
 import bcrypt from 'bcryptjs';
 import { sendTokenResponse, generateTokens } from '../utils/tokenProvider.js';
 import prisma from '../db.js'; // H-1 FIX: Shared Prisma singleton
+
+const PHONE_REGEX = /^[6-9]\d{9}$/;
 import logger from '../utils/logger.js';
 
 export const googleCallback = async (req, res) => {
@@ -49,6 +51,11 @@ export const localSignup = async (req, res) => {
         if (!name || !email || !password || !regNo || !phoneNo) {
             logger.warn(`Signup validation failed: Missing required fields`, { requestId: req.requestId });
             return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        if (!PHONE_REGEX.test(phoneNo)) {
+            logger.warn(`Signup validation failed: Invalid phone format`, { phoneNo, requestId: req.requestId });
+            return res.status(400).json({ error: 'Invalid phone number. Must be a 10-digit Indian mobile number.' });
         }
 
         const existingUser = await prisma.user.findFirst({
@@ -100,6 +107,11 @@ export const onboard = async (req, res) => {
         if (!regNo || !phoneNo) {
             logger.warn(`Onboard validation failed: missing regNo/phoneNo`, { requestId: req.requestId });
             return res.status(400).json({ error: 'Registration number and phone number are required' });
+        }
+
+        if (!PHONE_REGEX.test(phoneNo)) {
+            logger.warn(`Onboard validation failed: Invalid phone format`, { phoneNo, requestId: req.requestId });
+            return res.status(400).json({ error: 'Invalid phone number. Must be a 10-digit Indian mobile number.' });
         }
 
         const user = await prisma.user.findUnique({ where: { id: userId } });

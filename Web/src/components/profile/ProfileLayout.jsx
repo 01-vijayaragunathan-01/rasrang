@@ -3,6 +3,7 @@ import multiavatar from '@multiavatar/multiavatar/esm';
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
 import { APP_THEME } from "../../constants/theme";
+import { IdCard, Ticket, Power } from "lucide-react";
 
 export default function ProfileLayout({ children, activeTab, setActiveTab }) {
     const { user, logout } = useAuth();
@@ -13,8 +14,8 @@ export default function ProfileLayout({ children, activeTab, setActiveTab }) {
     }, [user?.avatarSeed, user?.email, user?.name]);
 
     const navItems = [
-        { id: "passport", icon: "🆔", label: "Passport", show: true },
-        { id: "vault", icon: "🎟️", label: "Vault", show: true },
+        { id: "passport", icon: <IdCard size={20} />, label: "Passport", show: true },
+        { id: "vault", icon: <Ticket size={20} />, label: "Vault", show: true },
     ];
 
     return (
@@ -126,7 +127,7 @@ export default function ProfileLayout({ children, activeTab, setActiveTab }) {
                         className="group w-full flex items-center gap-4 px-4 py-4 hover:bg-[#E31E6E]/10 rounded-xl transition-all duration-500 font-black uppercase tracking-[0.2em] text-[10px] relative overflow-hidden"
                     >
                         <div className="absolute inset-0 bg-gradient-to-r from-[#E31E6E]/0 to-[#E31E6E]/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <span className="text-lg group-hover:scale-125 group-hover:rotate-12 transition-transform duration-500">⏻</span>
+                        <Power className="w-4 h-4 group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500" />
                         <span className="group-hover:text-white transition-colors">Terminate Session</span>
                     </button>
                 </div>

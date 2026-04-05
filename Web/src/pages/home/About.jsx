@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, useMotionValue, useTransform, useMotionTemplate } from "framer-motion";
 import { useTheme } from "../../context/ThemeContext";
+import PixelCard from "../../components/home/PixelCard";
 
 export default function About() {
     const { theme } = useTheme();
@@ -225,44 +226,25 @@ export default function About() {
                             {
                                 id: 1,
                                 code: "ACT-01",
-                                role: "The Sonic Queen",
-                                intel: "Global chart-topper. High-octane vocals.",
+                                role: "CLASSIFIED",
+                                intel: "Identity withheld for tactical suspense.",
                                 img: "https://images.unsplash.com/photo-1525362081669-2b476bb628c3?q=80&w=600"
                             },
                             {
                                 id: 2,
                                 code: "ACT-02",
-                                role: "Rhythm Architect",
-                                intel: "Master of the underground beat. 120BPM energy.",
+                                role: "CLASSIFIED",
+                                intel: "Signal encrypted. Reveal imminent.",
                                 img: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?q=80&w=600"
                             }
                         ].map((celeb) => (
-                            <motion.div
+                            <PixelCard
                                 key={celeb.id}
-                                initial={{ opacity: 0, y: 30 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                whileHover={{ y: -8, scale: 1.02 }}
-                                className="relative w-full sm:w-[280px] aspect-[10/14] rounded-2xl overflow-hidden group cursor-none"
+                                variant="pink"
+                                className="w-full sm:w-[280px] aspect-[10/14] rounded-2xl cursor-none"
                             >
                                 {/* 1. THE DARK MYSTERY OVERLAY WITH DIGITAL NOISE */}
-                                <div className="absolute inset-0 z-10 bg-[#0a0a0a] transition-all duration-700 overflow-hidden">
-                                    {/* Flowing Gradient Nebula */}
-                                    <motion.div 
-                                        animate={{ 
-                                            scale: [1, 1.2, 1],
-                                            opacity: [0.1, 0.3, 0.1],
-                                            x: [-20, 20, -20],
-                                            y: [-20, 20, -20]
-                                        }}
-                                        transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-                                        className="absolute inset-0 bg-gradient-to-tr from-cyan-500/20 via-transparent to-purple-500/20 blur-[80px]"
-                                    />
-
-                                    {/* Glitch Scanlines */}
-                                    <div className="absolute inset-0 opacity-[0.03] pointer-events-none" 
-                                        style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 1px, #fff 1px, #fff 2px)', backgroundSize: '100% 4px' }} 
-                                    />
-
+                                <div className="absolute inset-0 z-10 bg-[#0a0a0a]/40 transition-all duration-700 overflow-hidden pointer-events-none">
                                     {/* Suspense Particles */}
                                     {[...Array(6)].map((_, i) => (
                                         <motion.div 
@@ -287,7 +269,6 @@ export default function About() {
 
                                     <div className="absolute inset-0 flex items-center justify-center">
                                         <motion.span 
-                                            whileHover={{ x: [-2, 2, -2, 0], filter: ["hue-rotate(0deg)", "hue-rotate(90deg)", "hue-rotate(0deg)"] }}
                                             className="text-4xl font-black text-white/5 tracking-tighter italic select-none"
                                         >
                                             SURPRISE
@@ -295,8 +276,8 @@ export default function About() {
                                     </div>
                                 </div>
 
-                                {/* 3. PREMIUM CONTENT STYLING */}
-                                <div className="absolute inset-0 z-20 p-6 flex flex-col justify-between border border-white/5 rounded-2xl group-hover:border-cyan-500/50 transition-colors">
+                                {/* 2. PREMIUM CONTENT STYLING */}
+                                <div className="absolute inset-0 z-20 p-6 flex flex-col justify-between border border-white/5 rounded-2xl group-hover:border-cyan-500/50 transition-colors pointer-events-none">
                                     <div className="flex justify-between items-start">
                                         <span className="text-[10px] font-mono text-cyan-400 font-bold bg-cyan-400/10 px-2 py-0.5 rounded-md">
                                             {celeb.code}
@@ -304,7 +285,7 @@ export default function About() {
                                         <div className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse shadow-[0_0_10px_red]" />
                                     </div>
 
-                                    <div className="space-y-3">
+                                    <div className="space-y-3 text-center sm:text-left">
                                         <div className="space-y-1">
                                             <h4 className="text-xl font-black italic uppercase text-white group-hover:text-cyan-300 transition-colors">
                                                 {celeb.role}
@@ -325,12 +306,12 @@ export default function About() {
                                     </div>
                                 </div>
 
-                                {/* 4. CUSTOM "SIGHT" CURSOR (Visible on hover) */}
+                                {/* 3. CUSTOM "SIGHT" CURSOR (Visible on hover) */}
                                 <div className="absolute inset-0 z-30 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 border border-cyan-400/50 rounded-full animate-ping" />
                                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-1 bg-cyan-400 rounded-full shadow-[0_0_15px_cyan]" />
                                 </div>
-                            </motion.div>
+                            </PixelCard>
                         ))}
                     </div>
                 </div>

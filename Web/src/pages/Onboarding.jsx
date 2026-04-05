@@ -42,6 +42,11 @@ export default function Onboarding() {
             return;
         }
 
+        if (!/^[6-9]\d{9}$/.test(formData.phoneNo)) {
+            toast.error("INVALID IDENTITY: Phone number must be 10 digits starting with 6-9.");
+            return;
+        }
+
         setLoading(true);
         try {
             const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/onboard`, {
@@ -111,7 +116,16 @@ export default function Onboarding() {
                             </div>
                             <div className="space-y-1.5">
                                 <label className="text-[10px] uppercase tracking-widest font-bold text-white/40 ml-1">Phone Number</label>
-                                <input name="phoneNo" value={formData.phoneNo} onChange={handleChange} placeholder="Active Mobile No" required className={inputClass} />
+                                <input 
+                                    type="tel"
+                                    name="phoneNo" 
+                                    value={formData.phoneNo} 
+                                    onChange={handleChange} 
+                                    placeholder="Active Mobile No" 
+                                    maxLength="10"
+                                    required 
+                                    className={inputClass} 
+                                />
                             </div>
                             <div className="space-y-1.5 col-span-full">
                                 <label className="text-[10px] uppercase tracking-widest font-bold text-white/40 ml-1">College Name</label>
