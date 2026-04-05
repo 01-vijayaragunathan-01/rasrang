@@ -373,27 +373,30 @@ export default function EventForge() {
                                         />
                                     </div>
                                     <div className="space-y-4">
-                                        <div className="flex items-center justify-between">
-                                            <label className="text-[10px] uppercase tracking-[0.3em] text-[#AF94D2] font-bold flex items-center gap-2">
-                                                <Clock className="w-3 h-3 text-[#22D3EE]" /> Reporting Time
-                                            </label>
-                                            <button 
-                                                type="button"
-                                                onClick={() => setEventData({ ...eventData, timeTBA: !eventData.timeTBA })}
-                                                className={`flex items-center gap-2 group/tba transition-all ${eventData.timeTBA ? 'text-[#22D3EE]' : 'text-white/20 hover:text-white/40'}`}
-                                            >
-                                                <span className="text-[8px] font-black uppercase tracking-widest">{eventData.timeTBA ? "ANNOUNCED LATER" : "SET SPECIFIC TIME"}</span>
-                                                <div className={`w-6 h-3 rounded-full relative transition-all border ${eventData.timeTBA ? 'bg-[#22D3EE]/20 border-[#22D3EE]/50' : 'bg-white/5 border-white/10'}`}>
-                                                    <motion.div 
-                                                        animate={{ x: eventData.timeTBA ? 12 : 0 }}
-                                                        className={`w-2 h-2 rounded-full absolute top-[1px] left-[1px] ${eventData.timeTBA ? 'bg-[#22D3EE]' : 'bg-white/20'}`}
-                                                    />
+                                        <div className="flex flex-col gap-2">
+                                            <div className="flex items-center justify-between group cursor-pointer" onClick={() => setEventData({ ...eventData, timeTBA: !eventData.timeTBA })}>
+                                                <label className="text-[10px] uppercase tracking-[0.3em] text-[#AF94D2] font-bold flex items-center gap-2 cursor-pointer">
+                                                    <Clock className="w-3 h-3 text-[#22D3EE]" /> Reporting Time
+                                                </label>
+                                                <div className="flex items-center gap-3">
+                                                    <span className={`text-[8px] font-black uppercase tracking-widest transition-colors ${eventData.timeTBA ? 'text-[#22D3EE]' : 'text-white/20'}`}>
+                                                        {eventData.timeTBA ? "Announced Later" : "Set Specific"}
+                                                    </span>
+                                                    <div className={`w-12 h-6 rounded-full relative transition-all duration-300 p-1 border ${eventData.timeTBA ? 'bg-[#22D3EE]/20 border-[#22D3EE]/50' : 'bg-white/5 border-white/10'}`}>
+                                                        <motion.div 
+                                                            animate={{ x: eventData.timeTBA ? 24 : 0 }}
+                                                            className={`w-4 h-4 rounded-full shadow-lg transition-colors ${eventData.timeTBA ? 'bg-[#22D3EE]' : 'bg-white/20'}`}
+                                                        />
+                                                    </div>
                                                 </div>
-                                            </button>
+                                            </div>
                                         </div>
                                         {eventData.timeTBA ? (
-                                            <div className="h-14 w-full bg-white/[0.02] border border-dashed border-white/10 rounded-2xl flex items-center justify-center">
-                                                <span className="text-[10px] font-black uppercase tracking-[0.5em] text-white/20">Announced later</span>
+                                            <div 
+                                                onClick={() => setEventData({ ...eventData, timeTBA: false })}
+                                                className="h-14 w-full bg-[#22D3EE]/5 border border-dashed border-[#22D3EE]/20 rounded-2xl flex items-center justify-center cursor-pointer hover:bg-[#22D3EE]/10 transition-all group"
+                                            >
+                                                <span className="text-[10px] font-black uppercase tracking-[0.5em] text-[#22D3EE] group-hover:scale-105 transition-transform">Announced later</span>
                                             </div>
                                         ) : (
                                             <TimePicker 

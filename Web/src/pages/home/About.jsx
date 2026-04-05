@@ -57,6 +57,9 @@ export default function About() {
         { name: "Hotel Management", x: "85%", y: "35%" },
     ];
 
+    // --- 4. MOBILE INTERACTION STATE ---
+    const [activeCard, setActiveCard] = useState(null);
+
     return (
         <section id="about" className="relative w-full py-24 overflow-hidden" style={{ backgroundColor: "transparent" }}>
 
@@ -117,7 +120,7 @@ export default function About() {
                                 <div className="flex justify-between items-start">
                                     <div>
                                         <h4 className="text-3xl font-normal tracking-widest text-white uppercase font-massive" style={{ color: theme.colors.accent }}>RasRang '26</h4>
-                                        <p className="text-[10px] tracking-[0.3em] uppercase mt-1 opacity-80" style={{ color: theme.colors.textTitle }}>VIP Festival Pass</p>
+                                        <p className="text-[10px] tracking-[0.3em] uppercase mt-1 opacity-80" style={{ color: theme.colors.textTitle }}>Official Festival Entry</p>
                                     </div>
                                     <div className="w-10 h-10 border border-white/30 rounded-full flex items-center justify-center transform rotate-12" style={{ borderColor: theme.colors.accent }}>
                                         {/* Music Note Icon */}
@@ -127,10 +130,19 @@ export default function About() {
                                     </div>
                                 </div>
 
-                                <div className="flex justify-between items-end border-t border-white/10 pt-4 mt-4">
-                                    <div>
-                                        <p className="text-[8px] uppercase tracking-widest text-white/50 mb-1">Dates</p>
-                                        <p className="text-sm text-white font-mono">APR 09-10</p>
+                                <div className="flex justify-between items-end border-t border-white/10 pt-4 mt-2">
+                                    <div className="flex flex-col gap-1">
+                                        <p className="text-[6px] tracking-[0.3em] font-black text-cyan-400 opacity-60 uppercase mb-1">Auth Clearance: Lvl 4</p>
+                                        <div className="flex gap-4">
+                                            <div>
+                                                <p className="text-[8px] uppercase tracking-widest text-white/50 mb-1">Dates</p>
+                                                <p className="text-sm text-white font-mono">APR 09-10</p>
+                                            </div>
+                                            <div className="hidden xs:block">
+                                                <p className="text-[8px] uppercase tracking-widest text-white/50 mb-1">ID</p>
+                                                <p className="text-sm text-white font-mono">#RSR-21</p>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div className="text-right">
                                         <p className="text-[8px] uppercase tracking-widest text-white/50 mb-1">Admit</p>
@@ -241,10 +253,11 @@ export default function About() {
                             <PixelCard
                                 key={celeb.id}
                                 variant="pink"
-                                className="w-full sm:w-[280px] aspect-[10/14] rounded-2xl cursor-none"
+                                className={`w-full sm:w-[280px] aspect-[10/14] rounded-2xl cursor-pointer group transition-all duration-500 ${activeCard === celeb.id ? 'ring-2 ring-cyan-500/50 scale-[1.02] shadow-[0_0_30px_rgba(34,211,238,0.2)]' : ''}`}
+                                onClick={() => setActiveCard(activeCard === celeb.id ? null : celeb.id)}
                             >
                                 {/* 1. THE DARK MYSTERY OVERLAY WITH DIGITAL NOISE */}
-                                <div className="absolute inset-0 z-10 bg-[#0a0a0a]/40 transition-all duration-700 overflow-hidden pointer-events-none">
+                                <div className={`absolute inset-0 z-10 bg-[#0a0a0a]/85 backdrop-blur-md transition-all duration-700 overflow-hidden pointer-events-none ${activeCard === celeb.id ? 'opacity-0' : 'group-hover:opacity-0'}`}>
                                     {/* Suspense Particles */}
                                     {[...Array(6)].map((_, i) => (
                                         <motion.div 
@@ -277,7 +290,7 @@ export default function About() {
                                 </div>
 
                                 {/* 2. PREMIUM CONTENT STYLING */}
-                                <div className="absolute inset-0 z-20 p-6 flex flex-col justify-between border border-white/5 rounded-2xl group-hover:border-cyan-500/50 transition-colors pointer-events-none">
+                                <div className={`absolute inset-0 z-20 p-6 flex flex-col justify-between border border-white/5 rounded-2xl transition-all duration-500 pointer-events-none ${activeCard === celeb.id ? 'border-cyan-500/50 bg-cyan-500/[0.03]' : 'group-hover:border-cyan-500/50'}`}>
                                     <div className="flex justify-between items-start">
                                         <span className="text-[10px] font-mono text-cyan-400 font-bold bg-cyan-400/10 px-2 py-0.5 rounded-md">
                                             {celeb.code}
@@ -287,7 +300,7 @@ export default function About() {
 
                                     <div className="space-y-3 text-center sm:text-left">
                                         <div className="space-y-1">
-                                            <h4 className="text-xl font-black italic uppercase text-white group-hover:text-cyan-300 transition-colors">
+                                            <h4 className={`text-xl font-black italic uppercase transition-colors duration-500 ${activeCard === celeb.id ? 'text-cyan-300' : 'text-white group-hover:text-cyan-300'}`}>
                                                 {celeb.role}
                                             </h4>
                                             <p className="text-[9px] leading-relaxed text-gray-500 font-bold uppercase tracking-widest">
@@ -306,8 +319,8 @@ export default function About() {
                                     </div>
                                 </div>
 
-                                {/* 3. CUSTOM "SIGHT" CURSOR (Visible on hover) */}
-                                <div className="absolute inset-0 z-30 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                {/* 3. CUSTOM "SIGHT" CURSOR (Visible on hover or active) */}
+                                <div className={`absolute inset-0 z-30 transition-all duration-500 pointer-events-none ${activeCard === celeb.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
                                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 border border-cyan-400/50 rounded-full animate-ping" />
                                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-1 bg-cyan-400 rounded-full shadow-[0_0_15px_cyan]" />
                                 </div>

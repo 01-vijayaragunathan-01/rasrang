@@ -346,7 +346,7 @@ export const StaggeredMenu = ({
 
   return (
     <div
-      className={`sm-scope z-40 ${isFixed ? 'fixed top-0 left-0 w-screen h-screen overflow-hidden' : 'w-full h-full'}`}
+      className={`sm-scope z-[1002] ${isFixed ? `fixed top-0 left-0 w-full ${open ? 'h-screen overflow-hidden' : 'h-0'}` : 'w-full h-full'}`}
     >
       <div
         className={

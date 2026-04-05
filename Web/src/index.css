@@ -2,9 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Smooth scrolling */
+/* Smooth scrolling and overflow protection */
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 /* Remove default scrollbar styling */
@@ -12,6 +13,7 @@ body {
   background-color: #000;
   color: #fff;
   overflow-x: hidden;
+  width: 100%;
   font-family: 'Inter Tight', sans-serif;
 }
 

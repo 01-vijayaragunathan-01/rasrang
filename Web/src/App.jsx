@@ -25,7 +25,7 @@ function DesktopSuggestion({ onClose }) {
       animate={{ y: 0, opacity: 1, scale: 1 }}
       exit={{ y: 100, opacity: 0, scale: 0.9 }}
       transition={{ type: "spring", damping: 25, stiffness: 200 }}
-      className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[10000] w-[90%] max-w-sm"
+      className="fixed bottom-6 left-[5%] right-[5%] z-[10000] w-[90%] md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-sm"
     >
       <div 
         className="relative overflow-hidden rounded-2xl p-5 border shadow-2xl backdrop-blur-2xl"
@@ -111,7 +111,7 @@ function MainContent() {
 
   return (
     <div 
-      className="min-h-screen relative" 
+      className="min-h-screen relative overflow-x-hidden w-full" 
       style={{ 
           background: '#000', 
           color: theme.colors.textTitle,

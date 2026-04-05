@@ -36,7 +36,7 @@ export default function Gallery() {
                 };
 
                 // Add chairman first, then other images from backend
-                const galleryData = [chairmanItem, ...data];
+                const galleryData = [...data];
 
                 // Enrich existing items with dynamic ratios
                 const enriched = galleryData.map((item, i) => ({
