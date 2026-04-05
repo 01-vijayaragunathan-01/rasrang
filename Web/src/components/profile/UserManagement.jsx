@@ -3,7 +3,8 @@ import { motion } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import { APP_THEME } from "../../constants/theme";
-import { Key, ShieldAlert, CheckCircle2, Copy, X } from "lucide-react";
+import { Key, ShieldAlert, CheckCircle2, Copy, X, Pencil, Trash2, User } from "lucide-react";
+import ConfirmModal from "../../common/ConfirmModal";
 
 export default function UserManagement({ isSuper }) {
     const { user: currentUser, csrfToken } = useAuth();
@@ -14,6 +15,15 @@ export default function UserManagement({ isSuper }) {
     const [searchTerm, setSearchTerm] = useState("");
     const [resetResult, setResetResult] = useState(null); // Stores { name, password }
     const [isResetting, setIsResetting] = useState(false);
+    const [editingUser, setEditingUser] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [confirmModal, setConfirmModal] = useState({ 
+        isOpen: false, 
+        title: "", 
+        message: "", 
+        confirmText: "", 
+        onConfirm: () => {} 
+    });
 
     const fetchUsers = async () => {
         try {
@@ -59,31 +69,93 @@ export default function UserManagement({ isSuper }) {
     };
 
     const handleResetPassword = async (userId, userName) => {
-        if (!window.confirm(`CRITICAL ACTION: Reset password for ${userName}? This will generate a new temporary access key.`)) return;
-        
-        setIsResetting(true);
+        setConfirmModal({
+            isOpen: true,
+            title: "SECURITY OVERRIDE",
+            message: `CRITICAL ACTION: Generate a new temporary access key for ${userName}? The previous key will be voided.`,
+            confirmText: "GENERATE KEY",
+            onConfirm: async () => {
+                setIsResetting(true);
+                try {
+                    const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/reset-password`, {
+                        method: "POST",
+                        headers: { 
+                            "Content-Type": "application/json",
+                            "x-csrf-token": csrfToken
+                        },
+                        body: JSON.stringify({ userId }),
+                        credentials: "include"
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        setResetResult({ name: userName, password: data.tempPassword });
+                        toast.success(`SECURITY PROTOCOL: New access key generated.`);
+                    } else {
+                        toast.error(`RESET FAILED: ${data.error || "UNKNOWN REJECTION"}`);
+                    }
+                } catch (err) {
+                    toast.error("COMMUNICATION ERROR: Security hub unreachable.");
+                } finally {
+                    setIsResetting(false);
+                }
+            }
+        });
+    };
+
+    const handleUpdateUser = async (e) => {
+        e.preventDefault();
+        const { id, name, email, regNo } = editingUser;
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/reset-password`, {
-                method: "POST",
+            const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/users/${id}`, {
+                method: "PUT",
                 headers: { 
                     "Content-Type": "application/json",
                     "x-csrf-token": csrfToken
                 },
-                body: JSON.stringify({ userId }),
+                body: JSON.stringify({ name, email, regNo }),
                 credentials: "include"
             });
             const data = await res.json();
             if (res.ok) {
-                setResetResult({ name: userName, password: data.tempPassword });
-                toast.success(`SECURITY PROTOCOL: New access key generated.`);
+                toast.success("PROFILE SYNCED: User details updated successfully.");
+                setEditingUser(null);
+                fetchUsers();
             } else {
-                toast.error(`RESET FAILED: ${data.error || "UNKNOWN REJECTION"}`);
+                toast.error(`UPGRADE FAILED: ${data.error || "REJECTED"}`);
             }
         } catch (err) {
-            toast.error("COMMUNICATION ERROR: Security hub unreachable.");
-        } finally {
-            setIsResetting(false);
+            toast.error("DATABASE TIMEOUT: Failed to update user.");
         }
+    };
+
+    const handleDeleteUser = async (userId, userName) => {
+        setConfirmModal({
+            isOpen: true,
+            title: "IDENTITY PURGE",
+            message: `⚠️ EXTREME CAUTION: Are you sure you want to PERMANENTLY ERASE ${userName}? This will delete all registrations, volunteer history, and profile data.`,
+            confirmText: "PURGE IDENTITY",
+            onConfirm: async () => {
+                setIsDeleting(true);
+                try {
+                    const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/users/${userId}`, {
+                        method: "DELETE",
+                        headers: { "x-csrf-token": csrfToken },
+                        credentials: "include"
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        toast.success("IDENTITY PURGED: User has been erased from the platform.");
+                        fetchUsers();
+                    } else {
+                        toast.error(`PURGE REJECTED: ${data.error || "SYSTEM LOCK"}`);
+                    }
+                } catch (err) {
+                    toast.error("CONNECTION SEVERED: Failed to execute deletion.");
+                } finally {
+                    setIsDeleting(false);
+                }
+            }
+        });
     };
 
     const filteredUsers = users.filter(u => 
@@ -155,80 +227,113 @@ export default function UserManagement({ isSuper }) {
                                         </span>
                                     </td>
                                     <td className="p-4">
-                                        <div className="flex gap-2">
-                                            {currentUser?.role === 'SUPER_ADMIN' ? (
+                                        <div className="flex gap-2 items-center">
+                                            {currentUser?.role === 'SUPER_ADMIN' || (isSuper && u.role !== 'SUPER_ADMIN') ? (
                                                 <>
-                                                    {u.role !== 'SUPER_ADMIN' && (
+                                                    {/* Edit Button */}
+                                                    <button 
+                                                        onClick={() => setEditingUser(u)}
+                                                        className="p-1.5 border border-blue-500/30 text-blue-400 hover:bg-blue-500 hover:text-white transition-all rounded"
+                                                        title="Modify Profile"
+                                                    >
+                                                        <Pencil size={14} />
+                                                    </button>
+
+                                                    {/* Password Reset */}
+                                                    <button 
+                                                        onClick={() => handleResetPassword(u.id, u.name)}
+                                                        disabled={isResetting}
+                                                        className="p-1.5 border border-orange-500/30 text-orange-400 hover:bg-orange-500 hover:text-white transition-all rounded disabled:opacity-50"
+                                                        title="Reset Access Key"
+                                                    >
+                                                        <Key size={14} className={isResetting ? "animate-spin" : ""} />
+                                                    </button>
+
+                                                    {/* Role Management Dropdown logic condensed into buttons as per original style but with better layout */}
+                                                    <div className="h-6 w-[1px] bg-white/10 mx-1" />
+
+                                                    {/* Admin Promotion (Super Admin Only) */}
+                                                    {u.role !== 'SUPER_ADMIN' && currentUser?.role === 'SUPER_ADMIN' && (
                                                         <button 
                                                             onClick={() => handleRoleUpdate(u.id, 'SUPER_ADMIN', true)}
-                                                            style={{ borderColor: `${colors.highlight}55`, color: colors.highlight }}
-                                                            className="px-3 py-1.5 border text-[9px] font-black uppercase hover:bg-[#E31E6E] hover:text-white transition-all"
+                                                            className="px-2 py-1.5 border border-[#E31E6E]/30 text-[#E31E6E] text-[8px] font-black uppercase hover:bg-[#E31E6E] hover:text-white transition-all rounded"
+                                                            title="Promote to Platform Admin"
                                                         >
-                                                            Ascend to Admin
-                                                        </button>
-                                                    )}
-                                                    {u.role !== 'COORDINATOR' && u.role !== 'SUPER_ADMIN' && (
-                                                        <button 
-                                                            onClick={() => handleRoleUpdate(u.id, 'COORDINATOR', false)}
-                                                            style={{ borderColor: `${colors.primary}55`, color: colors.primary }}
-                                                            className="px-3 py-1.5 border text-[9px] font-black uppercase hover:bg-[#9D01E9] hover:text-white transition-all"
-                                                        >
-                                                            Promote to Coord
-                                                        </button>
-                                                    )}
-                                                    {u.role !== 'STUDENT' && (
-                                                        <button 
-                                                            onClick={() => handleRoleUpdate(u.id, 'STUDENT', false)}
-                                                            className="px-3 py-1.5 border border-white/20 text-white/40 text-[9px] font-black uppercase hover:bg-white hover:text-black transition-all"
-                                                        >
-                                                            Wipe Status
-                                                        </button>
-                                                    )}
-                                                </>
-                                            ) : isSuper ? (
-                                                <>
-                                                    {u.role !== 'COORDINATOR' && u.role !== 'SUPER_ADMIN' && (
-                                                        <button 
-                                                            onClick={() => handleRoleUpdate(u.id, 'COORDINATOR', false)}
-                                                            className="px-3 py-1.5 border border-[#9D01E9]/50 text-[#9D01E9] text-[9px] font-black uppercase hover:bg-[#9D01E9] hover:text-white transition-all"
-                                                        >
-                                                            Promote to Coord
-                                                        </button>
-                                                    )}
-                                                    {u.role === 'COORDINATOR' && !u.canManagePrivileges && (
-                                                        <button 
-                                                            onClick={() => handleRoleUpdate(u.id, 'COORDINATOR', true)}
-                                                            style={{ borderColor: `${colors.highlight}55`, color: colors.highlight }}
-                                                            className="px-3 py-1.5 border text-[9px] font-black uppercase hover:bg-[#E31E6E] hover:text-white transition-all"
-                                                        >
-                                                            Grant Overlord
+                                                            Admin
                                                         </button>
                                                     )}
                                                     
-                                                    {/* Password Reset Button (Restricted: cannot reset Super Admin unless actor is Super Admin) */}
-                                                    {(u.role !== 'SUPER_ADMIN' || currentUser?.role === 'SUPER_ADMIN') && u.id !== currentUser?.id && (
+                                                    {/* Coordinator++ (Privileged Coordinator) */}
+                                                    {u.role !== 'SUPER_ADMIN' && (!u.canManagePrivileges || u.role !== 'COORDINATOR') && (
                                                         <button 
-                                                            onClick={() => handleResetPassword(u.id, u.name)}
-                                                            disabled={isResetting}
-                                                            className="p-1.5 border border-orange-500/30 text-orange-400 hover:bg-orange-500 hover:text-white transition-all rounded disabled:opacity-50"
-                                                            title="Reset Access Key"
+                                                            onClick={() => handleRoleUpdate(u.id, 'COORDINATOR', true)}
+                                                            className="px-2 py-1.5 border border-[#8B5CF6]/30 text-[#8B5CF6] text-[8px] font-black uppercase hover:bg-[#8B5CF6] hover:text-white transition-all rounded"
+                                                            title="Grant Privilege Management"
                                                         >
-                                                            <Key size={14} className={isResetting ? "animate-spin" : ""} />
+                                                            Crd++
+                                                        </button>
+                                                    )}
+
+                                                    {/* Coordinator (Standard) */}
+                                                    {u.role !== 'COORDINATOR' && u.role !== 'SUPER_ADMIN' && (
+                                                        <button 
+                                                            onClick={() => handleRoleUpdate(u.id, 'COORDINATOR', false)}
+                                                            className="px-2 py-1.5 border border-[#9D01E9]/30 text-[#9D01E9] text-[8px] font-black uppercase hover:bg-[#9D01E9] hover:text-white transition-all rounded"
+                                                            title="Promote to Coordinator"
+                                                        >
+                                                            Crd
+                                                        </button>
+                                                    )}
+
+                                                    {/* Volunteer */}
+                                                    {u.role === 'STUDENT' && (
+                                                        <button 
+                                                            onClick={() => handleRoleUpdate(u.id, 'VOLUNTEER', false)}
+                                                            className="px-2 py-1.5 border border-[#22D3EE]/30 text-[#22D3EE] text-[8px] font-black uppercase hover:bg-[#22D3EE] hover:text-white transition-all rounded"
+                                                            title="Make Volunteer"
+                                                        >
+                                                            Vlt
+                                                        </button>
+                                                    )}
+
+                                                    {/* Demote / Revoke Privilege */}
+                                                    {u.role === 'COORDINATOR' && u.canManagePrivileges && (
+                                                        <button 
+                                                            onClick={() => handleRoleUpdate(u.id, 'COORDINATOR', false)}
+                                                            className="px-2 py-1.5 border border-yellow-500/30 text-yellow-500 text-[8px] font-black uppercase hover:bg-yellow-500 hover:text-white transition-all rounded"
+                                                            title="Revoke Management Privileges"
+                                                        >
+                                                            Revoke
                                                         </button>
                                                     )}
 
                                                     {u.role !== 'STUDENT' && (
                                                         <button 
                                                             onClick={() => handleRoleUpdate(u.id, 'STUDENT', false)}
-                                                            className="px-3 py-1.5 border border-white/20 text-white/40 text-[9px] font-black uppercase hover:bg-white hover:text-black transition-all"
+                                                            className="px-2 py-1.5 border border-white/10 text-white/40 text-[8px] font-black uppercase hover:bg-white hover:text-black transition-all rounded"
+                                                            title="Wipe Clearances"
                                                         >
-                                                            Wipe Status
+                                                            Demote
+                                                        </button>
+                                                    )}
+
+                                                    <div className="h-6 w-[1px] bg-white/10 mx-1" />
+
+                                                    {/* Delete Button */}
+                                                    {u.id !== currentUser?.id && (
+                                                        <button 
+                                                            onClick={() => handleDeleteUser(u.id, u.name)}
+                                                            disabled={isDeleting}
+                                                            className="p-1.5 border border-red-500/30 text-red-500 hover:bg-red-500 hover:text-white transition-all rounded disabled:opacity-50"
+                                                            title="Purge Identity"
+                                                        >
+                                                            <Trash2 size={14} />
                                                         </button>
                                                     )}
                                                 </>
                                             ) : (
                                                 <button className="px-3 py-1.5 border border-white/10 hover:bg-white hover:text-black opacity-30 cursor-not-allowed text-[9px] font-black uppercase">
-                                                    Read Only Access
+                                                    Read Only
                                                 </button>
                                             )}
                                         </div>
@@ -299,6 +404,89 @@ export default function UserManagement({ isSuper }) {
                     </motion.div>
                 </div>
             )}
+            {/* ── EDIT USER MODAL ── */}
+            {editingUser && (
+                <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
+                    <motion.div 
+                        initial={{ y: 20, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        className="w-full max-w-lg bg-[#0D0620] border border-blue-500/30 rounded-3xl p-10 relative overflow-hidden shadow-[0_0_100px_rgba(59,130,246,0.15)]"
+                    >
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-[#9D01E9]" />
+                        
+                        <div className="flex justify-between items-start mb-10">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-blue-500/10 rounded-2xl text-blue-500">
+                                    <User size={28} />
+                                </div>
+                                <div className="space-y-1">
+                                    <h3 className="text-xl font-black uppercase tracking-tighter text-white">Modify Profile</h3>
+                                    <p className="text-[10px] uppercase font-bold text-white/40 tracking-[0.2em] italic">Identity Synchronization</p>
+                                </div>
+                            </div>
+                            <button onClick={() => setEditingUser(null)} className="text-white/20 hover:text-white transition-colors">
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleUpdateUser} className="space-y-6">
+                            <div className="space-y-2">
+                                <label className="text-[10px] uppercase font-black text-white/30 tracking-widest pl-1">Full Name</label>
+                                <input 
+                                    className="w-full bg-white/5 border border-white/10 p-4 rounded-xl font-bold text-white outline-none focus:border-blue-500 transition-all"
+                                    value={editingUser.name}
+                                    onChange={e => setEditingUser({...editingUser, name: e.target.value})}
+                                    required
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] uppercase font-black text-white/30 tracking-widest pl-1">Email Address</label>
+                                <input 
+                                    type="email"
+                                    className="w-full bg-white/5 border border-white/10 p-4 rounded-xl font-bold text-white outline-none focus:border-blue-500 transition-all"
+                                    value={editingUser.email}
+                                    onChange={e => setEditingUser({...editingUser, email: e.target.value})}
+                                    required
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] uppercase font-black text-white/30 tracking-widest pl-1">Registration No</label>
+                                <input 
+                                    className="w-full bg-white/5 border border-white/10 p-4 rounded-xl font-bold text-white outline-none focus:border-blue-500 transition-all"
+                                    value={editingUser.regNo || ""}
+                                    onChange={e => setEditingUser({...editingUser, regNo: e.target.value})}
+                                    placeholder="N/A"
+                                />
+                            </div>
+
+                            <div className="flex gap-4 pt-6">
+                                <button 
+                                    type="button"
+                                    onClick={() => setEditingUser(null)}
+                                    className="flex-1 py-4 border border-white/10 text-white font-black uppercase tracking-widest text-[10px] rounded-xl hover:bg-white/5 transition-all"
+                                >
+                                    Cancel
+                                </button>
+                                <button 
+                                    type="submit"
+                                    className="flex-1 py-4 bg-gradient-to-r from-blue-600 to-[#9D01E9] text-white font-black uppercase tracking-widest text-[10px] rounded-xl hover:opacity-90 transition-all shadow-lg"
+                                >
+                                    Sync Profile
+                                </button>
+                            </div>
+                        </form>
+                    </motion.div>
+                </div>
+            )}
+            {/* ── CONFIRM MODAL ── */}
+            <ConfirmModal 
+                isOpen={confirmModal.isOpen}
+                onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+                onConfirm={confirmModal.onConfirm}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                confirmText={confirmModal.confirmText}
+            />
         </div>
     );
 }

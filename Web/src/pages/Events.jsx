@@ -260,18 +260,20 @@ function EventModal({ event, onClose, onRegister, registering, onShare, userRegi
   return (
     <AnimatePresence mode="wait">
       {event && (
-        <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 sm:p-6">
+        <div className="fixed inset-0 z-[900] flex items-end sm:items-center justify-center sm:p-6 px-0 pt-[80px] sm:pt-0 overflow-hidden">
           <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-[#080314]/80 backdrop-blur-md"
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-[#080314]/90 backdrop-blur-md"
             onClick={onClose}
           />
           <motion.div
-            initial={{ scale: 0.95, y: 30, opacity: 0 }} 
-            animate={{ scale: 1, y: 0, opacity: 1 }} 
-            exit={{ scale: 0.95, y: 30, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="relative w-full max-w-4xl bg-[#1A0B2E] border border-white/10 rounded-3xl shadow-2xl overflow-y-auto hide-scrollbar flex flex-col md:flex-row max-h-[90vh]"
+            initial={{ y: "100%", opacity: 0 }} 
+            animate={{ y: 0, opacity: 1 }} 
+            exit={{ y: "100%", opacity: 0 }}
+            transition={{ type: "spring", stiffness: 400, damping: 40 }}
+            className="relative w-full max-w-4xl bg-[#1A0B2E] border-t sm:border border-white/10 rounded-t-[3rem] sm:rounded-3xl shadow-2xl overflow-y-auto hide-scrollbar flex flex-col md:flex-row max-h-[95vh] sm:max-h-[85vh] z-10"
             onClick={e => e.stopPropagation()}
           >
             {/* Visual Side */}

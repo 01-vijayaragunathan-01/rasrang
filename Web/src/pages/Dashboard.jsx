@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 import UserManagement from "../components/profile/UserManagement";
@@ -13,7 +13,16 @@ import { LayoutDashboard, ShieldCheck, Hammer, ScanLine, Camera, Users, UserCog 
 export default function Dashboard() {
     const { user } = useAuth();
     const { colors } = APP_THEME;
-    const [activeSection, setActiveSection] = useState("overview");
+    
+    // TAB PERSISTENCE: Get initial state from localStorage or default to overview
+    const [activeSection, setActiveSection] = useState(() => {
+        return localStorage.getItem("rasrang_active_dashboard_tab") || "overview";
+    });
+
+    // Save active section whenever it changes
+    useEffect(() => {
+        localStorage.setItem("rasrang_active_dashboard_tab", activeSection);
+    }, [activeSection]);
 
     // Staff/Admin Permissions
     const isPlatformAdmin = user?.role === "SUPER_ADMIN" || (user?.role === "COORDINATOR" && user?.canManagePrivileges);

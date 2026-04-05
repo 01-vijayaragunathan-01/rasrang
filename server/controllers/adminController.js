@@ -116,6 +116,30 @@ export const updateUserRole = async (req, res) => {
     }
 };
 
+export const updateUserDetails = async (req, res) => {
+    const { userId } = req.params;
+    const { name, email, regNo } = req.body;
+    logger.warn(`Admin detail update initiated`, { actor: req.user.id, target: userId, requestId: req.requestId });
+
+    try {
+        const targetUser = await prisma.user.findUnique({ where: { id: userId } });
+        if (!targetUser) return res.status(404).json({ error: 'User not found' });
+
+        // Update basic details
+        const updatedUser = await prisma.user.update({
+            where: { id: userId },
+            data: { name, email, regNo },
+            select: { id: true, name: true, email: true, regNo: true, role: true, canManagePrivileges: true }
+        });
+
+        logger.info(`Update SUCCESS: user ${userId} details refreshed`, { requestId: req.requestId });
+        res.json({ success: true, message: 'User details updated', user: updatedUser });
+    } catch (err) {
+        logger.error(`User detail update failure`, { userId, error: err.message, requestId: req.requestId });
+        res.status(500).json({ error: 'Failed to update user details' });
+    }
+};
+
 export const resetUserPassword = async (req, res) => {
     const { userId } = req.body;
     logger.warn(`CRITICAL: Administrative password reset initiated`, { actor: req.user.id, target: userId, requestId: req.requestId });
@@ -154,6 +178,34 @@ export const resetUserPassword = async (req, res) => {
     } catch (err) {
         logger.error(`Admin Password Reset failure`, { userId, error: err.message, requestId: req.requestId });
         res.status(500).json({ error: 'Failed to reset password', details: err.message });
+    }
+};
+
+export const deleteUser = async (req, res) => {
+    const { userId } = req.params;
+    logger.warn(`CRITICAL: User deletion initiated`, { actor: req.user.id, target: userId, requestId: req.requestId });
+
+    try {
+        if (req.user.id === userId) {
+            return res.status(400).json({ error: 'Self-destruction sequence aborted. You cannot delete your own account.' });
+        }
+
+        const targetUser = await prisma.user.findUnique({ where: { id: userId } });
+        if (!targetUser) return res.status(404).json({ error: 'User not found' });
+
+        // Security parity: Coordinator cannot delete Super Admin
+        if (targetUser.role === 'SUPER_ADMIN' && req.user.role !== 'SUPER_ADMIN') {
+            return res.status(403).json({ error: 'Access denied: You cannot delete a Super Admin account.' });
+        }
+
+        // Delete user (and all related records via Cascade delete in Prisma)
+        await prisma.user.delete({ where: { id: userId } });
+
+        logger.info(`Deletion SUCCESS: user ${userId} purged from platform`, { requestId: req.requestId });
+        res.json({ success: true, message: 'User permanently deleted' });
+    } catch (err) {
+        logger.error(`User deletion failure`, { userId, error: err.message, requestId: req.requestId });
+        res.status(500).json({ error: 'Failed to delete user. Dependencies might exist.' });
     }
 };
 
