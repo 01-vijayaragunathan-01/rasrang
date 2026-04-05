@@ -1,6 +1,6 @@
 import express from 'express';
 import multer from 'multer';
-import { getEventStats, exportCsv, getUsers, updateUserRole, getAttendees, exportAttendeesCsv, verifyEventEntry, getMyManagedEvents, assignVolunteerToEvent, removeVolunteerFromEvent, getVolunteerAssignments } from '../controllers/adminController.js';
+import { getEventStats, exportCsv, getUsers, updateUserRole, resetUserPassword, getAttendees, exportAttendeesCsv, verifyEventEntry, getMyManagedEvents, assignVolunteerToEvent, removeVolunteerFromEvent, getVolunteerAssignments } from '../controllers/adminController.js';
 import { createEvent, updateEvent, deleteEvent } from '../controllers/adminEventController.js';
 import { uploadChunk } from '../controllers/uploadController.js';
 import { createGalleryItem, deleteGalleryItem } from '../controllers/galleryController.js';
@@ -27,6 +27,7 @@ router.get('/export-csv/:eventId', authenticateJWT, isCoordinator, exportCsv);
 
 router.get('/users', authenticateJWT, isSuperCoordinator, getUsers);
 router.put('/role', authenticateJWT, isSuperCoordinator, updateUserRole);
+router.post('/reset-password', authenticateJWT, isSuperCoordinator, resetUserPassword);
 
 // Event Management (Platform Admin Only)
 router.post('/events', authenticateJWT, isPlatformAdmin, createEvent);

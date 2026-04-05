@@ -2,6 +2,8 @@ import { PrismaClient } from '@prisma/client';
 import { AsyncParser } from '@json2csv/node';
 import logger from '../utils/logger.js';
 import prisma from '../db.js'; // H-1 FIX: Shared Prisma singleton
+import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 
 export const getEventStats = async (req, res) => {
     logger.info(`Admin stats request`, { userId: req.user.id, role: req.user.role, requestId: req.requestId });
@@ -111,6 +113,47 @@ export const updateUserRole = async (req, res) => {
     } catch (err) {
         logger.error(`Role update failure`, { userId, error: err.message, requestId: req.requestId });
         res.status(500).json({ error: 'Failed to update user role', details: err.message });
+    }
+};
+
+export const resetUserPassword = async (req, res) => {
+    const { userId } = req.body;
+    logger.warn(`CRITICAL: Administrative password reset initiated`, { actor: req.user.id, target: userId, requestId: req.requestId });
+    
+    try {
+        const targetUser = await prisma.user.findUnique({ where: { id: userId } });
+        if (!targetUser) {
+            return res.status(404).json({ error: 'Target user not found' });
+        }
+
+        // 🛡️ SECURITY CHECK: Only a SUPER_ADMIN can reset another SUPER_ADMIN's password.
+        if (targetUser.role === 'SUPER_ADMIN' && req.user.role !== 'SUPER_ADMIN') {
+            logger.error(`UNAUTHORIZED RESET ATTEMPT by ${req.user.id} against ${userId}`, { requestId: req.requestId });
+            return res.status(403).json({ error: 'Access denied: You cannot reset a Super Admin account.' });
+        }
+
+        // Generate temporary 8-character password
+        const tempPassword = crypto.randomBytes(4).toString('hex');
+        const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS) || 12;
+        const pepper = process.env.BCRYPT_SECRET || '';
+        const hashedPassword = await bcrypt.hash(tempPassword + pepper, saltRounds);
+
+        await prisma.user.update({
+            where: { id: userId },
+            data: { password: hashedPassword, isOnboarded: true } // Ensure user can login
+        });
+
+        logger.info(`Password Reset SUCCESS: user ${userId} now has temporary credentials`, { requestId: req.requestId });
+        
+        // Return the plain text password only now
+        res.json({ 
+            success: true, 
+            message: 'Password reset successful', 
+            tempPassword 
+        });
+    } catch (err) {
+        logger.error(`Admin Password Reset failure`, { userId, error: err.message, requestId: req.requestId });
+        res.status(500).json({ error: 'Failed to reset password', details: err.message });
     }
 };
 

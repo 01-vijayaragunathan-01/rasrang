@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import { APP_THEME } from "../../constants/theme";
+import { Key, ShieldAlert, CheckCircle2, Copy, X } from "lucide-react";
 
 export default function UserManagement({ isSuper }) {
     const { user: currentUser, csrfToken } = useAuth();
@@ -11,6 +12,8 @@ export default function UserManagement({ isSuper }) {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
+    const [resetResult, setResetResult] = useState(null); // Stores { name, password }
+    const [isResetting, setIsResetting] = useState(false);
 
     const fetchUsers = async () => {
         try {
@@ -52,6 +55,34 @@ export default function UserManagement({ isSuper }) {
             }
         } catch (err) {
             toast.error("SIGNAL INTERFERENCE: Failed to update role.");
+        }
+    };
+
+    const handleResetPassword = async (userId, userName) => {
+        if (!window.confirm(`CRITICAL ACTION: Reset password for ${userName}? This will generate a new temporary access key.`)) return;
+        
+        setIsResetting(true);
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/reset-password`, {
+                method: "POST",
+                headers: { 
+                    "Content-Type": "application/json",
+                    "x-csrf-token": csrfToken
+                },
+                body: JSON.stringify({ userId }),
+                credentials: "include"
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setResetResult({ name: userName, password: data.tempPassword });
+                toast.success(`SECURITY PROTOCOL: New access key generated.`);
+            } else {
+                toast.error(`RESET FAILED: ${data.error || "UNKNOWN REJECTION"}`);
+            }
+        } catch (err) {
+            toast.error("COMMUNICATION ERROR: Security hub unreachable.");
+        } finally {
+            setIsResetting(false);
         }
     };
 
@@ -173,6 +204,19 @@ export default function UserManagement({ isSuper }) {
                                                             Grant Overlord
                                                         </button>
                                                     )}
+                                                    
+                                                    {/* Password Reset Button (Restricted: cannot reset Super Admin unless actor is Super Admin) */}
+                                                    {(u.role !== 'SUPER_ADMIN' || currentUser?.role === 'SUPER_ADMIN') && u.id !== currentUser?.id && (
+                                                        <button 
+                                                            onClick={() => handleResetPassword(u.id, u.name)}
+                                                            disabled={isResetting}
+                                                            className="p-1.5 border border-orange-500/30 text-orange-400 hover:bg-orange-500 hover:text-white transition-all rounded disabled:opacity-50"
+                                                            title="Reset Access Key"
+                                                        >
+                                                            <Key size={14} className={isResetting ? "animate-spin" : ""} />
+                                                        </button>
+                                                    )}
+
                                                     {u.role !== 'STUDENT' && (
                                                         <button 
                                                             onClick={() => handleRoleUpdate(u.id, 'STUDENT', false)}
@@ -195,6 +239,66 @@ export default function UserManagement({ isSuper }) {
                     </table>
                 </div>
             </div>
+
+            {/* ── RESET RESULT MODAL ── */}
+            {resetResult && (
+                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
+                    <motion.div 
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        className="w-full max-w-md bg-[#0D0620] border border-orange-500/30 rounded-3xl p-10 relative overflow-hidden shadow-[0_0_100px_rgba(249,115,22,0.15)]"
+                    >
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500 to-yellow-500" />
+                        
+                        <div className="flex justify-between items-start mb-8">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-orange-500/10 rounded-2xl text-orange-500">
+                                    <ShieldAlert size={28} />
+                                </div>
+                                <div className="space-y-1">
+                                    <h3 className="text-xl font-black uppercase tracking-tighter text-white">Temporary Key Generated</h3>
+                                    <p className="text-[10px] uppercase font-bold text-white/40 tracking-[0.2em] italic">Security Override Protocol</p>
+                                </div>
+                            </div>
+                            <button onClick={() => setResetResult(null)} className="text-white/20 hover:text-white transition-colors">
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <div className="bg-white/5 border border-white/5 rounded-2xl p-6 mb-8 text-center space-y-4">
+                            <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest">New Credentials for {resetResult.name}</p>
+                            <div className="relative group">
+                                <div className="text-4xl font-black tracking-[0.3em] text-orange-400 font-mono select-all">
+                                    {resetResult.password}
+                                </div>
+                                <button 
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(resetResult.password);
+                                        toast.success("Copied to clipboard");
+                                    }}
+                                    className="mt-4 flex items-center gap-2 mx-auto text-[10px] font-black uppercase text-white/40 hover:text-white transition-colors border border-white/10 px-4 py-2 rounded-lg"
+                                >
+                                    <Copy size={12} /> Copy to Clipboard
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 p-4 bg-green-500/10 border border-green-500/20 rounded-xl mb-8">
+                            <CheckCircle2 className="text-green-500 shrink-0" size={16} />
+                            <p className="text-[9px] text-green-400 font-bold uppercase leading-relaxed">
+                                Share this key with the user immediately. It will not be stored or shown again for security reasons.
+                            </p>
+                        </div>
+
+                        <button 
+                            onClick={() => setResetResult(null)}
+                            className="w-full py-4 bg-orange-500 text-white font-black uppercase tracking-widest text-[10px] rounded-xl hover:bg-orange-600 transition-colors shadow-[0_10px_30px_rgba(249,115,22,0.3)]"
+                        >
+                            Close Protocol
+                        </button>
+                    </motion.div>
+                </div>
+            )}
         </div>
     );
 }

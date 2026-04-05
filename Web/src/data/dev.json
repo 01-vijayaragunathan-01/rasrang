@@ -10,40 +10,20 @@
       "dept": "CSE Cyber Security",
       "bio": "Blending creativity with code to build immersive cultural experiences, while ensuring performance, security, and real-world impact.",
       "github": "https://github.com/JafrinSam/",
-      "linkedin": "#"
+      "linkedin": "https://www.linkedin.com/in/jafrin-sam-j-05lkjhg"
     },
     {
       "id": 1,
       "name": "Vijay Ragunathan",
       "role": "Lead Architect & UX Engineer",
-      "regno": "RA2311003050119",
+      "regno": "RA2311003050321",
       "clg": "SRM IST TRICHY",
       "dept": "CSE CORE",
       "bio": "Designing immersive, cinematic web experiences while engineering robust and scalable systems.",
       "github": "https://github.com/01-vijayaragunathan-01",
-      "linkedin": "#"
-    },
-    {
-      "id": 2,
-      "name": "Arjun Singh",
-      "role": "Frontend Designer",
-      "regno": "RA2311003050212",
-      "clg": "SRM IST TRICHY",
-      "dept": "CSE CORE",
-      "bio": "Crafting fluid interfaces with high-performance animations and expressive visual systems.",
-      "github": "#",
-      "linkedin": "#"
-    },
-    {
-      "id": 3,
-      "name": "Rohan Verma",
-      "role": "Cloud & Backend Engineer",
-      "regno": "RA2311003050305",
-      "clg": "SRM IST TRICHY",
-      "dept": "CSE CORE",
-      "bio": "Building secure, scalable infrastructure and reliable backend architectures.",
-      "github": "#",
-      "linkedin": "#"
+      "linkedin": "https://www.linkedin.com/in/vijayaragunathan01"
     }
+
   ]
 }
+
