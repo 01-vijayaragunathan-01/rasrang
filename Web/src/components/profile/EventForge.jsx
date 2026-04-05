@@ -29,6 +29,7 @@ export default function EventForge() {
         category: "Main Stage",
         date: "",
         time: "",
+        timeTBA: false,
         description: "",
         venue: "",
         isHeadliner: false
@@ -130,7 +131,8 @@ export default function EventForge() {
             title: event.title,
             category: event.category,
             date: event.date,
-            time: event.time || "",
+            time: event.time === "TBA" ? "" : (event.time || ""),
+            timeTBA: event.time === "TBA",
             description: event.description,
             venue: event.venue || "",
             isHeadliner: event.isHeadliner
@@ -186,7 +188,7 @@ export default function EventForge() {
                 title: eventData.title,
                 category: eventData.category,
                 date: eventData.date,
-                time: eventData.time,
+                time: eventData.timeTBA ? "TBA" : eventData.time,
                 description: eventData.description,
                 venue: eventData.venue,
                 isHeadliner: eventData.isHeadliner,
@@ -227,7 +229,7 @@ export default function EventForge() {
     };
 
     const resetForm = () => {
-        setEventData({ title: "", category: "Main Stage", date: "", time: "", description: "", venue: "", isHeadliner: false });
+        setEventData({ title: "", category: "Main Stage", date: "", time: "", timeTBA: false, description: "", venue: "", isHeadliner: false });
         setImageFile(null);
         setImagePreview(null);
         setWhatsappLink("");
@@ -370,14 +372,35 @@ export default function EventForge() {
                                             onChange={(val) => setEventData({ ...eventData, date: val ? val.toString() : "" })}
                                         />
                                     </div>
-                                    <div>
-                                        <label className="text-[10px] uppercase tracking-[0.3em] text-[#AF94D2] font-bold flex items-center gap-2 mb-3">
-                                            <Clock className="w-3 h-3 text-[#22D3EE]" /> Reporting Time
-                                        </label>
-                                        <TimePicker 
-                                            value={eventData.time}
-                                            onChange={(val) => setEventData({ ...eventData, time: val })}
-                                        />
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-[10px] uppercase tracking-[0.3em] text-[#AF94D2] font-bold flex items-center gap-2">
+                                                <Clock className="w-3 h-3 text-[#22D3EE]" /> Reporting Time
+                                            </label>
+                                            <button 
+                                                type="button"
+                                                onClick={() => setEventData({ ...eventData, timeTBA: !eventData.timeTBA })}
+                                                className={`flex items-center gap-2 group/tba transition-all ${eventData.timeTBA ? 'text-[#22D3EE]' : 'text-white/20 hover:text-white/40'}`}
+                                            >
+                                                <span className="text-[8px] font-black uppercase tracking-widest">{eventData.timeTBA ? "ANNOUNCED LATER" : "SET SPECIFIC TIME"}</span>
+                                                <div className={`w-6 h-3 rounded-full relative transition-all border ${eventData.timeTBA ? 'bg-[#22D3EE]/20 border-[#22D3EE]/50' : 'bg-white/5 border-white/10'}`}>
+                                                    <motion.div 
+                                                        animate={{ x: eventData.timeTBA ? 12 : 0 }}
+                                                        className={`w-2 h-2 rounded-full absolute top-[1px] left-[1px] ${eventData.timeTBA ? 'bg-[#22D3EE]' : 'bg-white/20'}`}
+                                                    />
+                                                </div>
+                                            </button>
+                                        </div>
+                                        {eventData.timeTBA ? (
+                                            <div className="h-14 w-full bg-white/[0.02] border border-dashed border-white/10 rounded-2xl flex items-center justify-center">
+                                                <span className="text-[10px] font-black uppercase tracking-[0.5em] text-white/20">Announced later</span>
+                                            </div>
+                                        ) : (
+                                            <TimePicker 
+                                                value={eventData.time}
+                                                onChange={(val) => setEventData({ ...eventData, time: val })}
+                                            />
+                                        )}
                                     </div>
                                 </div>
                                 <div>

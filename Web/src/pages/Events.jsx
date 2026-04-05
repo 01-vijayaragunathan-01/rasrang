@@ -144,9 +144,15 @@ function EventCard({ event, index, onClick }) {
           </div>
 
           <div className="flex items-center justify-between pt-4 border-t border-white/10 mt-4">
-              <div className="flex items-center gap-1.5 text-xs text-white/60 font-medium">
-                  <MapPin className="w-3.5 h-3.5 text-[#22D3EE]" />
-                  <span>{event.venue || "Main Campus"}</span>
+              <div className="flex flex-col gap-1 text-[10px] text-white/60 font-medium">
+                  <div className="flex items-center gap-1.5">
+                    <MapPin className="w-3 h-3 text-[#22D3EE]" />
+                    <span>{event.venue || "Main Campus"}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Clock className="w-3 h-3 text-[#C53099]" />
+                    <span>{event.time === "TBA" ? "Announced Later" : event.time}</span>
+                  </div>
               </div>
               <div className="w-8 h-8 rounded-full bg-[#9D01E9]/20 flex items-center justify-center group-hover:bg-[#9D01E9] transition-colors">
                   <ArrowRight className="w-4 h-4 text-white" />
@@ -159,7 +165,7 @@ function EventCard({ event, index, onClick }) {
 }
 
 // ─── MODAL (Elegant Frosted Panel - No Fade) ──────────────────────────────────────────────
-function EventModal({ event, onClose, onRegister, registering, onShare }) {
+function EventModal({ event, onClose, onRegister, registering, onShare, userRegistrations }) {
   if (!event) return null;
   return (
     <AnimatePresence mode="wait">
@@ -209,12 +215,19 @@ function EventModal({ event, onClose, onRegister, registering, onShare }) {
                     {event.title}
                   </h2>
 
-                  <div className="flex flex-col gap-4 mb-8 pb-8 border-b border-white/10">
-                    <div className="flex items-center gap-4 text-white/80">
+                   <div className="flex flex-col gap-4 mb-8 pb-8 border-b border-white/10">
+                     <div className="flex items-center gap-4 text-white/80">
                         <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center"><Calendar className="w-4 h-4 text-[#C53099]" /></div>
                         <div>
-                            <p className="text-[10px] uppercase text-white/40 tracking-wider">Date & Time</p>
-                            <p className="text-sm font-semibold">{event.date} at {event.time || "10:00 AM"}</p>
+                            <p className="text-[10px] uppercase text-white/40 tracking-wider">Event Date</p>
+                            <p className="text-sm font-semibold">{event.date}</p>
+                        </div>
+                    </div>
+                     <div className="flex items-center gap-4 text-white/80">
+                        <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center"><Clock className="w-4 h-4 text-[#C53099]" /></div>
+                        <div>
+                            <p className="text-[10px] uppercase text-white/40 tracking-wider">Reporting Time</p>
+                            <p className="text-sm font-semibold">{event.time === "TBA" ? "To be announced later" : event.time}</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-4 text-white/80">
@@ -236,18 +249,29 @@ function EventModal({ event, onClose, onRegister, registering, onShare }) {
                   </div>
               </div>
 
-              <button
-                onClick={() => onRegister(event.id)}
-                disabled={registering}
-                className={`w-full py-4 rounded-xl font-bold text-sm uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-3
-                ${registering ? 'bg-white/10 text-white/50 cursor-not-allowed' : 'bg-white text-[#13072E] hover:bg-[#E4BD8D] shadow-[0_0_20px_rgba(255,255,255,0.2)]'}`}
-              >
-                  {registering ? (
-                      <><Loader2 size={18} className="animate-spin" /> Securing Pass...</>
-                  ) : (
-                      <><Ticket size={18} /> Reserve Your Pass</>
-                  )}
-              </button>
+               {userRegistrations.includes(event.id) && event.whatsappLink ? (
+                <a 
+                  href={event.whatsappLink} target="_blank" rel="noreferrer"
+                  className="w-full py-4 rounded-xl font-bold text-sm uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-3 bg-[#25D366] text-[#13072E] hover:bg-white hover:text-black shadow-[0_0_20px_rgba(37,211,102,0.3)]"
+                >
+                  <Share2 size={18} /> Join WhatsApp Group
+                </a>
+              ) : (
+                <button
+                  onClick={() => onRegister(event.id)}
+                  disabled={registering || userRegistrations.includes(event.id)}
+                  className={`w-full py-4 rounded-xl font-bold text-sm uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-3
+                  ${(registering || userRegistrations.includes(event.id)) ? 'bg-white/10 text-white/50 cursor-not-allowed' : 'bg-white text-[#13072E] hover:bg-[#E4BD8D] shadow-[0_0_20px_rgba(255,255,255,0.2)]'}`}
+                >
+                    {userRegistrations.includes(event.id) ? (
+                        <>Mission Secured</>
+                    ) : registering ? (
+                        <><Loader2 size={18} className="animate-spin" /> Securing Pass...</>
+                    ) : (
+                        <><Ticket size={18} /> Reserve Your Pass</>
+                    )}
+                </button>
+              )}
             </div>
           </motion.div>
         </div>
@@ -274,6 +298,21 @@ export default function Events() {
   const [error, setError] = useState(false);
   const [registering, setRegistering] = useState(false);
   const [whatsappPrompt, setWhatsappPrompt] = useState(null);
+  const [userRegistrations, setUserRegistrations] = useState([]);
+
+  const fetchUserRegistrations = async () => {
+    if (!isAuthenticated) return;
+    try {
+        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/events/my-registrations`, {
+            headers: { "x-csrf-token": csrfToken },
+            credentials: "include"
+        });
+        const data = await res.json();
+        if (data && data.individualTickets) {
+            setUserRegistrations(data.individualTickets.map(reg => reg.eventId));
+        }
+    } catch (err) { console.error("Failed to fetch user registrations:", err); }
+  };
 
   const fetchEvents = async () => {
     setLoading(true);
@@ -297,6 +336,10 @@ export default function Events() {
   useEffect(() => {
     fetchEvents();
   }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) fetchUserRegistrations();
+  }, [isAuthenticated]);
 
   // Handle Deep Linking / Auto-open Event Popup
   useEffect(() => {
@@ -341,6 +384,7 @@ export default function Events() {
       if (res.ok) {
         toast.success("Pass reserved successfully! Check your profile.");
         setSelectedEvent(null);
+        fetchUserRegistrations(); // Refresh registrations list
         
         // Trigger WhatsApp prompt if the event has an associated WhatsApp link
         const eventInfo = headliners.find(e => e.id === eventId) || events.find(e => e.id === eventId);
@@ -550,6 +594,7 @@ export default function Events() {
         onRegister={handleRegister}
         registering={registering}
         onShare={handleShare}
+        userRegistrations={userRegistrations}
       />
 
       {/* ── MISSION SUCCESS: WHATSAPP PROMPT ── */}
