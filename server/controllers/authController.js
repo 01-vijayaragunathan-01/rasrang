@@ -102,11 +102,11 @@ export const onboard = async (req, res) => {
     logger.info(`Onboarding process started`, { userId: req.user.id, requestId: req.requestId });
     try {
         const userId = req.user.id;
-        const { regNo, clgName, year, dept, branch, section, phoneNo, avatarSeed } = req.body;
+        const { name, regNo, clgName, year, dept, branch, section, phoneNo, avatarSeed } = req.body;
 
-        if (!regNo || !phoneNo) {
-            logger.warn(`Onboard validation failed: missing regNo/phoneNo`, { requestId: req.requestId });
-            return res.status(400).json({ error: 'Registration number and phone number are required' });
+        if (!name || !regNo || !phoneNo) {
+            logger.warn(`Onboard validation failed: missing name/regNo/phoneNo`, { requestId: req.requestId });
+            return res.status(400).json({ error: 'Name, Registration number, and phone number are required' });
         }
 
         if (!PHONE_REGEX.test(phoneNo)) {
@@ -138,7 +138,7 @@ export const onboard = async (req, res) => {
 
         const updatedUser = await prisma.user.update({
             where: { id: userId },
-            data: { regNo, clgName, year, dept, branch, section, phoneNo, avatarSeed, isOnboarded: true }
+            data: { name, regNo, clgName, year, dept, branch, section, phoneNo, avatarSeed, isOnboarded: true }
         });
 
         logger.info(`Onboarding SUCCESS for user ${userId}`, { requestId: req.requestId });

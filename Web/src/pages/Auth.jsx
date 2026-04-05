@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
+import { COLLEGES, YEARS } from "../constants/authData";
 
 export default function Auth() {
     const navigate = useNavigate();
@@ -14,9 +15,21 @@ export default function Auth() {
 
     const [isLogin, setIsLogin] = useState(true);
     const [formData, setFormData] = useState({
-        identifier: "", name: "", email: "", password: "",
+        identifier: "", name: "", email: "", password: "", confirmPassword: "",
         regNo: "", phoneNo: "", clgName: "", year: "", dept: "", branch: "", section: ""
     });
+
+    const calculateStrength = (pass) => {
+        if (!pass) return 0;
+        let score = 0;
+        if (pass.length >= 6) score += 1;
+        if (pass.length >= 10) score += 1;
+        if (/[A-Z]/.test(pass) && /[a-z]/.test(pass)) score += 1;
+        if (/[0-9]/.test(pass) || /[^A-Za-z0-9]/.test(pass)) score += 1;
+        return score;
+    };
+
+    const passwordStrength = calculateStrength(formData.password);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
@@ -33,6 +46,14 @@ export default function Auth() {
         setError("");
         setLoading(true);
         const endpoint = isLogin ? "/api/auth/login" : "/api/auth/signup";
+
+        // Password Match (Signup Only)
+        if (!isLogin && formData.password !== formData.confirmPassword) {
+            setError("IDENTITY CONFIRMATION FAILED: Passwords do not match.");
+            toast.error("MISMATCH ERROR: Check both password fields.");
+            setLoading(false);
+            return;
+        }
 
         // Phone Validation (Signup Only)
         if (!isLogin && !/^[6-9]\d{9}$/.test(formData.phoneNo)) {
@@ -220,24 +241,63 @@ export default function Auth() {
                                     exit={{ opacity: 0 }}
                                     className="grid grid-cols-2 gap-3"
                                 >
-                                    <input name="name" onChange={handleChange} placeholder="Full Name" required className={`${inputClass} col-span-2`} />
-                                    <input name="email" type="email" onChange={handleChange} placeholder="Email" required className={`${inputClass} col-span-2`} />
-                                    <input name="password" type="password" onChange={handleChange} placeholder="Password" required className={`${inputClass} col-span-2`} />
-                                    <input name="regNo" onChange={handleChange} placeholder="Register Number" required className={inputClass} />
+                                    <input name="name" value={formData.name} onChange={handleChange} placeholder="Full Name" required className={`${inputClass} col-span-2`} />
+                                    <input name="email" value={formData.email} type="email" onChange={handleChange} placeholder="Email" required className={`${inputClass} col-span-2`} />
+                                    <div className="col-span-2 space-y-2">
+                                        <input name="password" value={formData.password} type="password" onChange={handleChange} placeholder="Password" required className={inputClass} />
+                                        {formData.password && !isLogin && (
+                                            <div className="flex gap-1 h-1 px-1">
+                                                {[1, 2, 3, 4].map((step) => (
+                                                    <div 
+                                                        key={step}
+                                                        className={`flex-1 rounded-full transition-all duration-500 ${
+                                                            passwordStrength >= step 
+                                                                ? (passwordStrength >= 3 ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" : "bg-amber-500") 
+                                                                : "bg-white/10"
+                                                        }`}
+                                                    />
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <input name="confirmPassword" value={formData.confirmPassword} type="password" onChange={handleChange} placeholder="Confirm Password" required className={`${inputClass} col-span-2`} />
+                                    <input name="regNo" value={formData.regNo} onChange={handleChange} placeholder="Register Number" required className={inputClass} />
                                     <input
                                         type="tel"
                                         name="phoneNo"
+                                        value={formData.phoneNo}
                                         onChange={handleChange}
                                         placeholder="Phone Number"
                                         maxLength="10"
                                         required
                                         className={inputClass}
                                     />
-                                    <input name="clgName" onChange={handleChange} placeholder="College Name" className={inputClass} />
-                                    <input name="year" onChange={handleChange} placeholder="Year (e.g. 3rd)" className={inputClass} />
-                                    <input name="dept" onChange={handleChange} placeholder="Department" className={`${inputClass} col-span-2`} />
-                                    <input name="branch" onChange={handleChange} placeholder="Branch" className={inputClass} />
-                                    <input name="section" onChange={handleChange} placeholder="Section" className={inputClass} />
+                                    <select 
+                                        name="clgName" 
+                                        onChange={handleChange} 
+                                        required 
+                                        className={`${inputClass} appearance-none col-span-2`}
+                                    >
+                                        <option value="" disabled selected className="bg-[#0D0620]">Select College</option>
+                                        {COLLEGES.map(college => (
+                                            <option key={college} value={college} className="bg-[#0D0620]">{college}</option>
+                                        ))}
+                                    </select>
+                                    <select 
+                                        name="year" 
+                                        value={formData.year} 
+                                        onChange={handleChange} 
+                                        required 
+                                        className={`${inputClass} appearance-none`}
+                                    >
+                                        <option value="" disabled className="bg-[#0D0620]">Year</option>
+                                        {YEARS.map(yr => (
+                                            <option key={yr} value={yr} className="bg-[#0D0620]">{yr}</option>
+                                        ))}
+                                    </select>
+                                    <input name="dept" value={formData.dept} onChange={handleChange} placeholder="Department" className={`${inputClass}`} />
+                                    <input name="branch" value={formData.branch} onChange={handleChange} placeholder="Branch" className={inputClass} />
+                                    <input name="section" value={formData.section} onChange={handleChange} placeholder="Section" className={inputClass} />
                                 </motion.div>
                             )}
                         </AnimatePresence>

@@ -41,6 +41,6 @@ export const sendTokenResponse = async (prisma, user, statusCode, res) => {
     res.status(statusCode).json({
         success: true,
         csrfToken, // Sent to frontend to be stored in memory/state
-        user: { id: user.id, role: user.role, name: user.name }
+        user: { id: user.id, role: user.role, name: user.name, isOnboarded: user.isOnboarded }
     });
 };

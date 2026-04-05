@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import AvatarPicker from "../components/profile/AvatarPicker";
+import { COLLEGES, YEARS } from "../constants/authData";
 
 export default function Onboarding() {
     const { user, setUser, csrfToken } = useAuth();
@@ -12,6 +13,7 @@ export default function Onboarding() {
     const toast = useToast();
 
     const [formData, setFormData] = useState({
+        name: user?.name || "",
         regNo: "",
         phoneNo: "",
         clgName: "",
@@ -37,7 +39,7 @@ export default function Onboarding() {
         e.preventDefault();
         
         // Basic Validation
-        if (!formData.regNo || !formData.phoneNo || !formData.clgName || !formData.dept || !formData.year) {
+        if (!formData.name || !formData.regNo || !formData.phoneNo || !formData.clgName || !formData.dept || !formData.year) {
             toast.error("MISSION CRITICAL: Fill all required fields.");
             return;
         }
@@ -110,6 +112,10 @@ export default function Onboarding() {
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-1.5 col-span-full">
+                                <label className="text-[10px] uppercase tracking-widest font-bold text-white/40 ml-1">Full Name</label>
+                                <input name="name" value={formData.name} onChange={handleChange} placeholder="Real Identity Name" required className={inputClass} />
+                            </div>
                             <div className="space-y-1.5">
                                 <label className="text-[10px] uppercase tracking-widest font-bold text-white/40 ml-1">Register Number</label>
                                 <input name="regNo" value={formData.regNo} onChange={handleChange} placeholder="e.g. RA2111..." required className={inputClass} />
@@ -129,7 +135,18 @@ export default function Onboarding() {
                             </div>
                             <div className="space-y-1.5 col-span-full">
                                 <label className="text-[10px] uppercase tracking-widest font-bold text-white/40 ml-1">College Name</label>
-                                <input name="clgName" value={formData.clgName} onChange={handleChange} placeholder="e.g. SRM Institute..." required className={inputClass} />
+                                <select 
+                                    name="clgName" 
+                                    value={formData.clgName} 
+                                    onChange={handleChange} 
+                                    required 
+                                    className={`${inputClass} appearance-none`}
+                                >
+                                    <option value="" disabled className="bg-[#0D0620]">Select College</option>
+                                    {COLLEGES.map(college => (
+                                        <option key={college} value={college} className="bg-[#0D0620]">{college}</option>
+                                    ))}
+                                </select>
                             </div>
                             <div className="space-y-1.5">
                                 <label className="text-[10px] uppercase tracking-widest font-bold text-white/40 ml-1">Department</label>
@@ -139,10 +156,9 @@ export default function Onboarding() {
                                 <label className="text-[10px] uppercase tracking-widest font-bold text-white/40 ml-1">Year of Study</label>
                                 <select name="year" value={formData.year} onChange={handleChange} required className={`${inputClass} appearance-none`}>
                                     <option value="" disabled className="bg-[#0D0620]">Select Year</option>
-                                    <option value="1st" className="bg-[#0D0620]">1st Year</option>
-                                    <option value="2nd" className="bg-[#0D0620]">2nd Year</option>
-                                    <option value="3rd" className="bg-[#0D0620]">3rd Year</option>
-                                    <option value="4th" className="bg-[#0D0620]">4th Year</option>
+                                    {YEARS.map(yr => (
+                                        <option key={yr} value={yr} className="bg-[#0D0620]">{yr}</option>
+                                    ))}
                                 </select>
                             </div>
                             <div className="space-y-1.5">

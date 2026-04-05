@@ -1,10 +1,80 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
+model User {
+  id                  String                @id @default(uuid())
+  email               String                @unique
+  password            String?
+  name                String
+  regNo               String?               @unique
+  role                Role                  @default(STUDENT)
+  googleId            String?               @unique
+  refreshToken        String?               @unique
+  clgName             String?
+  year                String?
+  dept                String?
+  branch              String?
+  section             String?
+  phoneNo             String?               @unique
+  isOnboarded         Boolean               @default(false)
+  canManagePrivileges Boolean               @default(false)
+  createdAt           DateTime              @default(now())
+  avatarSeed          String?
+  registrations       Registration[]
+  managedEvents       VolunteerAssignment[]
+}
+
+model Event {
+  id                 String                @id @default(uuid())
+  title              String
+  category           String                @default("General")
+  description        String
+  date               String
+  imageUrl           String?
+  isHeadliner        Boolean               @default(false)
+  time               String?
+  whatsappLink       String?
+  venue              String?
+  registrations      Registration[]
+  assignedVolunteers VolunteerAssignment[]
+}
+
+model Gallery {
+  id        String   @id @default(uuid())
+  imageUrl  String
+  caption   String?
+  category  String   @default("General")
+  createdAt DateTime @default(now())
+}
+
+model Registration {
+  id        String   @id @default(uuid())
+  userId    String
+  eventId   String
+  status    String   @default("CONFIRMED")
+  scanned   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, eventId])
+}
+
+model VolunteerAssignment {
+  id          String   @id @default(uuid())
+  volunteerId String
+  eventId     String
+  assignedAt  DateTime @default(now())
+  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  volunteer   User     @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
+
+  @@unique([volunteerId, eventId])
 }
 
 enum Role {
@@ -12,78 +82,4 @@ enum Role {
   VOLUNTEER
   COORDINATOR
   SUPER_ADMIN
-}
-
-model User {
-  id            String         @id @default(uuid())
-  email         String         @unique
-  password      String?
-  name          String
-  regNo         String?        @unique
-  role          Role           @default(STUDENT)
-  googleId      String?        @unique
-  refreshToken  String?        @unique
-  clgName       String?
-  year          String?
-  dept          String?
-  branch        String?
-  section       String?
-  phoneNo       String?        @unique
-  avatarSeed    String?
-  isOnboarded   Boolean        @default(false)
-  canManagePrivileges Boolean  @default(false)
-  registrations Registration[]
-  // DELEGATED SCANNING: events this user is authorized to scan tickets for
-  managedEvents VolunteerAssignment[]
-  createdAt     DateTime       @default(now())
-}
-
-model Event {
-  id            String         @id @default(uuid())
-  title         String
-  category      String         @default("General")
-  description   String
-  date          String
-  time          String?
-  imageUrl      String?
-  venue         String?
-  whatsappLink  String?
-  isHeadliner   Boolean        @default(false)
-  registrations Registration[]
-  // DELEGATED SCANNING: volunteers assigned to this event
-  assignedVolunteers VolunteerAssignment[]
-}
-
-model Gallery {
-  id          String   @id @default(uuid())
-  imageUrl    String
-  caption     String?
-  category    String   @default("General")
-  createdAt   DateTime @default(now())
-}
-
-model Registration {
-  id          String   @id @default(uuid())
-  // H-3 FIX: Added onDelete: Cascade so deleting a user cascades to their registrations
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId      String
-  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  eventId     String
-  status      String   @default("CONFIRMED")
-  scanned     Boolean  @default(false)
-  createdAt   DateTime @default(now())
-
-  @@unique([userId, eventId])
-}
-
-// JOIN TABLE: Tracks which volunteer/coordinator is assigned to scan which event
-model VolunteerAssignment {
-  id          String   @id @default(uuid())
-  volunteer   User     @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
-  volunteerId String
-  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  eventId     String
-  assignedAt  DateTime @default(now())
-
-  @@unique([volunteerId, eventId])
 }
