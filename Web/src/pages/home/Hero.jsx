@@ -102,8 +102,13 @@ export default function Hero() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
 
-                    {/* LEFT WING */}
-                    <div className="order-2 lg:order-1 lg:col-span-3 flex flex-col items-center lg:items-start text-center lg:text-left gap-6">
+                    {/* LEFT WING: DATE & MISSION */}
+                    <motion.div 
+                        initial={{ opacity: 0, x: -50 }}
+                        animate={loaded ? { opacity: 1, x: 0 } : {}}
+                        transition={{ duration: 1, delay: 0.3 }}
+                        className="order-2 lg:order-1 lg:col-span-3 flex flex-col items-center lg:items-start text-center lg:text-left gap-6"
+                    >
                         <div className="group/date cursor-default">
                             <p className="text-[10px] tracking-[0.6em] uppercase mb-3 opacity-40 font-accent transition-all group-hover:opacity-70 group-hover:tracking-[0.8em]" style={{ color: theme.colors.textSubtitle }}>
                                 Save The Date
@@ -128,10 +133,20 @@ export default function Hero() {
                         <p className="text-sm leading-relaxed tracking-wide opacity-60 max-w-[280px] font-body" style={{ color: theme.colors.textDescription }}>
                             A grand celebration of art, music, dance & theatre — where every performance tells a story etched in light.
                         </p>
-                    </div>
+                    </motion.div>
 
-                    {/* CENTER: Logo */}
-                    <div className="order-1 lg:order-2 lg:col-span-6 flex justify-center items-center relative perspective-1000">
+                    {/* CENTER: Logo (Swipes In) */}
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={loaded ? { opacity: 1, scale: 1 } : {}}
+                        transition={{ 
+                            type: "spring", 
+                            stiffness: 260, 
+                            damping: 20, 
+                            delay: 0.1 
+                        }}
+                        className="order-1 lg:order-2 lg:col-span-6 flex justify-center items-center relative perspective-1000"
+                    >
                         {/* Powerful Pulse Glow */}
                         <motion.div 
                             animate={{ 
@@ -157,10 +172,15 @@ export default function Hero() {
                                 className="h-[14rem] xs:h-[18rem] sm:h-[22rem] md:h-[24rem] lg:h-[26rem] w-auto max-w-[85vw] object-contain relative z-10 transition-all duration-100"
                             />
                         </motion.div>
-                    </div>
+                    </motion.div>
 
-                    {/* RIGHT WING */}
-                    <div className="order-3 lg:order-3 lg:col-span-3 flex flex-col items-center lg:items-end text-center lg:text-right gap-6">
+                    {/* RIGHT WING: ACTION & EDITION */}
+                    <motion.div 
+                        initial={{ opacity: 0, x: 50 }}
+                        animate={loaded ? { opacity: 1, x: 0 } : {}}
+                        transition={{ duration: 1, delay: 0.5 }}
+                        className="order-3 lg:order-3 lg:col-span-3 flex flex-col items-center lg:items-end text-center lg:text-right gap-6"
+                    >
                         <p className="text-[10px] md:text-xs tracking-[0.3em] uppercase opacity-70 font-cultural" style={{ color: theme.colors.textSubtitle }}>
                             Where Culture Meets the Stars <br /> Edition 2026
                         </p>
@@ -200,7 +220,7 @@ export default function Hero() {
                             </div>
                             <span className="text-[8px] tracking-[0.5em] mt-2 text-white">RSRNG-26</span>
                         </div>
-                    </div>
+                    </motion.div>
                 </div>
             </div>
 

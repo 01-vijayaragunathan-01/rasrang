@@ -233,7 +233,13 @@ export default function About() {
                         </motion.div>
                     </div>
 
-                    <div className="flex flex-wrap justify-center gap-8 max-w-5xl mx-auto px-6">
+                    <motion.div 
+                        initial={{ opacity: 0, y: 50 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, amount: 0.1 }}
+                        transition={{ duration: 1, delay: 0.2 }}
+                        className="flex flex-wrap justify-center gap-8 max-w-5xl mx-auto px-6"
+                    >
                         {[
                             {
                                 id: 1,
@@ -326,7 +332,7 @@ export default function About() {
                                 </div>
                             </PixelCard>
                         ))}
-                    </div>
+                    </motion.div>
                 </div>
             </div>
         </section>

@@ -58,9 +58,10 @@ export default function PastEvents() {
             // --- MOBILE FIRST ENTRY ---
             mm.add("(max-width: 767px)", () => {
                 gsap.from(headerRef.current, {
-                    y: 30,
+                    y: 60,
                     opacity: 0,
-                    duration: 1,
+                    duration: 1.2,
+                    ease: "power4.out",
                     scrollTrigger: {
                         trigger: headerRef.current,
                         start: "top 90%",
@@ -68,14 +69,14 @@ export default function PastEvents() {
                 });
 
                 gsap.from(".event-card", {
-                    y: 50,
+                    y: 100,
                     opacity: 0,
-                    duration: 0.8,
-                    stagger: 0.2, 
-                    ease: "power2.out",
+                    duration: 1,
+                    stagger: 0.25, 
+                    ease: "power4.out",
                     scrollTrigger: {
                         trigger: gridRef.current,
-                        start: "top 90%",
+                        start: "top 95%",
                     }
                 });
             });
@@ -83,9 +84,10 @@ export default function PastEvents() {
             // --- DESKTOP REFINEMENTS ---
             mm.add("(min-width: 768px)", () => {
                 gsap.from(headerRef.current, {
-                    y: 50,
+                    y: 120,
                     opacity: 0,
-                    duration: 1.2,
+                    duration: 1.5,
+                    ease: "power4.out",
                     scrollTrigger: {
                         trigger: headerRef.current,
                         start: "top 85%",
@@ -93,12 +95,12 @@ export default function PastEvents() {
                 });
 
                 gsap.from(".event-card", {
-                    y: 80,
+                    y: 150,
                     opacity: 0,
-                    scale: 0.95,
-                    duration: 1.2,
-                    stagger: 0.15,
-                    ease: "power3.out",
+                    scale: 0.9,
+                    duration: 1.5,
+                    stagger: 0.2,
+                    ease: "power4.out",
                     scrollTrigger: {
                         trigger: gridRef.current,
                         start: "top 80%",

@@ -41,9 +41,12 @@ const HeadlineDJ = () => {
                 <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-cyan-400 to-transparent animate-pulse" />
             </div>
 
-            {/* Content Container */}
+            {/* Content Container with Entrance Swipe */}
             <motion.div 
-                style={{ opacity }}
+                initial={{ opacity: 0, y: 100 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
                 className="relative z-20 container mx-auto px-6 flex flex-col items-center text-center space-y-8"
             >
                 {/* Tactical Badge */}
