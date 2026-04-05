@@ -1,5 +1,8 @@
+import { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { useTheme } from "./context/ThemeContext";
+import { motion, AnimatePresence } from "framer-motion";
+import { Monitor, X } from "lucide-react";
 import Home from "./pages/Home";
 import Events from "./pages/Events";
 import Gallery from "./pages/Gallery";
@@ -14,6 +17,58 @@ import Particles from "./pages/home/Particles";
 import Footer from "./common/Footer";
 import StaggeredMenu from "./common/StaggeredMenu";
 
+function DesktopSuggestion({ onClose }) {
+  const { theme } = useTheme();
+  return (
+    <motion.div
+      initial={{ y: 100, opacity: 0, scale: 0.9 }}
+      animate={{ y: 0, opacity: 1, scale: 1 }}
+      exit={{ y: 100, opacity: 0, scale: 0.9 }}
+      transition={{ type: "spring", damping: 25, stiffness: 200 }}
+      className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[10000] w-[90%] max-w-sm"
+    >
+      <div 
+        className="relative overflow-hidden rounded-2xl p-5 border shadow-2xl backdrop-blur-2xl"
+        style={{ 
+          background: "linear-gradient(135deg, rgba(30, 20, 60, 0.95) 0%, rgba(10, 5, 30, 0.98) 100%)",
+          borderColor: `${theme.colors.accent}40`,
+          boxShadow: `0 10px 40px -10px ${theme.colors.accent}40`
+        }}
+      >
+        {/* Subtle Animated Glow */}
+        <motion.div 
+          animate={{ opacity: [0.3, 0.6, 0.3] }}
+          transition={{ duration: 4, repeat: Infinity }}
+          className="absolute inset-0 pointer-events-none"
+          style={{ background: `radial-gradient(circle at top left, ${theme.colors.accent}15, transparent 70%)` }}
+        />
+
+        <div className="relative z-10 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-white/5 border border-white/10 shrink-0">
+            <Monitor className="w-6 h-6" style={{ color: theme.colors.accent }} />
+          </div>
+          
+          <div className="flex-1">
+            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] mb-1" style={{ color: theme.colors.accent }}>
+              IMMERSION ALERT
+            </h4>
+            <p className="text-sm text-white/90 font-bold leading-tight">
+              Switch to Desktop for the full cinematic RasRang experience.
+            </p>
+          </div>
+
+          <button 
+            onClick={onClose}
+            className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-white/40 hover:text-white transition-colors"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ToastProvider } from "./context/ToastContext";
 import { ToastContainer } from "./common/Toast";
@@ -26,6 +81,16 @@ function MainContent() {
   const { user } = useAuth();
 
   const isStaff = user && (user.role === 'VOLUNTEER' || user.role === 'COORDINATOR' || user.role === 'SUPER_ADMIN');
+
+  const [showDesktopSuggestion, setShowDesktopSuggestion] = useState(false);
+
+  useEffect(() => {
+    // Show suggestion after 2 seconds for mobile users on every reload
+    if (window.innerWidth < 1024) {
+      const timer = setTimeout(() => setShowDesktopSuggestion(true), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   const navItems = [
     { label: 'Home', link: '/', ariaLabel: 'Return to headquarters' },
@@ -118,6 +183,12 @@ function MainContent() {
 
       <Footer />
       <ToastContainer />
+
+      <AnimatePresence>
+        {showDesktopSuggestion && (
+          <DesktopSuggestion onClose={() => setShowDesktopSuggestion(false)} />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

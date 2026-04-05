@@ -27,8 +27,19 @@ export default function Gallery() {
             const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/gallery`);
             const data = await res.json();
             if (res.ok) {
+                // Static Chairman Image (Prioritized)
+                const chairmanItem = {
+                    id: 'chairman-static-01',
+                    imageUrl: '/Assets/gallery/DSC_2169.webp',
+                    caption: 'Chairman Message',
+                    category: 'Core'
+                };
+
+                // Add chairman first, then other images from backend
+                const galleryData = [chairmanItem, ...data];
+
                 // Enrich existing items with dynamic ratios
-                const enriched = data.map((item, i) => ({
+                const enriched = galleryData.map((item, i) => ({
                     ...item,
                     type: "image", // Default to image
                     ratio: i % 4 === 0 ? "aspect-[3/4]" : i % 3 === 0 ? "aspect-video" : "aspect-square"
