@@ -119,18 +119,6 @@ export default function ProfileLayout({ children, activeTab, setActiveTab }) {
                         </button>
                     ))}
                 </nav>
-
-                <div className="pt-6 border-t border-white/5 mt-auto">
-                    <button 
-                        onClick={logout}
-                        style={{ color: `${colors.highlight}88` }}
-                        className="group w-full flex items-center gap-4 px-4 py-4 hover:bg-[#E31E6E]/10 rounded-xl transition-all duration-500 font-black uppercase tracking-[0.2em] text-[10px] relative overflow-hidden"
-                    >
-                        <div className="absolute inset-0 bg-gradient-to-r from-[#E31E6E]/0 to-[#E31E6E]/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <Power className="w-4 h-4 group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500" />
-                        <span className="group-hover:text-white transition-colors">Terminate Session</span>
-                    </button>
-                </div>
             </motion.aside>
 
             {/* --- MOBILE NEON SEGMENTED HUB --- */}
@@ -163,12 +151,6 @@ export default function ProfileLayout({ children, activeTab, setActiveTab }) {
                         </button>
                     ))}
                     
-                    <button
-                        onClick={logout}
-                        className="w-14 flex items-center justify-center relative z-10 py-3 rounded-xl transition-all duration-500 overflow-hidden group hover:bg-[#E31E6E]/10"
-                    >
-                        <Power className="w-5 h-5 text-[#E31E6E]/60 group-hover:text-[#E31E6E]" />
-                    </button>
                 </div>
             </div>
 

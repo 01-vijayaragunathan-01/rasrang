@@ -11,7 +11,7 @@ import AvatarPicker from "../components/profile/AvatarPicker";
 import { X, Fingerprint, ShieldCheck, RefreshCw } from "lucide-react";
 
 export default function Profile() {
-    const { user, setUser, csrfToken } = useAuth();
+    const { user, setUser, logout, csrfToken } = useAuth();
 
     const avatarSvg = useMemo(() => {
         return multiavatar(user?.avatarSeed || user?.email || user?.name || "rasrang-guest");
@@ -244,15 +244,23 @@ export default function Profile() {
                                             <RefreshCw size={24} className="text-white animate-spin" />
                                         </div>
                                     </button>
-                                    <button 
-                                        onClick={() => {
-                                            setTempSeed(user?.avatarSeed || user?.email || "rasrang-guest");
-                                            setShowAvatarModal(true);
-                                        }}
-                                        className="text-[9px] uppercase tracking-[0.3em] font-black text-[#AF94D2]/60 hover:text-[#9D01E9] transition-colors"
-                                    >
-                                        [ Change Identity ]
-                                    </button>
+                                    <div className="flex w-full mt-2 gap-2 min-w-[120px]">
+                                        <button 
+                                            onClick={() => {
+                                                setTempSeed(user?.avatarSeed || user?.email || "rasrang-guest");
+                                                setShowAvatarModal(true);
+                                            }}
+                                            className="flex-1 py-1.5 bg-[#9D01E9]/10 hover:bg-[#9D01E9] border border-[#9D01E9]/30 text-[8px] uppercase tracking-widest font-black text-[#9D01E9] hover:text-white transition-all rounded"
+                                        >
+                                            CHANGE
+                                        </button>
+                                        <button 
+                                            onClick={logout}
+                                            className="flex-1 py-1.5 bg-[#E31E6E]/10 hover:bg-[#E31E6E] border border-[#E31E6E]/30 text-[8px] uppercase tracking-widest font-black text-[#E31E6E] hover:text-white transition-all rounded drop-shadow-[0_0_10px_rgba(227,30,110,0.3)]"
+                                        >
+                                            LOGOUT
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
