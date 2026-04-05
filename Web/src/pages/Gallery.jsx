@@ -60,6 +60,14 @@ export default function Gallery() {
         fetchGallery();
     }, []);
 
+    // Apply Premium Scroll Snapping during mount
+    useEffect(() => {
+        document.documentElement.classList.add("snap-y", "snap-proximity");
+        return () => {
+            document.documentElement.classList.remove("snap-y", "snap-proximity");
+        };
+    }, []);
+
     // ─── RESPONSIVE MASONRY LOGIC ───
     useEffect(() => {
         const updateColumns = () => {
@@ -151,7 +159,7 @@ export default function Gallery() {
                                         viewport={{ once: true, margin: "-50px" }}
                                         transition={{ duration: 0.8, ease: "easeOut" }}
                                         onClick={() => setLightbox(item)}
-                                        className="mosaic-item group relative w-full rounded-2xl overflow-hidden cursor-pointer border border-white/10 transition-all duration-700 hover:shadow-[0_0_40px_rgba(228,189,141,0.1)]"
+                                        className="mosaic-item group relative w-full rounded-2xl overflow-hidden cursor-pointer border border-white/10 transition-all duration-700 hover:shadow-[0_0_40px_rgba(228,189,141,0.1)] snap-start scroll-mt-32"
                                     >
                                         {/* Media Asset container */}
                                         <div className={`relative w-full ${item.ratio} overflow-hidden`}>

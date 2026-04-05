@@ -41,7 +41,7 @@ function HeadlinerCard({ headliner }) {
   const { timeLeft, isUnlocked } = useCountdown(headliner.unlockDate);
 
   return (
-    <div className="relative w-full rounded-[2rem] overflow-hidden group shadow-2xl border border-[#C53099]/20 hover:border-[#E4BD8D]/50 transition-all duration-700 headliner-item bg-[#1A0B2E]" style={{ height: "460px" }}>
+    <div className="relative w-full rounded-[2rem] overflow-hidden group shadow-2xl border border-[#C53099]/20 hover:border-[#E4BD8D]/50 transition-all duration-700 headliner-item bg-[#1A0B2E] snap-start scroll-mt-24" style={{ height: "460px" }}>
       <motion.div
         className="absolute inset-0 transition-transform duration-1000 group-hover:scale-105"
         animate={{ filter: isUnlocked ? "blur(0px) brightness(0.9)" : "blur(20px) brightness(0.4)" }}
@@ -109,7 +109,7 @@ function EventCard({ event, index, onClick }) {
     <motion.div
       layout
       initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.6, delay: index * 0.1 }}
-      className={`relative w-full h-[460px] ${staggerClass}`}
+      className={`relative w-full h-[460px] snap-start scroll-mt-24 ${staggerClass}`}
       onClick={onClick}
     >
       <div className="group relative w-full h-full bg-[#1A0B2E] border border-white/10 hover:border-[#E4BD8D]/40 rounded-[2.5rem] rounded-tl-[8rem] overflow-hidden cursor-pointer shadow-xl hover:shadow-[0_20px_40px_rgba(157,1,233,0.2)] transition-all duration-500 flex flex-col">
@@ -298,6 +298,14 @@ export default function Events() {
   const [error, setError] = useState(false);
   const [registering, setRegistering] = useState(false);
   const [whatsappPrompt, setWhatsappPrompt] = useState(null);
+
+  // Apply Premium Scroll Snapping during mount
+  useEffect(() => {
+      document.documentElement.classList.add("snap-y", "snap-proximity");
+      return () => {
+          document.documentElement.classList.remove("snap-y", "snap-proximity");
+      };
+  }, []);
   const [userRegistrations, setUserRegistrations] = useState([]);
 
   const fetchUserRegistrations = async () => {

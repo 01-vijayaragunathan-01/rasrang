@@ -194,13 +194,17 @@ function MainContent() {
   );
 }
 
+import { ReactLenis } from 'lenis/react';
+
 export default function App() {
   return (
     <ToastProvider>
       <AuthProvider>
-        <Router>
-          <MainContent />
-        </Router>
+        <ReactLenis root options={{ lerp: 0.07, duration: 1.5, smoothTouch: false }}>
+          <Router>
+            <MainContent />
+          </Router>
+        </ReactLenis>
       </AuthProvider>
     </ToastProvider>
   );
