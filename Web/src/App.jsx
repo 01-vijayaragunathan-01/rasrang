@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { useTheme } from "./context/ThemeContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -92,7 +92,7 @@ function MainContent() {
     }
   }, []);
 
-  const navItems = [
+  const navItems = useMemo(() => [
     { label: 'Home', link: '/', ariaLabel: 'Return to headquarters' },
     { label: 'Events', link: '/events', ariaLabel: 'Explore active sectors' },
     { label: 'Gallery', link: '/gallery', ariaLabel: 'Access visual archives' },
@@ -101,13 +101,21 @@ function MainContent() {
     ...(isStaff ? [{ label: 'Dashboard', link: '/dashboard', ariaLabel: 'Command Tower access' }] : []),
     { label: 'Team', link: '/contributors', ariaLabel: 'Meet the architects' },
     ...(user ? [{ label: 'Logout', action: logout, ariaLabel: 'Terminate session' }] : [])
-  ];
+  ], [user, isStaff, logout]);
 
-  const socialItems = [
+  const socialItems = useMemo(() => [
     { label: 'Instagram', link: 'https://instagram.com/rasrang' },
     { label: 'Twitter', link: 'https://twitter.com/rasrang' },
     { label: 'LinkedIn', link: 'https://linkedin.com' }
-  ];
+  ], []);
+
+  const menuColors = useMemo(() => [
+    theme.colors.primary,    // #9D01E9 - Purple
+    theme.colors.secondary,  // #C53099 - Magenta
+    theme.colors.highlight,  // #E31E6E - Pink
+    "#22D3EE",               // Cyan
+    "#FACC15"                // Yellow
+  ], [theme.colors]);
 
   return (
     <div 
@@ -136,13 +144,7 @@ function MainContent() {
           logoUrl="/Assets/rasrang.png" 
           items={navItems}
           socialItems={socialItems}
-          colors={[
-            theme.colors.primary,    // #9D01E9 - Purple
-            theme.colors.secondary,  // #C53099 - Magenta
-            theme.colors.highlight,  // #E31E6E - Pink
-            "#22D3EE",               // Cyan
-            "#FACC15"                // Yellow
-          ]}
+          colors={menuColors}
           accentColor={theme.colors.highlight}
           menuButtonColor="#ffffff"
           openMenuButtonColor="#ffffff"
