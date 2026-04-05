@@ -284,19 +284,47 @@ export default function Footer() {
             <p className="text-[10px] tracking-[0.4em] uppercase mb-6 font-bold" style={{ color: theme.colors.accent }}>
               Get In Touch
             </p>
-            <div className="space-y-4">
+            <div className="space-y-6">
               {[
-                { label: "Email", value: "rasrang25@gmail.com" },
-                { label: "Phone", value: "+91 98765 43210" },
-                { label: "Venue", value: "SRM Trichy, Main Campus" },
-              ].map(({ label, value }) => (
-                <div key={label}>
-                  <p className="text-[9px] tracking-[0.3em] uppercase mb-1 font-bold" style={{ color: `${theme.colors.primary}90` }}>
-                    {label}
+                { 
+                  label: "Email", 
+                  values: ["rasrang@srmtrichy.edu.in"], 
+                  href: (val) => `mailto:${val}` 
+                },
+                { 
+                  label: "Phone", 
+                  values: ["+91 72002 76393", "+91 93605 83353"], 
+                  href: (val) => `tel:${val.replace(/\s+/g, '')}` 
+                },
+                { 
+                  label: "Venue", 
+                  values: ["SRM Trichy, Main Campus"] 
+                },
+              ].map((item) => (
+                <div key={item.label}>
+                  <p className="text-[9px] tracking-[0.3em] uppercase mb-2 font-bold" style={{ color: `${theme.colors.primary}90` }}>
+                    {item.label}
                   </p>
-                  <p className="text-sm" style={{ color: theme.colors.textMuted }}>
-                    {value}
-                  </p>
+                  <div className="space-y-2">
+                    {item.values.map((val) => (
+                      item.href ? (
+                        <a 
+                          key={val}
+                          href={item.href(val)}
+                          className="text-sm block transition-all duration-300 hover:translate-x-1"
+                          style={{ color: theme.colors.textMuted }}
+                          onMouseEnter={(e) => e.target.style.color = theme.colors.accent}
+                          onMouseLeave={(e) => e.target.style.color = theme.colors.textMuted}
+                        >
+                          {val}
+                        </a>
+                      ) : (
+                        <p key={val} className="text-sm" style={{ color: theme.colors.textMuted }}>
+                          {val}
+                        </p>
+                      )
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>
