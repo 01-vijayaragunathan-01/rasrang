@@ -33,6 +33,8 @@ model User {
   isOnboarded   Boolean        @default(false)
   canManagePrivileges Boolean  @default(false)
   registrations Registration[]
+  // DELEGATED SCANNING: events this user is authorized to scan tickets for
+  managedEvents VolunteerAssignment[]
   createdAt     DateTime       @default(now())
 }
 
@@ -47,6 +49,8 @@ model Event {
   rulebookUrl   String?
   isHeadliner   Boolean        @default(false)
   registrations Registration[]
+  // DELEGATED SCANNING: volunteers assigned to this event
+  assignedVolunteers VolunteerAssignment[]
 }
 
 model Gallery {
@@ -69,4 +73,16 @@ model Registration {
   createdAt   DateTime @default(now())
 
   @@unique([userId, eventId])
+}
+
+// JOIN TABLE: Tracks which volunteer/coordinator is assigned to scan which event
+model VolunteerAssignment {
+  id          String   @id @default(uuid())
+  volunteer   User     @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
+  volunteerId String
+  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId     String
+  assignedAt  DateTime @default(now())
+
+  @@unique([volunteerId, eventId])
 }

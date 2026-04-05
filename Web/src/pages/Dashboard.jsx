@@ -5,8 +5,10 @@ import UserManagement from "../components/profile/UserManagement";
 import EventForge from "../components/profile/EventForge";
 import GalleryForge from "../components/profile/GalleryForge";
 import AttendeeRegistry from "../components/profile/AttendeeRegistry";
+import TicketScanner from "../components/profile/TicketScanner";
+import VolunteerAssignment from "../components/profile/VolunteerAssignment";
 import { APP_THEME } from "../constants/theme";
-import { LayoutDashboard, ShieldCheck, Hammer, Zap, Camera, Users } from "lucide-react";
+import { LayoutDashboard, ShieldCheck, Hammer, ScanLine, Camera, Users, UserCog } from "lucide-react";
 
 export default function Dashboard() {
     const { user } = useAuth();
@@ -29,12 +31,13 @@ export default function Dashboard() {
     }
 
     const sections = [
-        { id: "overview", label: "Overview", icon: <LayoutDashboard className="w-4 h-4" />, show: true },
-        { id: "registry", label: "Attendee Registry", icon: <Users className="w-4 h-4" />, show: isContributor },
-        { id: "management", label: isPlatformAdmin ? "Platform Control" : "Overlord Protocol", icon: <ShieldCheck className="w-4 h-4" />, show: isPlatformAdmin },
-        { id: "forge", label: "The Event Forge", icon: <Hammer className="w-4 h-4" />, show: isPlatformAdmin },
-        { id: "gallery", label: "Visual Archives", icon: <Camera className="w-4 h-4" />, show: isPlatformAdmin },
-        { id: "command", label: "Command Center", icon: <Zap className="w-4 h-4" />, show: true },
+        { id: "overview",    label: "Overview",            icon: <LayoutDashboard className="w-4 h-4" />, show: true },
+        { id: "scanner",     label: "Entry Portal",        icon: <ScanLine className="w-4 h-4" />,        show: isContributor },
+        { id: "registry",    label: "Attendee Registry",   icon: <Users className="w-4 h-4" />,           show: isContributor },
+        { id: "assignment",  label: "Assign Scanners",     icon: <UserCog className="w-4 h-4" />,         show: isPlatformAdmin },
+        { id: "management",  label: "Platform Control",    icon: <ShieldCheck className="w-4 h-4" />,     show: isPlatformAdmin },
+        { id: "forge",       label: "The Event Forge",     icon: <Hammer className="w-4 h-4" />,          show: isPlatformAdmin },
+        { id: "gallery",     label: "Visual Archives",     icon: <Camera className="w-4 h-4" />,          show: isPlatformAdmin },
     ];
 
     return (
@@ -61,8 +64,8 @@ export default function Dashboard() {
                             key={section.id}
                             onClick={() => setActiveSection(section.id)}
                             className={`px-8 py-4 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all duration-300 flex items-center gap-3 whitespace-nowrap
-                            ${activeSection === section.id 
-                                ? "bg-white text-black shadow-[0_0_30px_rgba(255,255,255,0.2)] scale-105" 
+                            ${activeSection === section.id
+                                ? "bg-white text-black shadow-[0_0_30px_rgba(255,255,255,0.2)] scale-105"
                                 : "bg-white/5 text-white/50 border border-white/10 hover:border-white/30 hover:bg-white/10"}`}
                         >
                             <span>{section.icon}</span>
@@ -83,6 +86,7 @@ export default function Dashboard() {
                     >
                         <div className="absolute top-0 right-0 w-64 h-64 bg-[#9D01E9]/10 blur-[80px] pointer-events-none" />
 
+                        {/* ── OVERVIEW ── */}
                         {activeSection === "overview" && (
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                                 <div className="p-8 bg-black/40 border border-white/5 rounded-2xl">
@@ -90,8 +94,8 @@ export default function Dashboard() {
                                     <h3 className="text-2xl font-black text-white">{user?.role}</h3>
                                 </div>
                                 <div className="p-8 bg-black/40 border border-white/5 rounded-2xl">
-                                    <p className="text-[10px] uppercase font-bold text-white/40 mb-2 tracking-widest">Active Tickets</p>
-                                    <h3 className="text-2xl font-black text-[#22D3EE]">Live System</h3>
+                                    <p className="text-[10px] uppercase font-bold text-white/40 mb-2 tracking-widest">Scanner Status</p>
+                                    <h3 className="text-2xl font-black text-[#22D3EE]">Active</h3>
                                 </div>
                                 <div className="p-8 bg-black/40 border border-white/5 rounded-2xl">
                                     <p className="text-[10px] uppercase font-bold text-white/40 mb-2 tracking-widest">Platform Status</p>
@@ -103,10 +107,18 @@ export default function Dashboard() {
                             </div>
                         )}
 
-                        {activeSection === "forge" && isPlatformAdmin && <EventForge />}
+                        {/* ── ENTRY PORTAL / TICKET SCANNER ── */}
+                        {activeSection === "scanner" && isContributor && (
+                            <div>
+                                <h2 className="text-2xl font-black uppercase tracking-widest text-[#22D3EE] mb-8 flex items-center gap-4">
+                                    <span className="w-1.5 h-6 bg-[#22D3EE]" />
+                                    Entry Portal
+                                </h2>
+                                <TicketScanner />
+                            </div>
+                        )}
 
-                        {activeSection === "gallery" && isPlatformAdmin && <GalleryForge />}
-
+                        {/* ── ATTENDEE REGISTRY ── */}
                         {activeSection === "registry" && (
                             <div className="text-left">
                                 <h2 className="text-2xl font-black uppercase tracking-widest text-[#AF94D2] mb-8 flex items-center gap-4">
@@ -117,15 +129,33 @@ export default function Dashboard() {
                             </div>
                         )}
 
-                        {(activeSection === "management" || activeSection === "command") && (
+                        {/* ── SCANNER ASSIGNMENT (Coordinators Only) ── */}
+                        {activeSection === "assignment" && isPlatformAdmin && (
+                            <div>
+                                <h2 className="text-2xl font-black uppercase tracking-widest text-[#AF94D2] mb-2 flex items-center gap-4">
+                                    <span className="w-1.5 h-6 bg-[#9D01E9]" />
+                                    Assign Scanners
+                                </h2>
+                                <p className="text-white/30 text-sm mb-8 ml-5">
+                                    Control which volunteers can scan tickets for each event. Click a volunteer to expand their event assignment grid.
+                                </p>
+                                <VolunteerAssignment />
+                            </div>
+                        )}
+
+                        {/* ── PLATFORM CONTROL / USER MANAGEMENT ── */}
+                        {activeSection === "management" && isPlatformAdmin && (
                             <div className="text-left">
                                 <h2 className="text-2xl font-black uppercase tracking-widest text-[#AF94D2] mb-8 flex items-center gap-4">
                                     <span className="w-1.5 h-6 bg-[#9D01E9]" />
-                                    {sections.find(s => s.id === activeSection)?.label}
+                                    Platform Control
                                 </h2>
-                                <UserManagement isSuper={activeSection === "management"} />
+                                <UserManagement isSuper={true} />
                             </div>
                         )}
+
+                        {activeSection === "forge" && isPlatformAdmin && <EventForge />}
+                        {activeSection === "gallery" && isPlatformAdmin && <GalleryForge />}
                     </motion.div>
                 </AnimatePresence>
             </div>

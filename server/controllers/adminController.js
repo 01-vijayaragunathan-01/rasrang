@@ -220,3 +220,199 @@ export const exportAttendeesCsv = async (req, res) => {
         res.status(500).json({ error: "Failed to generate CSV." });
     }
 };
+
+// ============================================================
+// DELEGATED SCANNER RBAC MODULE
+// ============================================================
+
+// 1. VERIFY TICKET ENTRY (QR scan or Manual Reg No)
+export const verifyEventEntry = async (req, res) => {
+    const { eventId, identifier } = req.body;
+    const scannerId   = req.user.id;
+    const scannerRole = req.user.role;
+    logger.info(`Entry verification initiated`, { scannerId, eventId, identifier, requestId: req.requestId });
+
+    if (!eventId || !identifier) {
+        return res.status(400).json({ error: 'eventId and identifier are required.' });
+    }
+
+    try {
+        // ── RBAC CHECK: Confirm this volunteer is authorized for this specific event ──
+        if (scannerRole !== 'SUPER_ADMIN') {
+            const assignment = await prisma.volunteerAssignment.findUnique({
+                where: { volunteerId_eventId: { volunteerId: scannerId, eventId } }
+            });
+            if (!assignment) {
+                logger.warn(`SECURITY: Unauthorized scan attempt by ${scannerId} on event ${eventId}`, { requestId: req.requestId });
+                return res.status(403).json({ error: 'Access denied: You are not assigned to scan this event.' });
+            }
+        }
+
+        // ── FIND USER: by UUID, RegNo, or Email (flexible manual lookup) ──
+        const user = await prisma.user.findFirst({
+            where: {
+                OR: [
+                    { id: identifier },
+                    { regNo: identifier },
+                    { email: identifier }
+                ]
+            }
+        });
+
+        if (!user) {
+            logger.warn(`Entry denied: identifier "${identifier}" not found in user base`, { requestId: req.requestId });
+            return res.status(404).json({ error: 'User not found. Check the ID or Reg No and try again.' });
+        }
+
+        // ── FIND REGISTRATION ──
+        const registration = await prisma.registration.findUnique({
+            where: { userId_eventId: { userId: user.id, eventId } },
+            include: { event: { select: { title: true, date: true } } }
+        });
+
+        if (!registration) {
+            logger.warn(`Entry denied: User ${user.id} not registered for event ${eventId}`, { requestId: req.requestId });
+            return res.status(403).json({ error: `Access Denied. "${user.name}" is NOT registered for this event.` });
+        }
+
+        // ── ALREADY SCANNED CHECK ──
+        if (registration.scanned) {
+            logger.warn(`Duplicate scan detected for user ${user.id} / event ${eventId}`, { requestId: req.requestId });
+            return res.status(409).json({
+                valid: false,
+                alreadyScanned: true,
+                error: `WARNING: Pass already used.`,
+                attendee: { name: user.name, regNo: user.regNo, event: registration.event.title }
+            });
+        }
+
+        // ── GRANT ENTRY ──
+        await prisma.registration.update({
+            where: { id: registration.id },
+            data: { scanned: true }
+        });
+
+        logger.info(`Entry GRANTED: ${user.name} admitted to "${registration.event.title}"`, { requestId: req.requestId });
+        return res.status(200).json({
+            valid: true,
+            message: 'Access Granted!',
+            attendee: { name: user.name, regNo: user.regNo, event: registration.event.title, date: registration.event.date }
+        });
+
+    } catch (err) {
+        logger.error(`Entry verification failure`, { error: err.message, requestId: req.requestId });
+        res.status(500).json({ error: 'Verification system error. Please try again.' });
+    }
+};
+
+// 2. GET EVENTS THIS VOLUNTEER CAN SCAN (used to populate scanner dropdown)
+export const getMyManagedEvents = async (req, res) => {
+    const userId   = req.user.id;
+    const userRole = req.user.role;
+    logger.info(`Managed events request by ${userId}`, { role: userRole, requestId: req.requestId });
+
+    try {
+        // SUPER_ADMIN can scan everything
+        if (userRole === 'SUPER_ADMIN') {
+            const allEvents = await prisma.event.findMany({ orderBy: { date: 'asc' } });
+            return res.status(200).json(allEvents);
+        }
+
+        // Others only see their assigned events
+        const assignments = await prisma.volunteerAssignment.findMany({
+            where: { volunteerId: userId },
+            include: { event: true },
+            orderBy: { event: { date: 'asc' } }
+        });
+
+        res.status(200).json(assignments.map(a => a.event));
+    } catch (err) {
+        logger.error(`Failed to fetch managed events`, { error: err.message, requestId: req.requestId });
+        res.status(500).json({ error: 'Failed to fetch your assigned events.' });
+    }
+};
+
+// 3. ASSIGN VOLUNTEER TO EVENT (Coordinator+ only)
+export const assignVolunteerToEvent = async (req, res) => {
+    const { volunteerId, eventId } = req.body;
+    logger.info(`Assignment request`, { actor: req.user.id, volunteerId, eventId, requestId: req.requestId });
+
+    if (!volunteerId || !eventId) {
+        return res.status(400).json({ error: 'volunteerId and eventId are required.' });
+    }
+
+    try {
+        // Verify target is a staff member (not a student)
+        const target = await prisma.user.findUnique({ where: { id: volunteerId } });
+        if (!target) return res.status(404).json({ error: 'Volunteer not found.' });
+        if (target.role === 'STUDENT') {
+            return res.status(400).json({ error: 'Students cannot be assigned as event scanners.' });
+        }
+
+        // Use upsert to make it idempotent (safe to call twice)
+        await prisma.volunteerAssignment.upsert({
+            where: { volunteerId_eventId: { volunteerId, eventId } },
+            create: { volunteerId, eventId },
+            update: {} // no-op if already assigned
+        });
+
+        logger.info(`Assignment SUCCESS: ${volunteerId} assigned to event ${eventId}`, { requestId: req.requestId });
+        res.status(200).json({ success: true, message: `${target.name} assigned to event successfully.` });
+    } catch (err) {
+        logger.error(`Assignment failure`, { error: err.message, requestId: req.requestId });
+        res.status(500).json({ error: 'Failed to assign volunteer.' });
+    }
+};
+
+// 4. REMOVE VOLUNTEER FROM EVENT
+export const removeVolunteerFromEvent = async (req, res) => {
+    const { volunteerId, eventId } = req.body;
+    logger.warn(`Deassignment request`, { actor: req.user.id, volunteerId, eventId, requestId: req.requestId });
+
+    try {
+        await prisma.volunteerAssignment.delete({
+            where: { volunteerId_eventId: { volunteerId, eventId } }
+        });
+
+        logger.info(`Deassignment SUCCESS: ${volunteerId} removed from event ${eventId}`, { requestId: req.requestId });
+        res.status(200).json({ success: true, message: 'Volunteer removed from event.' });
+    } catch (err) {
+        if (err.code === 'P2025') {
+            return res.status(404).json({ error: 'Assignment not found.' });
+        }
+        logger.error(`Deassignment failure`, { error: err.message, requestId: req.requestId });
+        res.status(500).json({ error: 'Failed to remove assignment.' });
+    }
+};
+
+// 5. GET ALL VOLUNTEERS WITH THEIR EVENT ASSIGNMENTS (for the assignment dashboard)
+export const getVolunteerAssignments = async (req, res) => {
+    logger.info(`Volunteer assignments overview requested`, { requestId: req.requestId });
+    try {
+        const volunteers = await prisma.user.findMany({
+            where: { role: { in: ['VOLUNTEER', 'COORDINATOR'] } },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                regNo: true,
+                role: true,
+                managedEvents: {
+                    include: { event: { select: { id: true, title: true, date: true, category: true } } }
+                }
+            },
+            orderBy: { name: 'asc' }
+        });
+
+        const events = await prisma.event.findMany({
+            select: { id: true, title: true, date: true, category: true },
+            orderBy: { date: 'asc' }
+        });
+
+        res.status(200).json({ volunteers, events });
+    } catch (err) {
+        logger.error(`Volunteer assignments fetch failure`, { error: err.message, requestId: req.requestId });
+        res.status(500).json({ error: 'Failed to fetch assignments.' });
+    }
+};
+

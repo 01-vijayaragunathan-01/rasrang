@@ -1,6 +1,6 @@
 import express from 'express';
 import multer from 'multer';
-import { getEventStats, exportCsv, getUsers, updateUserRole, getAttendees, exportAttendeesCsv } from '../controllers/adminController.js';
+import { getEventStats, exportCsv, getUsers, updateUserRole, getAttendees, exportAttendeesCsv, verifyEventEntry, getMyManagedEvents, assignVolunteerToEvent, removeVolunteerFromEvent, getVolunteerAssignments } from '../controllers/adminController.js';
 import { createEvent, updateEvent, deleteEvent } from '../controllers/adminEventController.js';
 import { uploadChunk } from '../controllers/uploadController.js';
 import { createGalleryItem, deleteGalleryItem } from '../controllers/galleryController.js';
@@ -43,5 +43,17 @@ router.delete('/gallery/:id', authenticateJWT, isPlatformAdmin, deleteGalleryIte
 // Attendee Registry (Volunteer, Coordinator & Admin)
 router.get('/attendees', authenticateJWT, isVolunteer, getAttendees);
 router.get('/attendees/export', authenticateJWT, isVolunteer, exportAttendeesCsv);
+
+// ── SCANNER RBAC MODULE ───────────────────────────────────────
+// Verify ticket entry — accessible to all scanning staff (Volunteer+)
+router.post('/verify-entry', authenticateJWT, isVolunteer, verifyEventEntry);
+
+// Get events this volunteer is authorized to scan (personalized dropdown)
+router.get('/my-managed-events', authenticateJWT, isVolunteer, getMyManagedEvents);
+
+// Volunteer-Event assignment management (Coordinator with privileges, or Super Admin)
+router.get('/volunteer-assignments', authenticateJWT, isSuperCoordinator, getVolunteerAssignments);
+router.post('/assign-volunteer', authenticateJWT, isSuperCoordinator, assignVolunteerToEvent);
+router.delete('/remove-assignment', authenticateJWT, isSuperCoordinator, removeVolunteerFromEvent);
 
 export default router;

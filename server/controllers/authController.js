@@ -62,7 +62,9 @@ export const localSignup = async (req, res) => {
             return res.status(400).json({ error: 'User with email, registration number, or phone number already exists' });
         }
 
-        const hashedPassword = await bcrypt.hash(password, 10);
+        const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS) || 10;
+        const pepper = process.env.BCRYPT_SECRET || '';
+        const hashedPassword = await bcrypt.hash(password + pepper, saltRounds);
 
         const newUser = await prisma.user.create({
             data: {
@@ -231,3 +233,45 @@ export const updateProfile = async (req, res) => {
         res.status(500).json({ error: 'Profile update failed' });
     }
 };
+
+export const changePassword = async (req, res) => {
+    logger.info(`Password Change: Initiated for user ${req.user.id}`, { requestId: req.requestId });
+    try {
+        const userId = req.user.id;
+        const { currentPassword, newPassword } = req.body;
+
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ error: 'Current and new passwords are required' });
+        }
+
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user || !user.password) {
+            logger.warn(`Password Change: User or password field missing for ${userId}`, { requestId: req.requestId });
+            return res.status(404).json({ error: 'User not found or using Google Auth' });
+        }
+
+        // Verify current password with pepper
+        const pepper = process.env.BCRYPT_SECRET || '';
+        const match = await bcrypt.compare(currentPassword + pepper, user.password);
+        if (!match) {
+            logger.warn(`Password Change: INCORRECT current password for ${userId}`, { requestId: req.requestId });
+            return res.status(401).json({ error: 'Incorrect current password' });
+        }
+
+        // Hash new password with pepper and salt rounds
+        const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS) || 12;
+        const hashedPassword = await bcrypt.hash(newPassword + pepper, saltRounds);
+
+        await prisma.user.update({
+            where: { id: userId },
+            data: { password: hashedPassword }
+        });
+
+        logger.info(`Password Change: SUCCESS for user ${userId}`, { requestId: req.requestId });
+        res.json({ success: true, message: 'Password updated successfully' });
+    } catch (err) {
+        logger.error(`Password Change: Unexpected error`, { userId: req.user.id, error: err.message, requestId: req.requestId });
+        res.status(500).json({ error: 'Failed to update password' });
+    }
+};
+

@@ -44,7 +44,8 @@ passport.use(new LocalStrategy(
             if (!user) { return cb(null, false, { message: 'Incorrect identity.' }); }
             if (!user.password) { return cb(null, false, { message: 'Must use Google Auth.' }); }
             
-            const match = await bcrypt.compare(password, user.password);
+            const pepper = process.env.BCRYPT_SECRET || '';
+            const match = await bcrypt.compare(password + pepper, user.password);
             if (!match) { return cb(null, false, { message: 'Incorrect password.' }); }
             return cb(null, user);
         } catch (error) {

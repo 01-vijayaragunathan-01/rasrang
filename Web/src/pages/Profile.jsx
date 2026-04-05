@@ -29,6 +29,10 @@ export default function Profile() {
     const [showAvatarModal, setShowAvatarModal] = useState(false);
     const [tempSeed, setTempSeed] = useState(user?.avatarSeed || user?.email || "rasrang-guest");
 
+    // Password Management State
+    const [passwordData, setPasswordData] = useState({ current: "", next: "", confirm: "" });
+    const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+
     useEffect(() => {
         if (!user) return;
 
@@ -107,6 +111,44 @@ export default function Profile() {
         }
     };
 
+    const handlePasswordChange = async () => {
+        if (!passwordData.current || !passwordData.next) {
+            toast.error("Please fill in the password fields.");
+            return;
+        }
+        if (passwordData.next !== passwordData.confirm) {
+            toast.error("New passwords do not match.");
+            return;
+        }
+
+        setIsUpdatingPassword(true);
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/change-password`, {
+                method: "PUT",
+                headers: { 
+                    "Content-Type": "application/json",
+                    "x-csrf-token": csrfToken 
+                },
+                body: JSON.stringify({ 
+                    currentPassword: passwordData.current, 
+                    newPassword: passwordData.next 
+                }),
+                credentials: "include"
+            });
+            const data = await res.json();
+            if (res.ok) {
+                toast.success("PASSWORD REGENERATED: Security protocols updated.");
+                setPasswordData({ current: "", next: "", confirm: "" });
+            } else {
+                toast.error(`ERROR: ${data.error || "UPDATE FAILED"}`);
+            }
+        } catch (err) {
+            toast.error("CONNECTION ERROR: Security hub unreachable.");
+        } finally {
+            setIsUpdatingPassword(false);
+        }
+    };
+
     // ── 3D TILT LOGIC ──
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
     const handleMouseMove = (e) => {
@@ -119,10 +161,10 @@ export default function Profile() {
 
     if (!user) return <div className="min-h-screen text-white flex items-center justify-center font-black uppercase text-2xl tracking-[0.4em] animate-pulse" style={{ backgroundColor: colors.base }}>Scanning Bio-Metrics...</div>;
 
-    // Determine fields
+    // Determine fields (Removed avatarSeed from editable grid)
     const editFields = user.isOnboarded 
-        ? ['avatarSeed', 'clgName', 'dept', 'year', 'branch', 'section']
-        : ['avatarSeed', 'regNo', 'phoneNo', 'clgName', 'dept', 'year', 'branch', 'section'];
+        ? ['clgName', 'dept', 'year', 'branch', 'section']
+        : ['regNo', 'phoneNo', 'clgName', 'dept', 'year', 'branch', 'section'];
 
     const getFieldLabel = (field) => {
         const labels = {
@@ -226,9 +268,9 @@ export default function Profile() {
                             <div className="space-y-1">
                                 <h3 className="text-2xl font-black uppercase tracking-widest flex items-center gap-4 text-white">
                                     <span className="w-12 h-px bg-white/20"></span>
-                                    Bio-Metric Vault
+                                    Credential Vault
                                 </h3>
-                                <p className="text-[10px] uppercase tracking-[0.3em] text-[#AF94D2]/60 font-bold ml-16 italic">Identity Synchronizer v2.0</p>
+                                <p className="text-[10px] uppercase tracking-[0.3em] text-[#AF94D2]/60 font-bold ml-16 italic">Security Synchronizer v3.0</p>
                             </div>
                             
                             {!user.isOnboarded && (
@@ -282,9 +324,65 @@ export default function Profile() {
                                     <div className="absolute inset-0 bg-gradient-to-r from-[#9D01E9] to-[#E31E6E] group-hover:opacity-100 opacity-90 transition-opacity" />
                                 )}
                                 <span className={`relative z-10 font-black uppercase tracking-[0.3em] text-[10px]`}>
-                                    {isEditing ? "Finalize Sync" : "Access Console"}
+                                    {isEditing ? "Finalize Sync" : "Edit Profile"}
                                 </span>
                             </button>
+                        </div>
+
+                        {/* ── SECURITY SECTOR: PASSWORD CHANGE ── */}
+                        <div className="mt-16 pt-12 border-t border-white/5 space-y-10">
+                            <div className="space-y-1">
+                                <h3 className="text-xl font-black uppercase tracking-widest flex items-center gap-4 text-white">
+                                    <span className="w-8 h-px bg-[#E31E6E]/30"></span>
+                                    Security Sector
+                                </h3>
+                                <p className="text-[9px] uppercase tracking-[0.2em] text-[#AF94D2]/40 font-bold ml-12">Update Access Credentials</p>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-10">
+                                <div className="relative group md:col-span-2">
+                                    <label className="absolute left-0 -top-6 text-[9px] uppercase tracking-[0.2em] font-black text-white/20 group-hover:text-[#E31E6E] transition-colors">Current Password</label>
+                                    <input 
+                                        type="password"
+                                        value={passwordData.current}
+                                        onChange={(e) => setPasswordData({...passwordData, current: e.target.value})}
+                                        placeholder="VERIFY CURRENT IDENTITY"
+                                        className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-5 py-4 text-sm outline-none transition-all duration-300 font-bold text-white focus:border-[#E31E6E] focus:bg-white/[0.07]"
+                                    />
+                                </div>
+                                <div className="relative group">
+                                    <label className="absolute left-0 -top-6 text-[9px] uppercase tracking-[0.2em] font-black text-white/20 group-hover:text-[#9D01E9] transition-colors">Next Password</label>
+                                    <input 
+                                        type="password"
+                                        value={passwordData.next}
+                                        onChange={(e) => setPasswordData({...passwordData, next: e.target.value})}
+                                        placeholder="NEW ACCESS KEY"
+                                        className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-5 py-4 text-sm outline-none transition-all duration-300 font-bold text-white focus:border-[#9D01E9] focus:bg-white/[0.07]"
+                                    />
+                                </div>
+                                <div className="relative group">
+                                    <label className="absolute left-0 -top-6 text-[9px] uppercase tracking-[0.2em] font-black text-white/20 group-hover:text-[#9D01E9] transition-colors">Confirm Next Password</label>
+                                    <input 
+                                        type="password"
+                                        value={passwordData.confirm}
+                                        onChange={(e) => setPasswordData({...passwordData, confirm: e.target.value})}
+                                        placeholder="RE-ENTER ACCESS KEY"
+                                        className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-5 py-4 text-sm outline-none transition-all duration-300 font-bold text-white focus:border-[#9D01E9] focus:bg-white/[0.07]"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end">
+                                <button 
+                                    onClick={handlePasswordChange}
+                                    disabled={isUpdatingPassword}
+                                    className="relative group px-8 py-4 overflow-hidden rounded-xl bg-[#E31E6E]/10 border border-[#E31E6E]/20 hover:bg-[#E31E6E] text-[#E31E6E] hover:text-white transition-all duration-300 disabled:opacity-50"
+                                >
+                                    <span className="relative z-10 font-black uppercase tracking-[0.3em] text-[9px]">
+                                        {isUpdatingPassword ? "Synchronizing..." : "Update Security Pattern"}
+                                    </span>
+                                </button>
+                            </div>
                         </div>
                     </motion.div>
                 </div>
