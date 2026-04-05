@@ -14,19 +14,52 @@ import galleryRoutes from './routes/galleryRoutes.js';
 import { initMinio } from './utils/minio.js';
 import logger from './utils/logger.js';
 import requestLogger from './middlewares/requestLogger.js';
+import { globalLimiter } from './middlewares/rateLimiter.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5173', // Adjust to your frontend URL
-    credentials: true,               // IMPORTANT: Must be true for cookie support
-}));
+// ─── ENTERPRISE CORS CONFIGURATION ───
+const allowedOrigins = [
+    'http://localhost:5173',       // Local Vite Development
+    'http://127.0.0.1:5173',       // Local IP Alternative
+    process.env.CLIENT_URL,        // Your Production Frontend URL
+    process.env.ADMIN_URL          // Optional: If you host your admin dashboard on a different subdomain
+].filter(Boolean);                 // Removes any undefined/null values
+
+const corsOptions = {
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps, curl requests, or same-origin calls)
+        if (!origin) return callback(null, true);
+        
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            logger.warn(`Blocked CORS request from unauthorized origin: ${origin}`);
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true,                               // IMPORTANT: Required for cookies, sessions, and Passport.js
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], // Restrict to only the methods you actually use
+    allowedHeaders: [
+        'Origin', 
+        'X-Requested-With', 
+        'Content-Type', 
+        'Accept', 
+        'Authorization', 
+        'x-csrf-token'                               // IMPORTANT: Required for your ticket registration route!
+    ],
+    exposedHeaders: ['set-cookie'],                  // Allows the frontend browser to see the cookie being set
+    maxAge: 86400                                    // PERFORMANCE: Caches preflight (OPTIONS) requests for 24 hours
+};
+
+app.set('trust proxy', 1); // Trust the first proxy/load balancer (Required for Rate Limiting & Cookies behind Cloudflare/Render)
+
+// Apply Middlewares
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
-
-// --- ADVANCED LOGGING INFRA ---
-app.use(requestLogger);
+app.use(globalLimiter);
 
 // Initialize Passport
 app.use(passport.initialize());
@@ -45,6 +78,11 @@ app.get('/api/health', (req, res) => {
 
 // GLOBAL ERROR HANDLER
 app.use((err, req, res, next) => {
+    // If it's a CORS error, send a clean 403 response instead of a massive 500 crash
+    if (err.message === 'Not allowed by CORS') {
+        return res.status(403).json({ error: 'Origin blocked by CORS policy.' });
+    }
+
     logger.error(`[GLOBAL ERROR HANDLER] ${req.method} ${req.url}`, {
         error: err.message,
         stack: err.stack,

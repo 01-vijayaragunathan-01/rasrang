@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "../context/ThemeContext";
 import devData from "../data/dev.json";
@@ -319,17 +320,28 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-20 pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 mb-16">
-          <p className="text-[10px] tracking-[0.25em] uppercase font-bold" style={{ color: theme.colors.textMuted, opacity: 0.6 }}>
-            © {year} RASRANG. All rights reserved.
-          </p>
+        <div className="mt-20 pt-8 border-t border-white/5 flex flex-col items-center justify-center gap-8 mb-16 relative z-10 text-center">
           
-          <div className="flex items-center gap-3">
-            <div className="h-px w-8" style={{ background: `${theme.colors.secondary}40` }} />
-            <p className="text-[10px] tracking-[0.3em] uppercase font-medium" style={{ color: theme.colors.textMuted, opacity: 0.8 }}>
-              Made with ✦ by the Cultural Committee
+          <div className="flex flex-wrap justify-center gap-6 text-[11px] font-bold tracking-widest uppercase text-white/40">
+            <Link to="/content-policy" className="hover:text-[#E4BD8D] transition-colors">Content Policy</Link>
+            <span className="text-white/10">|</span>
+            <Link to="/privacy-policy" className="hover:text-[#E4BD8D] transition-colors">Privacy Policy</Link>
+            <span className="text-white/10">|</span>
+            <Link to="/terms" className="hover:text-[#E4BD8D] transition-colors">Terms of Service</Link>
+          </div>
+
+          <div className="flex flex-col md:flex-row items-center justify-between w-full gap-6">
+            <p className="text-[10px] tracking-[0.25em] uppercase font-bold" style={{ color: theme.colors.textMuted, opacity: 0.6 }}>
+              © {year} RASRANG. All rights reserved.
             </p>
-            <div className="h-px w-8" style={{ background: `${theme.colors.secondary}40` }} />
+            
+            <div className="flex items-center gap-3">
+              <div className="h-px w-8" style={{ background: `${theme.colors.secondary}40` }} />
+              <p className="text-[10px] tracking-[0.3em] uppercase font-medium" style={{ color: theme.colors.textMuted, opacity: 0.8 }}>
+                Made with ✦ by the Cultural Committee
+              </p>
+              <div className="h-px w-8" style={{ background: `${theme.colors.secondary}40` }} />
+            </div>
           </div>
         </div>
 

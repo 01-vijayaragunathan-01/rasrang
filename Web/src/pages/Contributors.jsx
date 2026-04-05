@@ -225,17 +225,17 @@ export default function Contributors() {
                     className="relative z-10 text-center px-6 max-w-4xl mx-auto"
                 >
                     <span className="inline-block px-4 py-2 border border-[#E4BD8D]/30 rounded-full text-[#E4BD8D] text-xs font-black uppercase tracking-[0.5em] mb-6 font-accent backdrop-blur-md bg-[#E4BD8D]/5">
-                        The Architects Are Brewing
+                        The Roundtable is Gathering
                     </span>
                     <h1 className="text-5xl md:text-8xl font-black uppercase tracking-widest text-white mb-8 drop-shadow-[0_0_30px_rgba(227,30,110,0.4)] font-massive leading-tight">
-                        Legends Under <br className="hidden md:block" /> Construction
+                        Heroes In <br className="hidden md:block" /> The Shadows
                     </h1>
                     <div className="flex justify-center mb-8">
                         <div className="h-px w-32 bg-gradient-to-r from-transparent via-[#E31E6E] to-transparent" />
                     </div>
                     <p className="text-sm md:text-lg text-white/60 uppercase tracking-widest max-w-2xl mx-auto leading-relaxed">
-                        The cosmic architects are currently tuning the frequencies and forging the constellation. 
-                        The full lineup of cultural trailblazers will manifest into reality very soon. Keep your aura ready.
+                        The cosmic knights are currently polishing their armor and forging the ultimate crusade to bring unparalleled happiness to the people of SRM Trichy. 
+                        The full vanguard of cultural champions will reveal their identities very soon. Hold the line!
                     </p>
                 </motion.div>
             </section>

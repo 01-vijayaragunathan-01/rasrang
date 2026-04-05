@@ -7,6 +7,9 @@ import Contributors from "./pages/Contributors";
 import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import ContentPolicy from "./pages/ContentPolicy";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import Terms from "./pages/Terms";
 import Particles from "./pages/home/Particles";
 import Footer from "./common/Footer";
 import StaggeredMenu from "./common/StaggeredMenu";
@@ -106,6 +109,9 @@ function MainContent() {
             </ProtectedRoute>
           } />
           <Route path="/login" element={<Auth />} />
+          <Route path="/content-policy" element={<ContentPolicy />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<Terms />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
