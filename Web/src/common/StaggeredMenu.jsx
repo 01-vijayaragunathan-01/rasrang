@@ -177,7 +177,7 @@ export const StaggeredMenu = ({
     }
   }, [buildOpenTimeline]);
 
-  const playClose = useCallback(() => {
+  const playClose = useCallback((customOnComplete) => {
     openTlRef.current?.kill();
     openTlRef.current = null;
     itemEntranceTweenRef.current?.kill();
@@ -209,6 +209,7 @@ export const StaggeredMenu = ({
         if (socialLinks.length) gsap.set(socialLinks, { y: 25, opacity: 0 });
 
         busyRef.current = false;
+        if (customOnComplete) customOnComplete();
       }
     });
   }, [position]);
@@ -297,14 +298,13 @@ export const StaggeredMenu = ({
   const toggleMenu = useCallback(() => {
     const target = !openRef.current;
     openRef.current = target;
-    setOpen(target);
-
     if (target) {
+      setOpen(true);
       onMenuOpen?.();
       playOpen();
     } else {
       onMenuClose?.();
-      playClose();
+      playClose(() => setOpen(false));
     }
 
     animateIcon(target);
@@ -315,9 +315,8 @@ export const StaggeredMenu = ({
   const closeMenu = useCallback(() => {
     if (openRef.current) {
       openRef.current = false;
-      setOpen(false);
       onMenuClose?.();
-      playClose();
+      playClose(() => setOpen(false));
       animateIcon(false);
       animateColor(false);
       animateText(false);
@@ -435,6 +434,14 @@ export const StaggeredMenu = ({
           {...(!open ? { inert: true } : {})}
         >
           <div className="sm-panel-inner flex-1 flex flex-col gap-5">
+            {/* Top Close Button (X) - Absolute Positioned */}
+            <button 
+                onClick={closeMenu}
+                className="absolute top-8 right-8 w-12 h-12 rounded-full border border-black/10 flex items-center justify-center text-black hover:bg-black hover:text-white transition-all transform hover:rotate-90 md:hidden z-20"
+                aria-label="Close menu"
+            >
+                <span className="text-2xl leading-none">&times;</span>
+            </button>
             <ul
               className="sm-panel-list list-none m-0 p-0 flex flex-col gap-2"
               role="list"
@@ -552,8 +559,8 @@ export const StaggeredMenu = ({
 .sm-scope .sm-panel-item:hover { color: var(--sm-accent, #ff0000); }
 .sm-scope .sm-panel-list[data-numbering] { counter-reset: smItem; }
 .sm-scope .sm-panel-list[data-numbering] .sm-panel-item::after { counter-increment: smItem; content: counter(smItem, decimal-leading-zero); position: absolute; top: 0.1em; right: 3.2em; font-size: 18px; font-weight: 400; color: var(--sm-accent, #ff0000); letter-spacing: 0; pointer-events: none; user-select: none; opacity: var(--sm-num-opacity, 0); }
-@media (max-width: 1024px) { .sm-scope .staggered-menu-panel { width: 100%; left: 0; right: 0; } .sm-scope .staggered-menu-wrapper[data-open] .sm-logo-img { filter: invert(100%); } }
-@media (max-width: 640px) { .sm-scope .staggered-menu-panel { width: 100%; left: 0; right: 0; } .sm-scope .staggered-menu-wrapper[data-open] .sm-logo-img { filter: invert(100%); } }
+@media (max-width: 1024px) { .sm-scope .staggered-menu-panel { width: 100%; left: 0; right: 0; } }
+@media (max-width: 640px) { .sm-scope .staggered-menu-panel { width: 100%; left: 0; right: 0; } }
       `}</style>
     </div>
   );
