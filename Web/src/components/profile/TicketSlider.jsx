@@ -1,9 +1,98 @@
-import { useState } from "react";
+import { useState, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import html2canvas from "html2canvas";
+import multiavatar from '@multiavatar/multiavatar/esm';
 import { APP_THEME } from "../../constants/theme";
-import { X, Filter, Download, CalendarDays, Ticket, Shield, ChevronRight } from "lucide-react";
+import { X, Filter, Download, CalendarDays, Ticket, Shield, ChevronRight, Loader2 } from "lucide-react";
 
-function MasterPassModal({ master, onClose }) {
+// ─── OFFLINE PRINTABLE ID CARD TEMPLATE (Hidden from view) ───
+function PrintableBadge({ data, user }) {
+    const avatarSvg = useMemo(() => multiavatar(user?.avatarSeed || user?.email || "guest"), [user]);
+    
+    if (!data) return null;
+
+    const isMaster = data.type === 'master';
+    const title = isMaster ? "Master VIP Pass" : data.ticket.event.title;
+    const date = isMaster ? data.ticket.date : data.ticket.event.date;
+
+    return (
+        <div 
+            id="printable-id-card" 
+            className="fixed top-0 left-0 w-[450px] h-[750px] bg-[#13072E] flex flex-col items-center p-6 overflow-hidden -z-50 opacity-0 pointer-events-none"
+            style={{ fontFamily: "'Inter', sans-serif" }}
+        >
+            {/* Artistic Background Patterns */}
+            <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(#E4BD8D 2px, transparent 2px)', backgroundSize: '30px 30px' }} />
+            <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-[#C53099] rounded-full blur-[120px] opacity-40" />
+            <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[#E4BD8D] rounded-full blur-[120px] opacity-30" />
+
+            {/* Cultural Double Border */}
+            <div className="absolute inset-4 border-2 border-[#E4BD8D]/80 rounded-3xl" />
+            <div className="absolute inset-6 border border-dashed border-[#E4BD8D]/40 rounded-2xl" />
+
+            {/* Content */}
+            <div className="relative z-10 flex flex-col items-center w-full h-full justify-between py-8">
+                
+                {/* Header */}
+                <div className="text-center w-full">
+                    <h1 className="text-4xl font-black text-[#E4BD8D] tracking-widest uppercase mb-1" style={{ fontFamily: "'Playfair Display', serif" }}>
+                        RasRang '26
+                    </h1>
+                    <div className="w-full flex items-center justify-center gap-2 mb-2">
+                        <div className="h-px w-12 bg-[#E4BD8D]/50" />
+                        <span className="text-[10px] text-white tracking-[0.4em] uppercase font-bold">Official Entry Pass</span>
+                        <div className="h-px w-12 bg-[#E4BD8D]/50" />
+                    </div>
+                </div>
+
+                {/* Avatar & User Info */}
+                <div className="flex flex-col items-center w-full">
+                    <div className="w-32 h-32 rounded-full p-1 border-4 border-[#C53099] shadow-[0_0_30px_rgba(197,48,153,0.4)] mb-4 bg-[#0A0A0A]">
+                        <div className="w-full h-full rounded-full overflow-hidden" dangerouslySetInnerHTML={{ __html: avatarSvg }} />
+                    </div>
+                    
+                    <h2 className="text-3xl font-black text-white uppercase tracking-tight text-center leading-tight mb-1">
+                        {user?.name || "Guest Attendee"}
+                    </h2>
+                    <p className="text-[#22D3EE] font-bold tracking-[0.2em] uppercase text-sm mb-4">
+                        {user?.regNo || "NO REG NO"}
+                    </p>
+
+                    <div className="bg-white/10 backdrop-blur-md border border-[#E4BD8D]/30 rounded-xl px-6 py-3 text-center w-3/4">
+                        <p className="text-[10px] uppercase text-[#E4BD8D] tracking-widest font-bold mb-1">Pass Type</p>
+                        <p className="text-sm text-white font-black uppercase truncate">{title}</p>
+                    </div>
+                </div>
+
+                {/* QR Code & Footer */}
+                <div className="flex flex-col items-center">
+                    <div className="bg-white p-3 rounded-2xl shadow-[0_0_40px_rgba(228,189,141,0.3)] mb-4 relative">
+                        {/* Decorative Corners for QR */}
+                        <div className="absolute -top-2 -left-2 w-4 h-4 border-t-2 border-l-2 border-[#E4BD8D]" />
+                        <div className="absolute -top-2 -right-2 w-4 h-4 border-t-2 border-r-2 border-[#E4BD8D]" />
+                        <div className="absolute -bottom-2 -left-2 w-4 h-4 border-b-2 border-l-2 border-[#E4BD8D]" />
+                        <div className="absolute -bottom-2 -right-2 w-4 h-4 border-b-2 border-r-2 border-[#E4BD8D]" />
+                        
+                        <img 
+                            src={isMaster ? data.ticket.qrImage : data.ticket.qrImage} 
+                            alt="QR Code" 
+                            crossOrigin="anonymous" 
+                            className="w-40 h-40 object-contain" 
+                        />
+                    </div>
+
+                    <div className="flex items-center justify-between w-full px-8 text-white/50 text-[10px] font-mono">
+                        <span>DATE: {date}</span>
+                        <span>ID: {(user?.id || "N/A").substring(0, 8).toUpperCase()}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// ─── MASTER PASS MODAL (On Screen) ───
+function MasterPassModal({ master, onClose, onDownload, isDownloading }) {
     const { colors } = APP_THEME;
     const [filter, setFilter] = useState("");
 
@@ -23,90 +112,45 @@ function MasterPassModal({ master, onClose }) {
                     initial={{ scale: 0.9, opacity: 0, y: 20 }}
                     animate={{ scale: 1, opacity: 1, y: 0 }}
                     exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                    className="relative w-full max-w-md rounded-3xl border overflow-hidden"
-                    style={{ backgroundColor: colors.surface, borderColor: `${colors.primary}44` }}
+                    className="relative w-full max-w-md rounded-3xl border overflow-hidden bg-[#13072E] border-[#E4BD8D]/40 shadow-[0_0_50px_rgba(228,189,141,0.2)]"
                     onClick={e => e.stopPropagation()}
                 >
-                    {/* Glow */}
-                    <div className="absolute top-0 left-0 w-full h-32 pointer-events-none" style={{ background: `linear-gradient(to bottom, ${colors.primary}22, transparent)` }} />
-
-                    {/* Header */}
                     <div className="relative p-6 pb-4 border-b border-white/10">
                         <button onClick={onClose} className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/50 hover:text-white hover:bg-[#E31E6E] transition-all">
                             <X size={14} />
                         </button>
                         <div className="flex items-center gap-3 mb-3">
-                            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.highlight})` }}>
-                                <Shield className="w-5 h-5 text-white" />
+                            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-[#E4BD8D] to-[#C53099]">
+                                <Shield className="w-5 h-5 text-[#13072E]" />
                             </div>
                             <div>
-                                <h3 className="text-lg font-black text-white uppercase tracking-wider">Master Pass</h3>
-                                <p className="text-xs font-mono" style={{ color: colors.accent }}>{master.date}</p>
-                            </div>
-                        </div>
-
-                        {/* QR */}
-                        <div className="flex justify-center my-4">
-                            <div className="bg-white p-3 rounded-2xl" style={{ boxShadow: `0 0 30px ${colors.primaryGlow}` }}>
-                                <img src={master.qrImage} alt="Master QR" className="w-36 h-36 object-contain" />
+                                <h3 className="text-xl font-black text-white uppercase tracking-wider" style={{ fontFamily: "'Playfair Display', serif" }}>Master VIP Pass</h3>
+                                <p className="text-xs font-mono text-[#E4BD8D]">{master.date}</p>
                             </div>
                         </div>
                     </div>
 
-                    {/* Events List */}
                     <div className="p-6 pt-4">
-                        <div className="flex items-center justify-between mb-4">
-                            <p className="text-[10px] uppercase tracking-widest font-bold text-white/40">
-                                Events Covered ({filteredEvents.length})
-                            </p>
-                        </div>
+                        <p className="text-[10px] uppercase tracking-widest font-bold text-white/40 mb-4">
+                            Events Covered ({filteredEvents.length})
+                        </p>
 
-                        {/* Filter */}
-                        {master.events.length > 3 && (
-                            <div className="relative mb-4">
-                                <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/30" />
-                                <input
-                                    type="text"
-                                    placeholder="Filter events..."
-                                    value={filter}
-                                    onChange={(e) => setFilter(e.target.value)}
-                                    className="w-full bg-black/30 border border-white/10 rounded-xl py-2.5 pl-9 pr-4 text-xs text-white outline-none focus:border-[#22D3EE]/50 transition-colors placeholder:text-white/20"
-                                />
-                            </div>
-                        )}
-
-                        <div className="space-y-2 max-h-48 overflow-y-auto hide-scrollbar">
+                        <div className="space-y-2 max-h-48 overflow-y-auto hide-scrollbar mb-6">
                             {filteredEvents.map((ev, i) => (
-                                <motion.div 
-                                    key={i}
-                                    initial={{ opacity: 0, x: -10 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: i * 0.05 }}
-                                    className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5 hover:border-white/15 transition-colors"
-                                >
-                                    <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-[#22D3EE]/10">
-                                        <Ticket className="w-3.5 h-3.5 text-[#22D3EE]" />
-                                    </div>
+                                <div key={i} className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5">
+                                    <Ticket className="w-3.5 h-3.5 text-[#E4BD8D]" />
                                     <span className="text-sm font-bold text-white/80 flex-1 truncate">{ev}</span>
-                                    <ChevronRight className="w-3.5 h-3.5 text-white/20" />
-                                </motion.div>
+                                </div>
                             ))}
-                            {filteredEvents.length === 0 && (
-                                <p className="text-center text-white/20 text-xs py-4">No events match your filter.</p>
-                            )}
                         </div>
 
-                        {/* Download */}
-                        <a
-                            href={`${import.meta.env.VITE_API_BASE_URL}/api/events/download-master-ticket/${encodeURIComponent(master.date)}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="mt-6 w-full py-3 bg-white/5 border border-white/20 hover:bg-white/10 text-center text-xs font-bold uppercase tracking-widest transition-colors rounded-xl flex items-center justify-center gap-2 text-white/70 hover:text-white"
+                        <button
+                            onClick={() => onDownload({ ticket: master, type: 'master' })}
+                            disabled={isDownloading}
+                            className="w-full py-4 bg-gradient-to-r from-[#E4BD8D] to-[#C53099] hover:from-[#C53099] hover:to-[#E4BD8D] text-center text-xs font-black uppercase tracking-widest transition-all rounded-xl flex items-center justify-center gap-2 text-white disabled:opacity-50"
                         >
-                            <Download className="w-4 h-4" />
-                            Download Master Pass
-                        </a>
+                            {isDownloading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Download className="w-4 h-4" /> Download Official Badge</>}
+                        </button>
                     </div>
                 </motion.div>
             </div>
@@ -114,89 +158,92 @@ function MasterPassModal({ master, onClose }) {
     );
 }
 
-export default function TicketSlider({ tickets }) {
+// ─── MAIN SLIDER COMPONENT ───
+export default function TicketSlider({ tickets, user }) {
     const { masterTickets, individualTickets } = tickets;
     const { colors } = APP_THEME;
     const [selectedMaster, setSelectedMaster] = useState(null);
+    
+    // Download State
+    const [printData, setPrintData] = useState(null);
+    const [isDownloading, setIsDownloading] = useState(false);
+
+    // ── IMAGE GENERATOR LOGIC ──
+    const handleDownload = async (ticketData) => {
+        setIsDownloading(true);
+        setPrintData(ticketData); // Mount the hidden component with data
+
+        // Wait a tiny bit for the React DOM to render the hidden component
+        setTimeout(async () => {
+            const printElement = document.getElementById('printable-id-card');
+            if (printElement) {
+                try {
+                    const canvas = await html2canvas(printElement, {
+                        scale: 2, // High resolution
+                        useCORS: true,
+                        backgroundColor: '#13072E',
+                        logging: false
+                    });
+                    
+                    const dataUrl = canvas.toDataURL('image/png');
+                    const link = document.createElement('a');
+                    const safeName = user?.name ? user.name.replace(/\s+/g, '_') : 'Guest';
+                    link.download = `RasRang26_Badge_${safeName}.png`;
+                    link.href = dataUrl;
+                    link.click();
+                } catch (error) {
+                    console.error("Error generating badge:", error);
+                    alert("Failed to generate High-Res Badge. Please try again.");
+                }
+            }
+            setIsDownloading(false);
+            setPrintData(null); // Unmount hidden component
+        }, 500);
+    };
 
     if (!masterTickets || (!masterTickets.length && !individualTickets.length)) {
-        return <div className="italic p-8 rounded-xl border" style={{ backgroundColor: colors.surface, borderColor: 'rgba(255,255,255,0.05)', color: colors.textMuted }}>No tickets found in the vault. Register for events to generate passes!</div>;
+        return <div className="italic p-8 rounded-xl border border-white/5 bg-white/5 text-white/40 text-center">No tickets found in the vault. Register for events to generate passes!</div>;
     }
 
     return (
         <>
-            {/* ── MASTER PASSES SECTION ── */}
+            {/* HIDDEN PRINT TEMPLATE */}
+            <PrintableBadge data={printData} user={user} />
+
+            {/* ── ON-SCREEN MASTER PASSES ── */}
             {masterTickets.length > 0 && (
                 <div className="mb-10">
-                    <h3 className="text-[10px] uppercase tracking-[0.4em] font-bold text-white/30 mb-4 flex items-center gap-3">
-                        <Shield className="w-3.5 h-3.5 text-[#9D01E9]" />
-                        Master Day Passes
+                    <h3 className="text-[10px] uppercase tracking-[0.4em] font-bold text-[#E4BD8D] mb-4 flex items-center gap-3">
+                        <Shield className="w-3.5 h-3.5" /> Day Passes
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                         {masterTickets.map((master, idx) => (
                             <motion.div
                                 key={`master-${idx}`}
                                 whileHover={{ scale: 1.02, y: -8 }}
-                                transition={{ type: "spring", stiffness: 300, damping: 20 }}
                                 onClick={() => setSelectedMaster(master)}
-                                className="rounded-[2.5rem] p-0.5 relative group cursor-pointer overflow-hidden"
-                                style={{ background: `linear-gradient(135deg, ${colors.primary}44, ${colors.highlight}44)` }}
+                                className="rounded-3xl p-1 relative group cursor-pointer overflow-hidden bg-gradient-to-br from-[#E4BD8D] to-[#C53099] shadow-xl hover:shadow-[0_15px_40px_rgba(228,189,141,0.3)] transition-all"
                             >
-                                {/* ── Holographic Glint ── */}
-                                <motion.div 
-                                    animate={{ 
-                                        left: ["-100%", "200%"],
-                                        top: ["-100%", "200%"]
-                                    }}
-                                    transition={{ duration: 4, repeat: Infinity, ease: "linear", repeatDelay: 1 }}
-                                    className="absolute w-1/2 h-[200%] bg-white/20 blur-[60px] -rotate-45 pointer-events-none z-20"
-                                />
-
-                                <div className="backdrop-blur-3xl rounded-[2.4rem] flex flex-col items-center p-8 relative z-10 h-full" style={{ backgroundColor: 'rgba(13,6,32,0.7)' }}>
-                                    <div className="absolute top-0 right-0 p-4 opacity-[0.03] text-4xl font-black italic select-none">
-                                        MASTER
+                                <div className="rounded-[1.4rem] flex flex-col items-center p-8 relative z-10 h-full bg-[#13072E] border-2 border-dashed border-[#E4BD8D]/30">
+                                    <div className="absolute top-0 right-0 p-4 opacity-5 text-5xl font-black italic select-none" style={{ fontFamily: "'Playfair Display', serif" }}>
+                                        VIP
                                     </div>
 
-                                    <div className="w-full text-center border-b border-white/10 pb-6 mb-6">
-                                        <span className="font-black text-2xl uppercase tracking-tighter" 
-                                            style={{ background: `linear-gradient(to right, ${colors.highlight}, ${colors.primary})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontFamily: "'Cinzel', serif" }}>
+                                    <div className="w-full text-center border-b border-[#E4BD8D]/20 pb-6 mb-6">
+                                        <span className="font-black text-2xl uppercase tracking-widest text-[#E4BD8D]" style={{ fontFamily: "'Playfair Display', serif" }}>
                                             Master Pass
                                         </span>
-                                        <div className="flex items-center justify-center gap-2 mt-2">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-[#22D3EE] shadow-[0_0_8px_#22D3EE]" />
-                                            <p className="text-[10px] font-black tracking-[0.3em] uppercase text-white/40">
-                                                {master.date}
-                                            </p>
-                                        </div>
+                                        <p className="text-[10px] font-black tracking-[0.3em] uppercase text-white/50 mt-2">
+                                            {master.date}
+                                        </p>
                                     </div>
 
-                                    <div className="relative mb-6">
-                                        <div className="absolute -inset-4 bg-[#9D01E9]/10 rounded-full blur-2xl group-hover:bg-[#9D01E9]/20 transition-all" />
-                                        <div className="bg-white p-3 rounded-2xl relative z-10 shadow-[0_0_40px_rgba(157,1,233,0.2)]">
-                                            <img src={master.qrImage} alt="Master QR" className="w-32 h-32 object-contain" />
-                                        </div>
+                                    <div className="relative mb-6 bg-white p-2 rounded-xl">
+                                        <img src={master.qrImage} alt="Master QR" className="w-32 h-32 object-contain" />
                                     </div>
 
-                                    <div className="w-full space-y-4">
-                                        <div className="flex items-center justify-between">
-                                            <p className="text-[9px] text-white/30 uppercase tracking-[0.25em] font-black">
-                                                Active Privileges
-                                            </p>
-                                            <span className="text-[10px] font-bold text-[#E4BD8D]">{master.events.length} EVENTS</span>
-                                        </div>
-                                        <div className="flex flex-wrap gap-2">
-                                            {master.events.slice(0, 2).map((ev, i) => (
-                                                <span key={i} className="text-[9px] bg-white/5 px-3 py-1.5 rounded-lg border border-white/5 font-bold text-white/60 truncate max-w-[120px]">{ev}</span>
-                                            ))}
-                                            {master.events.length > 2 && (
-                                                <span className="text-[9px] px-3 py-1.5 rounded-lg bg-[#9D01E9]/10 border border-[#9D01E9]/20 font-black text-[#AF94D2]">+{master.events.length - 2}</span>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="w-full mt-8 py-4 bg-white/5 border border-white/10 text-center text-[10px] font-black uppercase tracking-[0.3em] rounded-2xl text-white/30 group-hover:text-white group-hover:bg-white/10 transition-all flex items-center justify-center gap-3">
-                                        Initialize Protocol
-                                        <ChevronRight className="w-3.5 h-3.5" />
+                                    <div className="w-full mt-auto py-3 border border-[#E4BD8D]/30 text-center text-[10px] font-black uppercase tracking-[0.2em] rounded-xl text-[#E4BD8D] group-hover:bg-[#E4BD8D] group-hover:text-[#13072E] transition-all flex items-center justify-center gap-2">
+                                        Open Details <ChevronRight className="w-3.5 h-3.5" />
                                     </div>
                                 </div>
                             </motion.div>
@@ -205,66 +252,60 @@ export default function TicketSlider({ tickets }) {
                 </div>
             )}
 
-            {/* ── INDIVIDUAL TICKETS SECTION ── */}
+            {/* ── ON-SCREEN INDIVIDUAL TICKETS ── */}
             {individualTickets.length > 0 && (
                 <div>
-                    <h3 className="text-[10px] uppercase tracking-[0.4em] font-bold text-white/30 mb-4 flex items-center gap-3">
-                        <Ticket className="w-3.5 h-3.5 text-[#22D3EE]" />
-                        Individual Event Passes
+                    <h3 className="text-[10px] uppercase tracking-[0.4em] font-bold text-[#22D3EE] mb-4 flex items-center gap-3">
+                        <Ticket className="w-3.5 h-3.5" /> Event Passes
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {individualTickets.map((ticket, idx) => (
                             <motion.div
                                 key={`indiv-${idx}`}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: idx * 0.1 }}
+                                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.1 }}
                                 whileHover={{ scale: 1.02, y: -4 }}
-                                style={{ backgroundColor: colors.surface, borderColor: 'rgba(255,255,255,0.08)' }}
-                                className="rounded-2xl p-6 border flex flex-col justify-between hover:border-white/20 transition-all"
+                                className="rounded-2xl p-6 bg-[#13072E] border-2 border-[#22D3EE]/20 hover:border-[#22D3EE]/50 flex flex-col justify-between transition-all shadow-lg relative overflow-hidden group"
                             >
-                                <div>
-                                    <div className="flex items-start justify-between mb-4">
+                                {/* Cultural pattern overlay */}
+                                <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#22D3EE 1px, transparent 1px)', backgroundSize: '10px 10px' }} />
+
+                                <div className="relative z-10">
+                                    <div className="flex items-start justify-between mb-4 border-b border-[#22D3EE]/10 pb-4">
                                         <div className="flex-1">
-                                            <h4 className="text-base font-black uppercase tracking-tight mb-1" style={{ color: colors.textTitle }}>{ticket.event.title}</h4>
-                                            <div className="flex items-center gap-3">
-                                                <p className="text-[10px] font-black uppercase text-[#22D3EE] flex items-center gap-1">
-                                                    <CalendarDays className="w-3 h-3" /> {ticket.event.date}
-                                                </p>
-                                                {ticket.event.time && (
-                                                    <p className="text-[10px] font-bold uppercase text-white/30 border-l border-white/10 pl-3">{ticket.event.time}</p>
-                                                )}
-                                            </div>
-                                        </div>
-                                        <div className="w-8 h-8 rounded-lg bg-[#22D3EE]/10 flex items-center justify-center flex-shrink-0">
-                                            <Ticket className="w-4 h-4 text-[#22D3EE]" />
+                                            <h4 className="text-lg font-bold uppercase tracking-wide text-white mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>{ticket.event.title}</h4>
+                                            <p className="text-[10px] font-black uppercase text-[#22D3EE] flex items-center gap-1">
+                                                <CalendarDays className="w-3 h-3" /> {ticket.event.date} {ticket.event.time && `| ${ticket.event.time}`}
+                                            </p>
                                         </div>
                                     </div>
-                                </div>
 
-                                <div className="flex justify-center my-4">
-                                    <img src={ticket.qrImage} alt="Ticket QR" className="w-28 h-28 rounded-lg" />
-                                </div>
+                                    <div className="flex justify-center my-6">
+                                        <div className="bg-white p-2 rounded-xl shadow-[0_0_20px_rgba(34,211,238,0.2)]">
+                                            <img src={ticket.qrImage} alt="Ticket QR" className="w-28 h-28 object-contain" />
+                                        </div>
+                                    </div>
 
-                                <a
-                                    href={`${import.meta.env.VITE_API_BASE_URL}/api/events/download-ticket/${ticket.id}`}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="w-full py-2.5 text-center text-[10px] font-bold uppercase tracking-widest rounded-lg border border-white/10 hover:border-[#22D3EE] hover:bg-[#22D3EE]/10 hover:text-[#22D3EE] transition-all flex items-center justify-center gap-2"
-                                    style={{ color: colors.textMuted }}
-                                >
-                                    <Download className="w-3.5 h-3.5" />
-                                    Download Ticket
-                                </a>
+                                    <button
+                                        onClick={() => handleDownload({ ticket, type: 'individual' })}
+                                        disabled={isDownloading}
+                                        className="w-full py-3 text-center text-[10px] font-black uppercase tracking-widest rounded-xl bg-[#22D3EE]/10 text-[#22D3EE] hover:bg-[#22D3EE] hover:text-[#13072E] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                                    >
+                                        {isDownloading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <><Download className="w-3.5 h-3.5" /> Save Badge</>}
+                                    </button>
+                                </div>
                             </motion.div>
                         ))}
                     </div>
                 </div>
             )}
 
-            {/* ── MASTER PASS DETAIL POPUP ── */}
             {selectedMaster && (
-                <MasterPassModal master={selectedMaster} onClose={() => setSelectedMaster(null)} />
+                <MasterPassModal 
+                    master={selectedMaster} 
+                    onClose={() => setSelectedMaster(null)} 
+                    onDownload={handleDownload}
+                    isDownloading={isDownloading}
+                />
             )}
         </>
     );

@@ -395,7 +395,7 @@ export default function Profile() {
                         <span className="w-2 h-8 inline-block" style={{ backgroundColor: colors.highlight }}></span>
                         Encrypted Access Vault
                     </h2>
-                    <TicketSlider tickets={tickets} />
+                    <TicketSlider tickets={tickets} user={user} />
                 </div>
             )}
 
