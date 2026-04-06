@@ -1,356 +1,489 @@
-import { useState, useMemo } from "react";
-import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
-import { useTheme } from "../context/ThemeContext";
-import ProfileCard from "../common/ProfileCard";
+import { useState, useMemo, useRef } from "react";
+import {
+    motion, AnimatePresence,
+    useMotionValue, useTransform,
+    useScroll, useTransform as useScrollTransform
+} from "framer-motion";
+import DomeGallery from "../common/Dome";
 
-// ==========================================
-// 1. DYNAMIC CLUSTERING & DATA GENERATION
-// ==========================================
-
-const TEAMS = ["All", "Core", "Tech", "Cultural", "Design"];
-
-const TEAM_COLORS = {
-    "Core": "#E4BD8D",     // Peach (Main Team)
-    "Tech": "#9D01E9",     // Purple
-    "Cultural": "#22D3EE", // Cyan
-    "Design": "#C53099"    // Pink
+// ── Design tokens ─────────────────────────────────────────────
+const T = {
+    gold: "#E4BD8D",
+    saffron: "#FF6B00",
+    magenta: "#E31E6E",
+    cyan: "#22D3EE",
+    violet: "#7C3AED",
+    border: "rgba(228,189,141,0.15)",
 };
 
-// Adjusted Anchors to give them plenty of room to grow downwards
-const TEAM_ANCHORS = {
-    "Core": { top: 25, left: 50 },      // Top Center (Main Team)
-    "Cultural": { top: 55, left: 25 },  // Middle Left
-    "Tech": { top: 55, left: 75 },      // Middle Right
-    "Design": { top: 85, left: 50 }     // Bottom Center
+const TEAM_META = {
+    // developers  : { color: T.gold,    icon: "✦", label: "backend"     },
+    developers: { color: T.saffron, icon: "⚡", label: "Developers" },
 };
 
-// Helper lists
-const firstNames = ["Aarav", "Priya", "Rohan", "Sanya", "Kabir", "Neha", "Vikram", "Tara", "Arjun", "Meera", "Dev", "Karan", "Aditi", "Ishaan", "Riya"];
-const lastNames = ["Sharma", "Patel", "Gupta", "Kapoor", "Singh", "Verma", "Reddy", "Menon", "Iyer", "Das", "Johar", "Nair", "Desai", "Bose"];
-const roles = {
-    "Core": ["Festival Director", "Operations", "Finance Lead", "Logistics", "Sponsor Rep"],
-    "Tech": ["Lead Full-Stack", "Backend Eng", "UI/UX Designer", "DevOps", "SysAdmin"],
-    "Cultural": ["Dance Coordinator", "Music Lead", "Stage Manager", "Emcee", "Talent Scout"],
-    "Design": ["Creative Director", "Motion Gfx", "3D Artist", "VFX Artist", "Illustrator"]
-};
+// ── Dome images — all 39 local photos (/Assets/(1).jpeg … (39).jpeg)
+// const DOME_IMAGES = Array.from({ length: 39 }, (_, i) => ({
+//     src: '/Assets/(1).jpeg',
+//     alt: `Member ${i + 1}`,
+// }));
 
-// The Upgraded Generator (Using Fermat's Spiral for ZERO Overlaps)
-const generateDynamicContributors = () => {
-    const contributors = [];
-    const teamsList = ["Core", "Tech", "Cultural", "Design"];
-    let idCounter = 1;
-
-    teamsList.forEach(team => {
-        const anchor = TEAM_ANCHORS[team];
-        const isMainTeam = team === "Core";
-        const teamSize = isMainTeam ? 10 : 13; // Generate ~50 total
-
-        for (let i = 0; i < teamSize; i++) {
-            const isLeader = i === 0;
-            
-            // SPIRAL ALGORITHM: Perfectly spaces avatars outward so they never overlap
-            let leftOffset = 0;
-            let topOffset = 0;
-
-            if (!isLeader) {
-                // Base distance of 5% from leader, expands by 2.5% per node
-                const radius = 5 + Math.sqrt(i) * 2.5; 
-                // Golden angle (137.5 degrees) in radians to create a sunflower spiral
-                const angle = i * 2.39996; 
-                
-                leftOffset = Math.cos(angle) * radius;
-                topOffset = Math.sin(angle) * (radius * 1.5); // Multiply by 1.5 to account for widescreen aspect ratios
-            }
-
-            // Clamp values so they don't fly off the screen
-            const left = Math.max(5, Math.min(95, anchor.left + leftOffset));
-            const top = Math.max(5, Math.min(95, anchor.top + topOffset));
-
-            // Force the leader to always get the primary Lead Role
-            const roleName = isLeader ? roles[team][0] : roles[team][Math.floor(Math.random() * (roles[team].length - 1)) + 1];
-
-            contributors.push({
-                id: idCounter++,
-                name: `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`,
-                role: roleName,
-                team: team,
-                image: `https://i.pravatar.cc/300?img=${(idCounter % 70) + 1}`,
-                isLeader: isLeader,
-                isMainTeam: isMainTeam,
-                top: `${top}%`,
-                left: `${left}%`,
-                rawTop: top,   
-                rawLeft: left  
-            });
-        }
-    });
-    return contributors;
-};
-
-const CONTRIBUTORS = generateDynamicContributors();
-
-const TECH_TEAM = CONTRIBUTORS.filter(c => c.team === "Tech").slice(0, 4).map((t, index) => ({
-    ...t, github: "#", linkedin: "#", handle: `rasrang_tech_${index}`
-}));
+const DOME_IMAGES = [
+    { src: '/Assets/(1).jpeg', alt: 'Member 1' },
+    { src: '/Assets/(2).jpeg', alt: 'Member 2' },
+    { src: '/Assets/(3).jpeg', alt: 'Member 3' },
+    { src: '/Assets/(4).jpeg', alt: 'Member 4' },
+    { src: '/Assets/(5).jpeg', alt: 'Member 5' },
+    { src: '/Assets/(6).jpeg', alt: 'Member 6' },
+    { src: '/Assets/(7).jpeg', alt: 'Member 7' },
+    { src: '/Assets/(8).jpeg', alt: 'Member 8' },
+    { src: '/Assets/(9).jpeg', alt: 'Member 9' },
+    { src: '/Assets/(10).jpeg', alt: 'Member 10' },
+    { src: '/Assets/(11).jpeg', alt: 'Member 11' },
+    { src: '/Assets/(12).jpeg', alt: 'Member 12' },
+    { src: '/Assets/(13).jpeg', alt: 'Member 13' },
+    { src: '/Assets/(14).jpeg', alt: 'Member 14' },
+    { src: '/Assets/(15).jpeg', alt: 'Member 30' },
+    { src: '/Assets/(16).jpeg', alt: 'Member 16' },
+    { src: '/Assets/(17).jpeg', alt: 'Member 17' },
+    { src: '/Assets/(18).jpeg', alt: 'Member 18' },
+    { src: '/Assets/(19).jpeg', alt: 'Member 19' },
+    { src: '/Assets/(30).jpeg', alt: 'Member 20' },
+    { src: '/Assets/(21).jpeg', alt: 'Member 21' },
+    { src: '/Assets/(22).jpeg', alt: 'Member 22' },
+    { src: '/Assets/(23).jpeg', alt: 'Member 23' },
+    { src: '/Assets/(24).jpeg', alt: 'Member 24' },
+    { src: '/Assets/(25).jpeg', alt: 'Member 25' },
+    { src: '/Assets/(26).jpeg', alt: 'Member 26' },
+    { src: '/Assets/(27).jpeg', alt: 'Member 27' },
+    { src: '/Assets/(28).jpeg', alt: 'Member 28' },
+    { src: '/Assets/(29).jpeg', alt: 'Member 29' },
+    { src: '/Assets/(20).jpeg', alt: 'Member 15' },
+    { src: '/Assets/(31).jpeg', alt: 'Member 31' },
+    { src: '/Assets/(32).jpeg', alt: 'Member 32' },
+    { src: '/Assets/(33).jpeg', alt: 'Member 33' },
+    { src: '/Assets/(34).jpeg', alt: 'Member 34' },
+    { src: '/Assets/(35).jpeg', alt: 'Member 35' },
+    { src: '/Assets/(36).jpeg', alt: 'Member 36' },
+    { src: '/Assets/(37).jpeg', alt: 'Member 37' },
+    { src: '/Assets/(38).jpeg', alt: 'Member 38' },
+    { src: '/Assets/(39).jpeg', alt: 'Member 39' },
+];
 
 
-// ==========================================
-// 2. SUB-COMPONENTS
-// ==========================================
+// ── "Meet the Collective" — only 4 featured cards ─────────────
+// Replace name/role/team/image with your actual featured members.
+// image points to /Assets/(N).jpeg  OR  any URL you prefer.
+const FEATURED = [
+    {
+        id: 1,
+        name: "Vijayaragunathan",
+        role: "RA2311003050321",
+        team: "developers",
+        image: "/Assets/vijay.jpeg",
+    },
+    {
+        id: 2,
+        name: "Jafrin sam",
+        role: "RA2311030050016",
+        team: "developers",
+        image: "/Assets/jafrin.jpeg",
+    },
 
-function AvatarNode({ data, isActive, onSelect }) {
-    const floatDelay = useMemo(() => Math.random() * 2, []);
-    const color = TEAM_COLORS[data.team];
+];
 
-    // Determine size based on leadership
-    const sizeClass = data.isLeader ? "w-20 h-20 md:w-24 md:h-24" : "w-12 h-12 md:w-16 md:h-16";
-    const offsetClass = data.isLeader ? "-ml-10 -mt-10 md:-ml-12 md:-mt-12" : "-ml-6 -mt-6 md:-ml-8 md:-mt-8";
+// ── Ornament divider ──────────────────────────────────────────
+function OrnamentLine({ color = T.gold }) {
+    return (
+        <div className="flex items-center gap-3 w-full max-w-xs mx-auto">
+            <div className="flex-1 h-px"
+                style={{ background: `linear-gradient(to right, transparent, ${color}60)` }} />
+            <svg width="18" height="18" viewBox="0 0 18 18">
+                <polygon points="9,1 17,9 9,17 1,9"
+                    fill="none" stroke={color} strokeWidth="1" opacity="0.8" />
+                <circle cx="9" cy="9" r="2.5" fill={color} opacity="0.9" />
+            </svg>
+            <div className="flex-1 h-px"
+                style={{ background: `linear-gradient(to left, transparent, ${color}60)` }} />
+        </div>
+    );
+}
 
+// ── Stat chip ─────────────────────────────────────────────────
+function StatChip({ value, label, color, delay = 0, last = false }) {
     return (
         <motion.div
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ 
-                opacity: isActive ? 1 : 0.05, 
-                scale: isActive ? 1 : 0.5,
-                y: [0, -10, 0] 
-            }}
-            transition={{ 
-                opacity: { duration: 0.8 }, scale: { duration: 0.5 },
-                y: { duration: 4 + Math.random() * 2, repeat: Infinity, ease: "easeInOut", delay: floatDelay }
-            }}
-            className={`absolute z-10 group ${data.isLeader ? 'z-20' : ''}`}
-            style={{ top: data.top, left: data.left }}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            className="flex flex-col items-center gap-1 px-5 py-4"
+            style={{ borderRight: last ? "none" : `1px solid ${T.border}` }}
         >
-            <div onClick={() => onSelect(data)} className={`${sizeClass} ${offsetClass} cursor-pointer relative flex items-center justify-center`}>
-                
-                {/* Leader Crown Badge */}
-                {data.isLeader && (
-                    <div className="absolute -top-5 left-1/2 -translate-x-1/2 text-2xl drop-shadow-[0_0_10px_currentColor] z-30 transform group-hover:scale-125 transition-transform duration-300" style={{ color }}>
-                        ✦
-                    </div>
-                )}
-
-                {/* Avatar Image */}
-                <div className="absolute inset-0 rounded-full border-2 bg-[#020617] transition-all duration-300 group-hover:scale-110 group-hover:z-50" style={{ borderColor: color, boxShadow: isActive ? `0 0 ${data.isLeader ? '30px' : '15px'} ${color}80` : 'none' }}>
-                    <img src={data.image} alt={data.name} className={`w-full h-full object-cover rounded-full p-0.5 ${data.isLeader ? '' : 'grayscale mix-blend-luminosity'} group-hover:grayscale-0 group-hover:mix-blend-normal transition-all duration-500`} />
-                </div>
-                
-                {/* Main Team Label (For Core Leader) */}
-                {data.isLeader && data.isMainTeam && (
-                    <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 text-[9px] font-black uppercase tracking-widest bg-[#E4BD8D]/20 backdrop-blur-md border border-[#E4BD8D]/50 px-3 py-1 rounded-full whitespace-nowrap z-30 text-[#E4BD8D] shadow-[0_0_15px_rgba(228,189,141,0.5)] font-accent">
-                        Festival Core
-                    </div>
-                )}
-
-                {/* Tooltip */}
-                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-4 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none transform group-hover:translate-y-1 z-50">
-                    <div className="bg-[#0A0A0A]/90 backdrop-blur-md border border-white/10 px-4 py-2 rounded-lg whitespace-nowrap shadow-xl flex flex-col items-center">
-                        <p className="text-xs font-black uppercase tracking-widest text-[#F8FAFC] font-massive">{data.name}</p>
-                        <p className="text-[9px] uppercase tracking-widest font-accent" style={{ color }}>{data.role}</p>
-                    </div>
-                </div>
-            </div>
+            <span className="text-2xl md:text-3xl font-black"
+                style={{
+                    color, fontFamily: "Cinzel, serif",
+                    textShadow: `0 0 20px ${color}60`
+                }}>
+                {value}
+            </span>
+            <span className="text-[9px] tracking-[0.3em] uppercase"
+                style={{
+                    color: "rgba(255,255,255,0.35)",
+                    fontFamily: "Rajdhani, sans-serif"
+                }}>
+                {label}
+            </span>
         </motion.div>
     );
 }
 
-function ProfilePopup({ data, onClose }) {
-    const x = useMotionValue(0); const y = useMotionValue(0);
-    const rotateX = useTransform(y, [-200, 200], [15, -15]); const rotateY = useTransform(x, [-200, 200], [-15, 15]);
-    const glareX = useTransform(x, [-200, 200], ["-100%", "200%"]); const glareY = useTransform(y, [-200, 200], ["-100%", "200%"]);
-    const color = TEAM_COLORS[data.team];
+// ── Featured member card (used in "Meet the Collective") ───────
+function FeaturedCard({ person, index }) {
+    const meta = TEAM_META[person.team];
+    const mx = useMotionValue(0);
+    const my = useMotionValue(0);
+    const rotateX = useTransform(my, [-80, 80], [12, -12]);
+    const rotateY = useTransform(mx, [-80, 80], [-12, 12]);
+    const glareX = useTransform(mx, [-80, 80], ["-60%", "160%"]);
+    const glareY = useTransform(my, [-80, 80], ["-60%", "160%"]);
+
+    function onMove(e) {
+        const r = e.currentTarget.getBoundingClientRect();
+        mx.set(e.clientX - r.left - r.width / 2);
+        my.set(e.clientY - r.top - r.height / 2);
+    }
+    function onLeave() { mx.set(0); my.set(0); }
+
+    const cardStyle = {
+        rotateX,
+        rotateY,
+        background: "rgba(15,8,30,0.4)", // Transparency without shadow depth
+        border: `1px solid ${meta.color}20`,
+    };
 
     return (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/80 backdrop-blur-xl" onClick={onClose} />
-            <motion.div initial={{ scale: 0.8, y: 50 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.8, y: 50 }} className="relative perspective-1000 z-10 w-full max-w-[350px]" onMouseMove={(e) => { const rect = e.currentTarget.getBoundingClientRect(); x.set(e.clientX - rect.left - rect.width / 2); y.set(e.clientY - rect.top - rect.height / 2); }} onMouseLeave={() => { x.set(0); y.set(0); }}>
-                <motion.div style={{ rotateX, rotateY }} className="relative w-full aspect-[3/4] rounded-2xl overflow-hidden bg-[#0A0A0A] border border-white/20 shadow-2xl">
-                    <div className="absolute inset-0 w-full h-full">
-                        <img src={data.image} alt={data.name} className="w-full h-full object-cover grayscale opacity-80 mix-blend-luminosity" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-[#0A0A0A]/60 to-transparent" />
-                    </div>
-                    <div className="absolute inset-0 p-6 flex flex-col justify-end">
-                        <span className="text-[10px] uppercase font-black tracking-[0.3em] px-3 py-1 rounded-full border border-white/20 w-fit mb-3 font-accent" style={{ color, backgroundColor: `${color}20` }}>
-                            {data.isLeader ? "★ Team Lead" : `${data.team} Constellation`}
+        <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{
+                duration: 0.6, delay: index * 0.12,
+                ease: [0.22, 1, 0.36, 1]
+            }}
+            className="perspective-[900px]"
+            onMouseMove={onMove}
+            onMouseLeave={onLeave}
+        >
+            <motion.div
+                style={cardStyle}
+                className="relative rounded-2xl overflow-hidden group cursor-pointer"
+            // REMOVED: whileHover shadow block was here
+            >
+                {/* Image */}
+                <div className="relative overflow-hidden" style={{ height: "280px" }}>
+                    <img
+                        src={person.image}
+                        alt={person.name}
+                        draggable={false}
+                        className="w-full h-full object-cover object-top
+                                   transition-all duration-700
+                                   group-hover:scale-110
+                                   saturate-75 brightness-90
+                                   group-hover:saturate-100 group-hover:brightness-100"
+                    />
+
+                    {/* REMOVED: The absolute inset-0 gradient div was here */}
+
+                    {/* Team badge */}
+                    <div className="absolute top-4 left-4 flex items-center
+                                    gap-1.5 px-3 py-1 rounded-full backdrop-blur-md"
+                        style={{
+                            background: `${meta.color}18`,
+                            border: `1px solid ${meta.color}45`
+                        }}>
+                        <span style={{ color: meta.color, fontSize: "10px" }}>
+                            {meta.icon}
                         </span>
-                        <h3 className="text-3xl font-black text-white uppercase tracking-wide leading-none mb-1 font-massive">{data.name}</h3>
-                        <p className="text-xs uppercase tracking-widest text-[#F8FAFC]/60 mb-6">{data.role}</p>
-                        <div className="flex gap-4">
-                            <button className="flex-1 py-3 rounded-lg text-xs font-black uppercase tracking-widest text-black transition-all hover:scale-105 font-massive" style={{ backgroundColor: color, boxShadow: `0 0 20px ${color}50` }}>Connect</button>
-                            <button onClick={onClose} className="px-4 py-3 rounded-lg border border-white/20 text-[#F8FAFC] hover:bg-white/10 transition-colors">✕</button>
-                        </div>
+                        <span className="text-[9px] tracking-[0.25em]
+                                          uppercase font-bold"
+                            style={{
+                                color: meta.color,
+                                fontFamily: "Rajdhani, sans-serif"
+                            }}>
+                            {meta.label}
+                        </span>
                     </div>
-                    <motion.div className="absolute inset-0 z-20 pointer-events-none mix-blend-color-dodge opacity-60" style={{ background: `linear-gradient(105deg, transparent 20%, ${color} 25%, #22D3EE 50%, transparent 55%)`, backgroundSize: "200% 200%", x: glareX, y: glareY }} />
-                </motion.div>
+                </div>
+
+                {/* Info */}
+                <div className="px-6 py-5">
+                    <h3 className="text-lg font-bold text-white tracking-wide mb-1"
+                        style={{ fontFamily: "Cinzel, serif" }}>
+                        {person.name}
+                    </h3>
+                    <p className="text-[11px] tracking-[0.25em] uppercase"
+                        style={{
+                            color: `${meta.color}90`,
+                            fontFamily: "Rajdhani, sans-serif"
+                        }}>
+                        {person.role}
+                    </p>
+                </div>
+
+                {/* Holographic glare - kept this as it is a light effect, not a shadow */}
+                <motion.div
+                    className="absolute inset-0 pointer-events-none
+                               opacity-0 group-hover:opacity-100
+                               transition-opacity duration-300"
+                    style={{
+                        background: `linear-gradient(105deg,
+                            transparent 20%, ${meta.color}28 40%, transparent 60%)`,
+                        x: glareX,
+                        y: glareY,
+                        mixBlendMode: "screen",
+                    }}
+                />
+
+                {/* Bottom accent line */}
+                <div className="absolute bottom-0 left-0 h-[2px] w-0
+                                group-hover:w-full rounded-full"
+                    style={{
+                        background:
+                            `linear-gradient(90deg, ${meta.color}, ${T.magenta})`,
+                        transition: "width 600ms ease",
+                    }} />
             </motion.div>
         </motion.div>
     );
 }
 
-// ==========================================
-// 3. MAIN PAGE COMPONENT
-// ==========================================
-
+// ── Main page ─────────────────────────────────────────────────
 export default function Contributors() {
-    const { theme } = useTheme();
-    const [activeFilter, setActiveFilter] = useState("All");
-    const [selectedUser, setSelectedUser] = useState(null);
+    const heroRef = useRef(null);
 
-    const activeNodes = useMemo(() => {
-        if (activeFilter === "All") return [];
-        return CONTRIBUTORS.filter(c => c.team === activeFilter);
-    }, [activeFilter]);
-
-    const svgPath = useMemo(() => {
-        if (activeNodes.length === 0) return "";
-        return activeNodes.map((node, i) => `${i === 0 ? 'M' : 'L'} ${node.rawLeft} ${node.rawTop}`).join(" ");
-    }, [activeNodes]);
-
-    // Check env vars (supporting both correct spelling and user typo)
-    const showContributorsRaw = import.meta.env.VITE_SHOW_CONTRIBUTOR ?? import.meta.env.VITE_SHOE_CONTRIBUTOR ?? "true";
-    const showContributors = showContributorsRaw === "true" || showContributorsRaw === "null";
-
-    if (!showContributors) {
-        return (
-            <section className="relative w-full min-h-screen bg-transparent flex flex-col items-center justify-center overflow-hidden">
-                {/* Background ambient lighting */}
-                <div className="absolute inset-0 z-0 pointer-events-none">
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#9D01E9]/10 rounded-full blur-[120px]" />
-                </div>
-                
-                <motion.div 
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 1 }}
-                    className="relative z-10 text-center px-6 max-w-4xl mx-auto"
-                >
-                    <span className="inline-block px-4 py-2 border border-[#E4BD8D]/30 rounded-full text-[#E4BD8D] text-xs font-black uppercase tracking-[0.5em] mb-6 font-accent backdrop-blur-md bg-[#E4BD8D]/5">
-                        The Roundtable is Gathering
-                    </span>
-                    <h1 className="text-5xl md:text-8xl font-black uppercase tracking-widest text-white mb-8 drop-shadow-[0_0_30px_rgba(227,30,110,0.4)] font-massive leading-tight">
-                        Heroes In <br className="hidden md:block" /> The Shadows
-                    </h1>
-                    <div className="flex justify-center mb-8">
-                        <div className="h-px w-32 bg-gradient-to-r from-transparent via-[#E31E6E] to-transparent" />
-                    </div>
-                    <p className="text-sm md:text-lg text-white/60 uppercase tracking-widest max-w-2xl mx-auto leading-relaxed">
-                        The cosmic knights are currently polishing their armor and forging the ultimate crusade to bring unparalleled happiness to the people of SRM Trichy. 
-                        The full vanguard of cultural champions will reveal their identities very soon. Hold the line!
-                    </p>
-                </motion.div>
-            </section>
-        );
-    }
+    const { scrollYProgress } = useScroll({
+        target: heroRef,
+        offset: ["start start", "end start"],
+    });
+    const heroY = useScrollTransform(scrollYProgress, [0, 1], [0, 80]);
+    const heroOpa = useScrollTransform(scrollYProgress, [0, 0.6], [1, 0]);
 
     return (
-        <section className="relative w-full min-h-screen bg-transparent flex flex-col">
-            
-            <div className="fixed top-1/4 left-1/4 w-[600px] h-[600px] bg-[#9D01E9]/10 blur-[150px] rounded-full pointer-events-none -z-10" />
-            <div className="fixed bottom-1/4 right-1/4 w-[600px] h-[600px] bg-[#22D3EE]/10 blur-[150px] rounded-full pointer-events-none -z-10" />
+        <div className="relative w-full bg-transparent overflow-x-hidden">
 
-            {/* --- PART 1: THE FESTIVAL CONSTELLATIONS --- */}
-            <div className="pt-24 md:pt-32 pb-12 w-full max-w-[1600px] mx-auto flex flex-col">
-                <div className="relative z-20 text-center px-6 mb-8 md:mb-16">
-                    <h1 className="text-4xl md:text-6xl lg:text-7xl font-black uppercase tracking-widest text-white mb-4 drop-shadow-[0_0_30px_rgba(157,1,233,0.3)] font-massive">
-                        The Hall of <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#9D01E9] to-[#C53099]">Stars</span>
-                    </h1>
-                    <p className="text-xs md:text-sm uppercase tracking-[0.4em] text-[#AF94D2] font-accent">
-                        Hover or click a star to reveal the talent behind the festival.
+            {/* Ambient glows */}
+            <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }}>
+                <div className="absolute top-1/4 left-1/3 w-[600px] h-[600px]
+                                rounded-full blur-[180px]"
+                    style={{ background: `${T.violet}14` }} />
+                <div className="absolute bottom-1/3 right-1/4 w-[500px] h-[500px]
+                                rounded-full blur-[160px]"
+                    style={{ background: `${T.magenta}0d` }} />
+                <div className="absolute top-2/3 left-1/4 w-[400px] h-[400px]
+                                rounded-full blur-[140px]"
+                    style={{ background: `${T.cyan}0a` }} />
+            </div>
+
+            {/* ═══ SECTION 1 — HERO ════════════════════════════════ */}
+            <section ref={heroRef}
+                className="relative z-10 pt-32 pb-16 text-center px-6">
+                <motion.div style={{ y: heroY, opacity: heroOpa }}>
+
+                    {/* Badge */}
+                    <motion.div
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.8 }}
+                        className="inline-flex items-center gap-3 mb-8
+                                   px-5 py-2.5 rounded-full"
+                        style={{
+                            background: `${T.gold}12`,
+                            border: `1px solid ${T.gold}35`,
+                            backdropFilter: "blur(12px)",
+                        }}
+                    >
+                        <span className="w-1.5 h-1.5 rounded-full animate-pulse"
+                            style={{
+                                background: T.saffron,
+                                boxShadow: `0 0 8px ${T.saffron}`
+                            }} />
+                        <span className="text-[10px] tracking-[0.45em]
+                                         uppercase font-bold"
+                            style={{
+                                color: T.gold,
+                                fontFamily: "Rajdhani, sans-serif"
+                            }}>
+                            Rasrang 2026 · The Makers
+                        </span>
+                    </motion.div>
+
+                    {/* Title */}
+                    <motion.h1
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 1, delay: 0.15 }}
+                        className="font-black uppercase leading-[0.9]
+                                   tracking-tight mb-6"
+                        style={{
+                            fontFamily: "Cinzel, serif",
+                            fontSize: "clamp(2.8rem, 9vw, 7.5rem)",
+                            color: "rgba(255,255,255,0.95)",
+                        }}
+                    >
+                        The Hall{" "}
+                        <span style={{
+                            backgroundImage:
+                                `linear-gradient(135deg,
+                                    ${T.gold} 0%, ${T.saffron} 40%, ${T.magenta} 100%)`,
+                            WebkitBackgroundClip: "text",
+                            WebkitTextFillColor: "transparent",
+                            backgroundClip: "text",
+                        }}>
+                            of Stars
+                        </span>
+                    </motion.h1>
+
+
+                    {/* Subtitle */}
+                    <motion.p
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 1, delay: 0.45 }}
+                        className="text-lg max-w-xl mx-auto leading-relaxed mb-10"
+                        style={{
+                            color: "rgba(255,255,255,0.4)",
+                            fontFamily: "Rajdhani, sans-serif",
+                            letterSpacing: "0.1em"
+                        }}
+                    >
+                        The stars have aligned over SRM Trichy. The only question remains: Are you brave enough to step into the light?                    </motion.p>
+
+                    <OrnamentLine color={T.gold} />
+                </motion.div>
+            </section>
+
+            {/* ═══ SECTION 2 — DOME (all 39 photos) ═══════════════ */}
+            <section className="relative z-10 w-full">
+
+                <div className="text-center mb-4 px-6">
+                    <p className="text-[10px] tracking-[0.5em] uppercase mb-1"
+                        style={{
+                            color: `${T.gold}65`,
+                            fontFamily: "Rajdhani, sans-serif"
+                        }}>
+                        ✦ Our Entire Team ✦
+                    </p>
+                    <p className="text-[9px] tracking-[0.3em] uppercase"
+                        style={{
+                            color: "rgba(255,255,255,0.25)",
+                            fontFamily: "Rajdhani, sans-serif"
+                        }}>
+                        Drag to rotate · Click any face to enlarge
                     </p>
                 </div>
 
-                <div className="relative z-30 flex justify-start md:justify-center overflow-x-auto hide-scrollbar gap-2 md:gap-4 px-6 mb-8">
-                    {TEAMS.map(team => (
-                        <button
-                            key={team}
-                            onClick={() => setActiveFilter(team)}
-                            className={`relative px-6 py-3 rounded-full text-xs font-black uppercase tracking-[0.2em] whitespace-nowrap transition-all duration-300 border font-massive
-                                ${activeFilter === team 
-                                    ? 'bg-[#F8FAFC] text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.4)]' 
-                                    : 'bg-[#0A0A0A]/50 backdrop-blur-md text-[#F8FAFC]/70 border-white/10 hover:border-white/30 hover:text-white'}`}
-                        >
-                            {team}
-                        </button>
-                    ))}
+                {/* Dome container */}
+                <div className="relative w-full"
+                    style={{ height: "clamp(520px, 72vh, 820px)" }}>
+
+                    <div className="absolute inset-x-0 top-0 h-20 z-20
+                                    pointer-events-none"
+                        style={{
+                            background:
+                                "linear-gradient(to bottom, #000, transparent)"
+                        }} />
+                    <div className="absolute inset-x-0 bottom-0 h-28 z-20
+                                    pointer-events-none"
+                        style={{
+                            background:
+                                "linear-gradient(to top, #000, transparent)"
+                        }} />
+
+                    <DomeGallery
+                        images={DOME_IMAGES}
+                        fit={0.75}
+                        grayscale={false}
+                        overlayBlurColor="rgba(0,0,0,0)"
+                        imageBorderRadius="14px"
+                        openedImageBorderRadius="20px"
+                        openedImageWidth="460px"
+                        openedImageHeight="640px"
+                        dragSensitivity={18}
+                        dragDampening={1.8}
+                        segments={22}
+                    />
                 </div>
+            </section>
 
-                {/* THE DYNAMIC STAR MAP: Increased min-height to give clusters room to breathe */}
-                <div className="relative flex-grow w-full min-h-[900px] md:min-h-[1100px] my-10 overflow-hidden">
-                    
-                    <AnimatePresence>
-                        {activeFilter !== "All" && activeNodes.length > 0 && (
-                            <motion.svg 
-                                initial={{ opacity: 0, pathLength: 0 }}
-                                animate={{ opacity: 0.4, pathLength: 1 }}
-                                exit={{ opacity: 0 }}
-                                transition={{ duration: 1.5, ease: "easeInOut" }}
-                                className="absolute inset-0 w-full h-full pointer-events-none z-0"
-                                style={{ color: TEAM_COLORS[activeFilter] }}
-                                preserveAspectRatio="none"
-                            >
-                                <path 
-                                    d={svgPath} 
-                                    fill="transparent" 
-                                    stroke="currentColor" 
-                                    strokeWidth="1.5" 
-                                    strokeDasharray="4 8"
-                                    style={{ filter: `drop-shadow(0 0 10px ${TEAM_COLORS[activeFilter]})` }}
-                                />
-                            </motion.svg>
-                        )}
-                    </AnimatePresence>
+            {/* ═══ SECTION 3 — MEET THE COLLECTIVE (4 featured) ═══ */}
+            <section className="relative z-10 py-24 px-6">
+                <div className="max-w-6xl mx-auto">
 
-                    {CONTRIBUTORS.map(contributor => {
-                        const isActive = activeFilter === "All" || activeFilter === contributor.team;
-                        return (
-                            <AvatarNode key={contributor.id} data={contributor} isActive={isActive} onSelect={setSelectedUser} />
-                        );
-                    })}
-                </div>
-            </div>
-
-            {/* --- PART 2: THE TECH CORE (ProfileCard Setup) --- */}
-            <div className="w-full bg-[#000000]/80 backdrop-blur-xl border-t border-white/10 py-24 relative z-20 overflow-hidden">
-                <div className="max-w-7xl mx-auto px-6">
                     <div className="text-center mb-16">
-                        <span className="text-[10px] uppercase font-black tracking-[0.4em] text-[#9D01E9] mb-4 block font-accent">System Architecture</span>
-                        <h2 className="text-3xl md:text-5xl font-black uppercase tracking-widest text-white font-massive">
-                            The Tech Core
+                        <OrnamentLine color={T.gold} />
+                        <h2 className="mt-8 text-3xl md:text-5xl font-black
+                                       uppercase tracking-widest"
+                            style={{
+                                fontFamily: "Cinzel, serif",
+                                color: "rgba(255,255,255,0.9)"
+                            }}>
+                            Meet the{" "}
+                            <span style={{
+                                backgroundImage:
+                                    `linear-gradient(90deg, ${T.cyan}, ${T.magenta})`,
+                                WebkitBackgroundClip: "text",
+                                WebkitTextFillColor: "transparent",
+                                backgroundClip: "text",
+                            }}>
+                                Collective
+                            </span>
                         </h2>
-                        <div className="w-24 h-1 bg-gradient-to-r from-[#9D01E9] to-[#22D3EE] mx-auto mt-6" />
+                        <p className="mt-4 text-sm tracking-widest uppercase"
+                            style={{
+                                color: "rgba(255,255,255,0.28)",
+                                fontFamily: "Rajdhani, sans-serif"
+                            }}>
+                            The faces behind the festival · Rasrang 2026
+                        </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12 place-items-center">
-                        {TECH_TEAM.map((member, index) => (
-                            <div key={member.id} className="w-full max-w-[320px]">
-                                <ProfileCard
-                                    name={member.name}
-                                    title={member.role}
-                                    handle={member.handle}
-                                    status="System Online"
-                                    contactText="View GitHub"
-                                    avatarUrl={member.image}
-                                    showUserInfo={true}
-                                    enableTilt={true}
-                                    enableMobileTilt={true}
-                                    onContactClick={() => window.open(member.github, '_blank')}
-                                    behindGlowColor={index % 2 === 0 ? "rgba(157, 1, 233, 0.5)" : "rgba(34, 211, 238, 0.5)"}
-                                    behindGlowEnabled={true}
-                                    innerGradient="linear-gradient(145deg, rgba(30,27,75,0.8) 0%, rgba(157,1,233,0.2) 100%)"
-                                />
-                            </div>
+                    {/* 4 featured cards — 2-col on mobile, 4-col on desktop */}
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 md:gap-8">
+                        {FEATURED.map((person, i) => (
+                            <FeaturedCard key={person.id} person={person} index={i} />
                         ))}
                     </div>
                 </div>
-            </div>
+            </section>
 
-            {/* POPUP OVERLAY */}
-            <AnimatePresence>
-                {selectedUser && (
-                    <ProfilePopup data={selectedUser} onClose={() => setSelectedUser(null)} />
-                )}
-            </AnimatePresence>
+            {/* ═══ SECTION 4 — QUOTE ════════════════════════════════ */}
+            <section className="relative z-10 py-24 text-center px-6">
+                <div className="max-w-3xl mx-auto">
+                    <OrnamentLine color={T.magenta} />
+                    <motion.blockquote
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 1 }}
+                        className="mt-12 text-2xl md:text-3xl leading-relaxed
+                                   font-light italic"
+                        style={{
+                            fontFamily: "Cormorant Garamond, serif",
+                            color: "rgba(255,255,255,0.6)"
+                        }}
+                    >
+                        "Behind every light on stage, there is someone who stayed
+                        up all night making sure it shone."
+                    </motion.blockquote>
+                    <p className="mt-6 text-[10px] tracking-[0.4em] uppercase"
+                        style={{
+                            color: `${T.gold}45`,
+                            fontFamily: "Rajdhani, sans-serif"
+                        }}>
+                        — The Rasrang Spirit
+                    </p>
+                </div>
+            </section>
 
-        </section>
+        </div>
     );
 }

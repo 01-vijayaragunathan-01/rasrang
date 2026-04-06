@@ -610,8 +610,8 @@ export default function Events() {
       <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-[#E4BD8D]/10 blur-[150px] rounded-full pointer-events-none z-0" />
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-8 pt-40 md:pt-48">
-
-        {/* ── HEADER ── */}
+        
+        {/* ── ELEGANT HEADER ── */}
         <div className="mb-24 text-center max-w-3xl mx-auto">
           <span className="events-header-fade text-[#E4BD8D] font-bold uppercase tracking-[0.3em] text-sm mb-4 block">
             RasRang 2026
@@ -684,12 +684,10 @@ export default function Events() {
               </div>
             </div>
 
-            {/* ── FESTIVAL LINEUP ── */}
-            <div className="mb-16">
-              {/* Header + Filters */}
-              <div className="flex flex-col gap-6 mb-10">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                  <h2 className="text-3xl md:text-4xl font-bold text-white" style={{ fontFamily: "'Playfair Display', serif" }}>
+        {/* ── EVENT EXPLORER ── */}
+        <div className="mb-16">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-10">
+                <h2 className="text-3xl md:text-4xl font-bold text-white" style={{ fontFamily: "'Playfair Display', serif" }}>
                     Festival Lineup
                   </h2>
 
