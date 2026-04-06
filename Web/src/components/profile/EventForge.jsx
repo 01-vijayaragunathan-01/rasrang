@@ -9,6 +9,7 @@ import { DatePicker } from "../application/date-picker/date-picker";
 import { parseDate, getLocalTimeZone } from "@internationalized/date";
 import TimePicker from "../../common/TimePicker";
 import "react-quill-new/dist/quill.snow.css";
+import ReactQuill from "react-quill-new";
 import { api } from "../../utils/api";
 export default function EventForge() {
     const { user } = useAuth();
