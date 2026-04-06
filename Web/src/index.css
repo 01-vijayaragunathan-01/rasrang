@@ -90,6 +90,9 @@ body {
 /* Rich Text Content Styling (Quill) */
 .quill-content {
     line-height: 1.6;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
 }
 .quill-content p {
     margin-bottom: 0.75rem;
