@@ -27,9 +27,19 @@ export default function ProtectedRoute({ children }) {
         return <Navigate to="/login" state={{ from: location.pathname }} replace />;
     }
 
-    if ((!user.isOnboarded || !user.regNo) && location.pathname !== "/onboarding") {
+    // 🛡️ IDENTITY GATEKEEPER: Ensure a non-empty, non-temporary registration ID exists (FOR STUDENTS ONLY).
+    // Staff accounts are allowed to proceed with just their basic profile details.
+    const isStudent = user.role === 'STUDENT';
+    const isTempId = isStudent && user.regNo === user.email;
+    const isMissingData = isStudent && (!user.regNo || user.regNo.trim() === "");
+    const needsOnboarding = !user.isOnboarded || isTempId || isMissingData;
+
+    if (needsOnboarding && location.pathname !== "/onboarding") {
         return <Navigate to="/onboarding" replace />;
     }
+    
+    // 🛡️ REVERSE ESCORT: If a user is at Onboarding but is already complete, send them out.
+    // (Handled internally by Onboarding.jsx, but we keep ProtectedRoute clean for them).
 
     return children;
 }

@@ -167,9 +167,13 @@ export const localLogin = (req, res, next) => {
 };
 
 export const getProfile = (req, res) => {
-    // 🛡️ SECURITY SHIELD: If user exists but lacks a mandatory regNo, 
-    // they MUST be forced back to onboarding despite any other flag.
-    const isActuallyOnboarded = req.user.isOnboarded && !!req.user.regNo;
+    // 🛡️ SECURITY SHIELD: If a STUDENT exists but lacks a mandatory regNo, 
+    // they MUST be forced back to onboarding.
+    // Staff members (Non-Students) are exempted from this strict academic check.
+    const isStudent = req.user.role === 'STUDENT';
+    const isActuallyOnboarded = isStudent 
+        ? (req.user.isOnboarded && !!req.user.regNo) 
+        : req.user.isOnboarded;
     
     res.json({ 
         ...req.user, 

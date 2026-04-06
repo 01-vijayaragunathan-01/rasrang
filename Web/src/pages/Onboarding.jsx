@@ -26,8 +26,17 @@ export default function Onboarding() {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        if (user && user.isOnboarded) {
-            navigate("/profile", { replace: true });
+        // Only redirect students if both onboarded AND have a non-email registration number
+        // Staff members are allowed to proceed with just 'isOnboarded' status.
+        const isStudent = user?.role === 'STUDENT';
+        const isActuallyComplete = isStudent 
+            ? (user?.isOnboarded && user?.regNo && user?.regNo !== user?.email)
+            : user?.isOnboarded;
+
+        if (isActuallyComplete) {
+            // Staff members should go to dashboard, Students to profile
+            const isStaff = user && ['VOLUNTEER', 'COORDINATOR', 'SUPER_ADMIN'].includes(user.role);
+            navigate(isStaff ? "/dashboard" : "/profile", { replace: true });
         }
     }, [user, navigate]);
 
