@@ -8,6 +8,7 @@ import AttendeeRegistry from "../components/profile/AttendeeRegistry";
 import TicketScanner from "../components/profile/TicketScanner";
 import VolunteerAssignment from "../components/profile/VolunteerAssignment";
 import { APP_THEME } from "../constants/theme";
+import DashboardOverview from "../components/profile/DashboardOverview";
 import { LayoutDashboard, ShieldCheck, Hammer, ScanLine, Camera, Users, UserCog } from "lucide-react";
 
 export default function Dashboard() {
@@ -95,27 +96,9 @@ export default function Dashboard() {
                     >
                         <div className="absolute top-0 right-0 w-64 h-64 bg-[#9D01E9]/10 blur-[80px] pointer-events-none" />
 
-                        {/* ── OVERVIEW ── */}
                         {activeSection === "overview" && (
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                                <div className="p-8 bg-black/40 border border-white/5 rounded-2xl">
-                                    <p className="text-[10px] uppercase font-bold text-white/40 mb-2 tracking-widest">Clearance Level</p>
-                                    <h3 className="text-2xl font-black text-white">{user?.role}</h3>
-                                </div>
-                                <div className="p-8 bg-black/40 border border-white/5 rounded-2xl">
-                                    <p className="text-[10px] uppercase font-bold text-white/40 mb-2 tracking-widest">Scanner Status</p>
-                                    <h3 className="text-2xl font-black text-[#22D3EE]">Active</h3>
-                                </div>
-                                <div className="p-8 bg-black/40 border border-white/5 rounded-2xl">
-                                    <p className="text-[10px] uppercase font-bold text-white/40 mb-2 tracking-widest">Platform Status</p>
-                                    <h3 className="text-2xl font-black text-[#9D01E9]">Nominal</h3>
-                                </div>
-                                <div className="md:col-span-3 py-12 text-center border-2 border-dashed border-white/10 rounded-2xl">
-                                    <p className="text-white/30 font-bold uppercase tracking-widest italic font-accent">Advanced Analytics Coming Soon</p>
-                                </div>
-                            </div>
+                            <DashboardOverview />
                         )}
-
                         {/* ── ENTRY PORTAL / TICKET SCANNER ── */}
                         {activeSection === "scanner" && isContributor && (
                             <div>

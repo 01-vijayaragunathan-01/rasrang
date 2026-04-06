@@ -513,3 +513,79 @@ export const getVolunteerAssignments = async (req, res) => {
     }
 };
 
+// --- Add to adminController.js ---
+
+export const getDashboardOverview = async (req, res) => {
+    logger.info(`Dashboard overview stats requested`, { userId: req.user.id, requestId: req.requestId });
+    try {
+        // Run aggregations in parallel for maximum performance
+        const [
+            totalUsers,
+            onboardedUsers,
+            totalEvents,
+            totalRegistrations,
+            scannedRegistrations,
+            eventsData,
+            collegeData // <-- NEW: Fetch college distributions
+        ] = await Promise.all([
+            prisma.user.count(),
+            prisma.user.count({ where: { isOnboarded: true } }),
+            prisma.event.count(),
+            prisma.registration.count(),
+            prisma.registration.count({ where: { scanned: true } }),
+            prisma.event.findMany({
+                select: {
+                    id: true,
+                    title: true,
+                    category: true,
+                    _count: {
+                        select: { registrations: true }
+                    },
+                    registrations: {
+                        where: { scanned: true },
+                        select: { id: true } 
+                    }
+                }
+            }),
+            // <-- NEW: Group users by College (Top 10)
+            prisma.user.groupBy({
+                by: ['clgName'],
+                where: { role: 'STUDENT', clgName: { not: '' } }, // Only count students who entered a college
+                _count: { id: true },
+                orderBy: { _count: { id: 'desc' } },
+                take: 10 
+            })
+        ]);
+
+        // Format event data
+        const eventStats = eventsData.map(e => ({
+            id: e.id,
+            title: e.title,
+            category: e.category,
+            totalReg: e._count.registrations,
+            scanned: e.registrations.length
+        })).sort((a, b) => b.totalReg - a.totalReg);
+
+        // Format college data
+        const collegeStats = collegeData.map(c => ({
+            name: c.clgName || 'Unknown',
+            count: c._count.id
+        }));
+
+        res.json({
+            success: true,
+            totalUsers,
+            onboardedUsers,
+            incompleteUsers: totalUsers - onboardedUsers,
+            totalEvents,
+            totalRegistrations,
+            scannedRegistrations,
+            eventStats,
+            collegeStats // <-- NEW: Send it to frontend
+        });
+
+    } catch (err) {
+        logger.error(`Failed to fetch overview stats`, { error: err.message, requestId: req.requestId });
+        res.status(500).json({ error: 'Failed to fetch overview statistics' });
+    }
+};

@@ -1,78 +1,100 @@
-import dotenv from 'dotenv';
-dotenv.config();
 import { PrismaClient } from '@prisma/client';
-
 const prisma = new PrismaClient();
 
-/**
- * REPAIR SCRIPT: Fixes "Zombie" users with missing core data.
- * Assigns temporary regNo (email) and placeholder core data,
- * then forces re-onboarding.
- */
-async function repairIncompleteProfiles() {
-    try {
-        console.log("🛠️ Starting Data Repair Protocol for RasRang 2026...\n");
+async function repair() {
+    console.log("🛠️ Starting Ultimate Data Repair Protocol...\n");
 
-        // Identify users missing ANY of the now-mandatory fields
-        const incompleteUsers = await prisma.user.findMany({
-            where: {
-                role: 'STUDENT',
-                OR: [
-                    { regNo: null }, { regNo: '' },
-                    { clgName: null }, { clgName: '' },
-                    { year: null }, { year: '' },
-                    { dept: null }, { dept: '' },
-                    { phoneNo: null }, { phoneNo: '' }
-                ]
-            }
+    try {
+        // 🔢 1. TOTAL USERS
+        const totalUsers = await prisma.user.count({
+            where: { role: 'STUDENT' }
         });
 
-        console.log(`📡 Identity Scan: Found ${incompleteUsers.length} users with incomplete profiles.\n`);
+        console.log(`👥 Total STUDENT users: ${totalUsers}`);
 
-        if (incompleteUsers.length === 0) {
+        // 🔍 2. FIND INCOMPLETE USERS (NULL + "")
+        const incompleteUsers = await prisma.$queryRaw`
+            SELECT id, email, name, "regNo", "phoneNo", "clgName", year, dept 
+            FROM "User" 
+            WHERE role = 'STUDENT'
+              AND (
+                  "regNo" IS NULL OR "regNo" = ''
+               OR "phoneNo" IS NULL OR "phoneNo" = ''
+               OR "clgName" IS NULL OR "clgName" = ''
+               OR year IS NULL OR year = ''
+               OR dept IS NULL OR dept = ''
+              )
+        `;
+
+        const totalIncomplete = incompleteUsers.length;
+
+        console.log(`⚠️ Incomplete users found: ${totalIncomplete}\n`);
+
+        if (totalIncomplete === 0) {
             console.log("✅ All systems clear: No incomplete profiles found.");
             return;
         }
 
-        let fixCount = 0;
+        console.log("🚀 Starting patch process...\n");
+
+        let repairedCount = 0;
 
         for (const user of incompleteUsers) {
-            console.log(`⚙️  Repairing: ${user.email} (${user.name})`);
+            // 🔐 Safe fallback values
+            const safeRegNo = (!user.regNo || user.regNo.trim() === '') 
+                ? user.email 
+                : user.regNo;
 
-            // 1. Temporary identifier (Unique)
-            const tempRegNo = (!user.regNo || user.regNo.trim() === '') ? user.email : user.regNo;
-            
-            // 2. Temporary phone number (Unique Placeholder)
-            // Strategy: 900 + slice of user ID to ensure uniqueness for @unique constraint
-            const tempPhone = (!user.phoneNo || user.phoneNo.trim() === '') 
+            const safePhone = (!user.phoneNo || user.phoneNo.trim() === '') 
                 ? `900${user.id.replace(/-/g, '').substring(0, 7)}` 
                 : user.phoneNo;
 
-            // 3. Mandatory placeholders to satisfy schema lock
-            const updateData = {
-                regNo: tempRegNo,
-                phoneNo: tempPhone,
-                clgName: user.clgName || "REVO-PENDING-COLLEGE",
-                year: user.year || "1",
-                dept: user.dept || "REVO-PENDING-DEPT",
-                isOnboarded: false // 🛡️ Force them to re-onboard
-            };
-            
-            await prisma.user.update({
-                where: { id: user.id },
-                data: updateData
-            });
-            fixCount++;
+            const safeClg = (!user.clgName || user.clgName.trim() === '') 
+                ? "PENDING-COLLEGE" 
+                : user.clgName;
+
+            const safeYear = (!user.year || user.year.trim() === '') 
+                ? "1" 
+                : user.year;
+
+            const safeDept = (!user.dept || user.dept.trim() === '') 
+                ? "PENDING-DEPT" 
+                : user.dept;
+
+            // 🛠️ Update
+            await prisma.$executeRaw`
+                UPDATE "User"
+                SET 
+                    "regNo" = ${safeRegNo},
+                    "phoneNo" = ${safePhone},
+                    "clgName" = ${safeClg},
+                    "year" = ${safeYear},
+                    "dept" = ${safeDept},
+                    "isOnboarded" = false
+                WHERE id = ${user.id}
+            `;
+
+            repairedCount++;
+
+            // 📊 Progress log
+            console.log(`✔️ [${repairedCount}/${totalIncomplete}] ${user.email}`);
         }
 
-        console.log(`\n🎉 Data Repair Complete: ${fixCount} identities restored.`);
-        console.log("==========================================================");
+        // 📊 FINAL SUMMARY
+        console.log("\n=======================================");
+        console.log("🎉 REPAIR SUMMARY");
+        console.log("=======================================");
+        console.log(`👥 Total Users        : ${totalUsers}`);
+        console.log(`⚠️ Incomplete Found  : ${totalIncomplete}`);
+        console.log(`🛠️ Repaired Users    : ${repairedCount}`);
+        console.log(`✅ Remaining Clean   : ${totalUsers - repairedCount}`);
+        console.log("=======================================\n");
 
     } catch (error) {
-        console.error("❌ Repair script FAILED:", error);
+        console.error("❌ Repair failed:", error);
     } finally {
         await prisma.$disconnect();
     }
 }
 
-repairIncompleteProfiles();
+repair();
