@@ -212,12 +212,11 @@ export const deleteUser = async (req, res) => {
 // ==========================================
 // ATTENDEE REGISTRY MODULE
 // ==========================================
-
-// 1. GET ATTENDEES (With Event Filter & Search)
+// 1. GET ATTENDEES (With Pagination, Sorting, Event Filter & Search)
 export const getAttendees = async (req, res) => {
     logger.info(`Attendee registry scan requested`, { userId: req.user.id, requestId: req.requestId });
     try {
-        const { eventId, search } = req.query;
+        const { eventId, search, page = 1, limit = 20, sortBy } = req.query;
 
         // Base: users who have at least one registration
         let whereClause = { registrations: { some: {} } };
@@ -236,15 +235,45 @@ export const getAttendees = async (req, res) => {
             ];
         }
 
+        // Pagination setup
+        const pageNum = parseInt(page);
+        const limitNum = parseInt(limit);
+        const skip = (pageNum - 1) * limitNum;
+
+        // Sorting setup
+        let orderBy = { name: 'asc' }; // Default sort
+        if (sortBy === 'college') {
+            orderBy = { college: 'asc' };
+        } else if (sortBy === 'name') {
+            orderBy = { name: 'asc' };
+        }
+
+        // 1. Fire off aggregate queries for the frontend stats bar
+        // We do this in parallel to keep the request incredibly fast
+        const [totalUnique, totalRegistrations, totalVerified] = await Promise.all([
+            // Count unique matching users
+            prisma.user.count({ where: whereClause }),
+            
+            // Count total registrations belonging to matching users
+            prisma.registration.count({ where: { user: whereClause } }),
+            
+            // Count verified (scanned) registrations belonging to matching users
+            prisma.registration.count({ where: { user: whereClause, scanned: true } })
+        ]);
+
+        // Calculate total pages for frontend pagination controls
+        const totalPages = Math.ceil(totalUnique / limitNum) || 1;
+
+        // 2. Fetch the actual paginated chunk of attendees
         const attendees = await prisma.user.findMany({
             where: whereClause,
             select: {
                 id: true,
                 name: true,
+                clgName: true, // Make sure 'college' is selected for the frontend!
                 regNo: true,
                 email: true,
                 phoneNo: true,
-                isOnboarded: true,
                 isOnboarded: true,
                 registrations: {
                     select: {
@@ -253,11 +282,22 @@ export const getAttendees = async (req, res) => {
                     }
                 }
             },
-            orderBy: { name: 'asc' }
+            orderBy: orderBy,
+            skip: skip,
+            take: limitNum
         });
 
-        logger.info(`Attendee scan results: ${attendees.length} identities found`, { requestId: req.requestId });
-        res.status(200).json(attendees);
+        logger.info(`Attendee scan results: ${attendees.length} identities found (Page ${pageNum}/${totalPages})`, { requestId: req.requestId });
+        
+        // Return the structured object the frontend is expecting
+        res.status(200).json({
+            attendees,
+            totalPages,
+            totalUnique,
+            totalRegistrations,
+            totalVerified
+        });
+
     } catch (error) {
         logger.error(`Attendee registry scan failure`, { error: error.message, requestId: req.requestId });
         res.status(500).json({ error: "Failed to fetch attendees." });

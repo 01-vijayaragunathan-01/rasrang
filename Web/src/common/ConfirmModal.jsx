@@ -11,6 +11,8 @@ export default function ConfirmModal({
     confirmText = "TERMINATE",
     cancelText = "ABORT"
 }) {
+    const [isProcessing, setIsProcessing] = React.useState(false);
+
     return (
         <AnimatePresence>
             {isOpen && (
@@ -21,7 +23,7 @@ export default function ConfirmModal({
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         className="absolute inset-0 bg-black/90 backdrop-blur-md"
-                        onClick={onClose}
+                        onClick={!isProcessing ? onClose : undefined}
                     />
 
                     {/* Modal */}
@@ -36,9 +38,11 @@ export default function ConfirmModal({
                             <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, #000 10px, #000 20px)' }} />
                             <AlertCircle className="w-6 h-6 text-black relative z-10" />
                             <h3 className="text-xl font-black uppercase italic text-black tracking-[0.2em] relative z-10">{title}</h3>
-                            <button onClick={onClose} className="ml-auto text-black hover:scale-110 transition-transform relative z-10">
-                                <X className="w-5 h-5" />
-                            </button>
+                            {!isProcessing && (
+                                <button onClick={onClose} className="ml-auto text-black hover:scale-110 transition-transform relative z-10">
+                                    <X className="w-5 h-5" />
+                                </button>
+                            )}
                         </div>
 
                         <div className="p-8 space-y-6">
@@ -48,17 +52,38 @@ export default function ConfirmModal({
 
                             <div className="flex flex-col gap-3">
                                 <button 
-                                    onClick={() => { onConfirm(); onClose(); }}
-                                    className="w-full py-4 bg-[#E31E6E] text-white font-black uppercase tracking-[0.3em] hover:bg-white hover:text-black transition-all flex items-center justify-center gap-2"
+                                    disabled={isProcessing}
+                                    onClick={async () => { 
+                                        setIsProcessing(true);
+                                        try {
+                                            const result = onConfirm();
+                                            if (result instanceof Promise) {
+                                                await result;
+                                            }
+                                            onClose(); 
+                                        } catch (err) {
+                                            console.error("Confirmation error:", err);
+                                        } finally {
+                                            setIsProcessing(false);
+                                        }
+                                    }}
+                                    className="w-full py-4 bg-[#E31E6E] text-white font-black uppercase tracking-[0.3em] hover:bg-white hover:text-black transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-wait"
                                 >
-                                    <Trash2 className="w-4 h-4" /> {confirmText}
+                                    {isProcessing ? (
+                                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                    ) : (
+                                        <Trash2 className="w-4 h-4" />
+                                    )}
+                                    {isProcessing ? "SYNCHRONIZING..." : confirmText}
                                 </button>
-                                <button 
-                                    onClick={onClose}
-                                    className="w-full py-3 bg-white/5 text-white/40 font-black uppercase tracking-[0.3em] hover:bg-white/10 hover:text-white transition-all"
-                                >
-                                    {cancelText}
-                                </button>
+                                {!isProcessing && (
+                                    <button 
+                                        onClick={onClose}
+                                        className="w-full py-3 bg-white/5 text-white/40 font-black uppercase tracking-[0.3em] hover:bg-white/10 hover:text-white transition-all"
+                                    >
+                                        {cancelText}
+                                    </button>
+                                )}
                             </div>
                         </div>
 
