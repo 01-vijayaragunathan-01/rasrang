@@ -17,9 +17,9 @@ import Footer from "./common/Footer";
 import StaggeredMenu from "./common/StaggeredMenu";
 
 // ─── LAZY LOADED PAGES ──────────────────────────────────────────────────
-const Home = lazy(() => import("./pages/Home"));
-const Events = lazy(() => import("./pages/Events"));
-const Gallery = lazy(() => import("./pages/Gallery"));
+const Home         = lazy(() => import("./pages/Home"));
+const Events       = lazy(() => import("./pages/Events"));
+const Gallery      = lazy(() => import("./pages/Gallery"));
 const Contributors = lazy(() => import("./pages/Contributors"));
 const Profile = lazy(() => import("./pages/Profile"));
 const Auth = lazy(() => import("./pages/Auth"));
@@ -162,6 +162,7 @@ function MainContent() {
   );
 }
 
+// ─── ROOT APP ────────────────────────────────────────────────────────────
 export default function App() {
   return (
     <ToastProvider>

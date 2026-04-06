@@ -51,13 +51,15 @@ export default function Events() {
     try {
       const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/events/my-registrations`, {
         headers: { "x-csrf-token": csrfToken },
-        credentials: "include"
+        credentials: "include",
       });
       const data = await res.json();
       if (data && data.individualTickets) {
         setUserRegistrations(data.individualTickets.map(reg => reg.eventId));
       }
-    } catch (err) { console.error("Failed to fetch user registrations:", err); }
+    } catch (err) {
+      console.error("Failed to fetch user registrations:", err);
+    }
   };
 
   const fetchEvents = async () => {
@@ -106,7 +108,9 @@ export default function Events() {
   useEffect(() => {
     if (loading) return;
     const ctx = gsap.context(() => {
-      gsap.from(".events-header-fade", { y: 30, opacity: 0, duration: 1, stagger: 0.15, ease: "power3.out" });
+      gsap.from(".events-header-fade", {
+        y: 30, opacity: 0, duration: 1, stagger: 0.15, ease: "power3.out",
+      });
     }, containerRef);
     return () => ctx.revert();
   }, [loading]);
@@ -198,10 +202,13 @@ export default function Events() {
           <span className="events-header-fade text-[#E4BD8D] font-bold uppercase tracking-[0.3em] text-sm mb-4 block">RasRang 2026</span>
           <h1 className="events-header-fade text-5xl sm:text-6xl md:text-7xl font-bold text-white mb-6 leading-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
             A Symphony of <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#E4BD8D] via-[#C53099] to-[#22D3EE]">Art & Culture</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#E4BD8D] via-[#C53099] to-[#22D3EE]">
+              Art &amp; Culture
+            </span>
           </h1>
           <p className="events-header-fade text-white/60 text-base md:text-lg leading-relaxed">
-            Immerse yourself in the vibrant heartbeat of our festival. Discover mesmerizing performances, showcase your talent, and be part of the legacy.
+            Immerse yourself in the vibrant heartbeat of our festival. Discover mesmerizing performances,
+            showcase your talent, and be part of the legacy.
           </p>
         </div>
 
