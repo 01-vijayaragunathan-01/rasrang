@@ -178,7 +178,13 @@ export default function AttendeeRegistry() {
                                     {/* Identity */}
                                     <td className="py-4 px-5">
                                         <p className="text-white font-bold text-sm">{user.name}</p>
-                                        <p className="text-white/40 text-xs font-mono mt-0.5">{user.regNo || "—"}</p>
+                                        {user.regNo === user.email ? (
+                                            <p className="text-[#E31E6E] text-[9px] font-black uppercase tracking-tighter mt-1 bg-[#E31E6E]/10 w-fit px-1.5 py-0.5 rounded border border-[#E31E6E]/20">
+                                                Pending Onboarding
+                                            </p>
+                                        ) : (
+                                            <p className="text-white/40 text-xs font-mono mt-0.5">{user.regNo || "—"}</p>
+                                        )}
                                     </td>
 
                                     {/* Contact */}

@@ -16,12 +16,12 @@ model User {
   role                Role                  @default(STUDENT)
   googleId            String?               @unique
   refreshToken        String?               @unique
-  clgName             String?
-  year                String?
-  dept                String?
+  clgName             String
+  year                String
+  dept                String
   branch              String?
   section             String?
-  phoneNo             String?               @unique
+  phoneNo             String                @unique
   isOnboarded         Boolean               @default(false)
   canManagePrivileges Boolean               @default(false)
   createdAt           DateTime              @default(now())

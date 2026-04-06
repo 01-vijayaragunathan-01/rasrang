@@ -231,6 +231,11 @@ export const updateProfile = async (req, res) => {
     try {
         const userId = req.user.id;
         const { clgName, year, dept, branch, section, avatarSeed } = req.body;
+        
+        // 🛡️ SECURITY SHIELD: Prevent clearing mandatory core fields
+        if (clgName === "" || year === "" || dept === "") {
+            return res.status(400).json({ error: 'Core identification fields cannot be empty.' });
+        }
 
         const updatedUser = await prisma.user.update({
             where: { id: userId },
@@ -239,7 +244,7 @@ export const updateProfile = async (req, res) => {
             select: {
                 id: true, name: true, email: true, role: true,
                 regNo: true, clgName: true, year: true, dept: true,
-                branch: true, section: true, avatarSeed: true, isOnboarded: true
+                branch: true, section: true, avatarSeed: true, isOnboarded: true, phoneNo: true
             }
         });
 

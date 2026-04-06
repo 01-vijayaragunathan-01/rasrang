@@ -6,13 +6,14 @@ const prisma = new PrismaClient();
 
 /**
  * REPAIR SCRIPT: Fixes "Zombie" users with missing core data.
- * Assigns temporary regNo (email) and forces re-onboarding.
+ * Assigns temporary regNo (email) and placeholder core data,
+ * then forces re-onboarding.
  */
 async function repairIncompleteProfiles() {
     try {
         console.log("🛠️ Starting Data Repair Protocol for RasRang 2026...\n");
 
-        // 1. Identify users missing CORE FIELDS
+        // Identify users missing ANY of the now-mandatory fields
         const incompleteUsers = await prisma.user.findMany({
             where: {
                 role: 'STUDENT',
@@ -35,19 +36,31 @@ async function repairIncompleteProfiles() {
 
         let fixCount = 0;
 
-        // 2. Perform Batch Repairs
         for (const user of incompleteUsers) {
             console.log(`⚙️  Repairing: ${user.email} (${user.name})`);
 
-            // Use email as temporary regNo if missing or empty
+            // 1. Temporary identifier (Unique)
             const tempRegNo = (!user.regNo || user.regNo.trim() === '') ? user.email : user.regNo;
+            
+            // 2. Temporary phone number (Unique Placeholder)
+            // Strategy: 900 + slice of user ID to ensure uniqueness for @unique constraint
+            const tempPhone = (!user.phoneNo || user.phoneNo.trim() === '') 
+                ? `900${user.id.replace(/-/g, '').substring(0, 7)}` 
+                : user.phoneNo;
+
+            // 3. Mandatory placeholders to satisfy schema lock
+            const updateData = {
+                regNo: tempRegNo,
+                phoneNo: tempPhone,
+                clgName: user.clgName || "REVO-PENDING-COLLEGE",
+                year: user.year || "1",
+                dept: user.dept || "REVO-PENDING-DEPT",
+                isOnboarded: false // 🛡️ Force them to re-onboard
+            };
             
             await prisma.user.update({
                 where: { id: user.id },
-                data: {
-                    regNo: tempRegNo,
-                    isOnboarded: false // 🛡️ Force them to re-onboard to provide correct data
-                }
+                data: updateData
             });
             fixCount++;
         }
@@ -62,5 +75,4 @@ async function repairIncompleteProfiles() {
     }
 }
 
-// Execute the repair
 repairIncompleteProfiles();

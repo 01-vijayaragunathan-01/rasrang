@@ -244,6 +244,8 @@ export const getAttendees = async (req, res) => {
                 regNo: true,
                 email: true,
                 phoneNo: true,
+                isOnboarded: true,
+                isOnboarded: true,
                 registrations: {
                     select: {
                         scanned: true,
@@ -288,9 +290,9 @@ export const exportAttendeesCsv = async (req, res) => {
 
             return {
                 "Full Name": user.name,
-                "Register No": user.regNo || "N/A",
+                "Register No": user.isOnboarded ? (user.regNo || "N/A") : "Incomplete Registration",
                 "Email Address": user.email,
-                "Phone": user.phoneNo || "N/A",
+                "Phone": user.isOnboarded ? (user.phoneNo || "N/A") : "Pending Verification",
                 "Total Registrations": user.registrations.length,
                 "Events Attended": eventsAttended,
                 "Registered Events": registeredEvents
