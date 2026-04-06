@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Html5Qrcode } from "html5-qrcode";
-import { QrCode, Keyboard, CheckCircle, AlertTriangle, Loader2, Camera as CameraIcon } from "lucide-react";
+import { QrCode, Keyboard, CheckCircle, AlertTriangle, Loader2, Camera as CameraIcon, ScanLine, XCircle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "../../context/ToastContext";
 import { api } from "../../utils/api";
 
@@ -21,46 +22,45 @@ export default function TicketScanner() {
     const [isVerifying, setIsVerifying] = useState(false);
     const [scanResult, setScanResult] = useState(null); 
 
-    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
-
-    // 1. Fetch Events for the dropdown
+    // 1. Fetch Managed Events for this specific volunteer
     useEffect(() => {
-        api("/api/events")
+        // Fetch events this volunteer is assigned to manage
+        api("/api/admin/my-managed-events")
             .then(res => res.json())
             .then(data => {
-                setEvents(data);
-                if (data.length > 0) setSelectedEvent(data[0].id);
+                if (Array.isArray(data)) {
+                    setEvents(data);
+                    if (data.length > 0) setSelectedEvent(data[0].id);
+                }
             })
-            .catch(err => console.error("Failed to fetch events:", err));
+            .catch(err => console.error("Failed to fetch assigned events:", err));
     }, []);
 
-    // 2. Fetch Available Cameras & Auto-Select Front Camera
+    // 2. Fetch Available Cameras & Auto-Select Optimal Camera
     useEffect(() => {
         Html5Qrcode.getCameras().then(devices => {
             if (devices && devices.length > 0) {
                 setCameras(devices);
                 
-                // Smart auto-selection: Look for "front", "user", "webcam", or "facetime"
-                const frontCamera = devices.find(d => 
-                    d.label.toLowerCase().includes('front') || 
-                    d.label.toLowerCase().includes('user') ||
-                    d.label.toLowerCase().includes('facetime') ||
-                    d.label.toLowerCase().includes('webcam')
+                // Smart auto-selection: Look for "back", "environment" (rear camera) first for mobile scanning
+                const rearCamera = devices.find(d => 
+                    d.label.toLowerCase().includes('back') || 
+                    d.label.toLowerCase().includes('environment')
                 );
                 
-                // Default to front camera if found, otherwise just use the first available
-                setSelectedCamera(frontCamera ? frontCamera.id : devices[0].id);
+                setSelectedCamera(rearCamera ? rearCamera.id : devices[0].id);
             }
         }).catch(err => {
             console.error("Error getting cameras:", err);
-            toast.error("Please grant camera permissions to scan passes.");
+            toast.error("Camera permission denied. Manual entry mode active.");
+            setMode("manual");
         });
     }, []);
 
     // 3. Initialize & Manage QR Scanner
     useEffect(() => {
         let html5QrCode;
-        let isComponentMounted = true;
+        let isScanning = true;
 
         if (mode === "scan" && selectedCamera && selectedEvent) {
             html5QrCode = new Html5Qrcode("qr-reader");
@@ -70,38 +70,38 @@ export default function TicketScanner() {
                 { 
                     fps: 10, 
                     qrbox: { width: 250, height: 250 },
-                    aspectRatio: 1.0 // Keeps the scanner square and clean
+                    aspectRatio: 1.0 
                 },
                 (decodedText) => {
-                    // Safely pause the scanner to prevent spamming the backend
-                    try {
-                        if (html5QrCode.getState() === 2) { // 2 = SCANNING
-                            html5QrCode.pause();
-                            verifyTicket(decodedText).finally(() => {
-                                setTimeout(() => {
-                                    // Resume scanning after 3 seconds
-                                    if (isComponentMounted && html5QrCode.getState() === 3) { // 3 = PAUSED
-                                        html5QrCode.resume();
-                                    }
-                                }, 3000);
-                            });
-                        }
-                    } catch (e) {
-                        console.error("Scanner pause error:", e);
+                    // Prevent overlapping scans
+                    if (isScanning) {
+                        isScanning = false;
+                        html5QrCode.pause();
+                        
+                        verifyTicket(decodedText).finally(() => {
+                            setTimeout(() => {
+                                // Resume scanning after 2.5 seconds
+                                if (html5QrCode.getState() === 3) { // 3 = PAUSED
+                                    isScanning = true;
+                                    setScanResult(null); // Clear previous result
+                                    html5QrCode.resume();
+                                }
+                            }, 2500);
+                        });
                     }
                 },
                 (error) => { /* Ignore constant background read errors */ }
             ).catch(err => console.error("Scanner start error:", err));
         }
 
-        // Cleanup: Stop the camera when switching modes, changing cameras, or unmounting
+        // Robust Cleanup Function
         return () => {
-            isComponentMounted = false;
+            isScanning = false;
             if (html5QrCode) {
                 try {
-                    html5QrCode.stop()
-                        .then(() => html5QrCode.clear())
-                        .catch(err => console.error("Failed to clear scanner:", err));
+                    if (html5QrCode.getState() !== 1) { // 1 = UNKNOWN/STOPPED
+                        html5QrCode.stop().then(() => html5QrCode.clear()).catch(() => {});
+                    }
                 } catch (e) {
                     console.error("Cleanup error:", e);
                 }
@@ -109,7 +109,7 @@ export default function TicketScanner() {
         };
     }, [mode, selectedCamera, selectedEvent]);
 
-    // 4. The Verification Logic
+    // 4. Smart Verification Logic (Handles both JWTs and Manual Strings)
     const verifyTicket = async (identifier) => {
         if (!selectedEvent) return toast.error("Please select an event first.");
         if (!identifier) return;
@@ -117,26 +117,56 @@ export default function TicketScanner() {
         setIsVerifying(true);
         setScanResult(null);
 
+        // ── SMART ROUTING ──
+        // QR Codes generate JWTs (which always start with "eyJ")
+        const isJWT = identifier.startsWith("eyJ");
+        
+        let endpoint = "";
+        let bodyData = {};
+
+        if (isJWT) {
+            // It's a QR code! Send to the eventController JWT decoder
+            endpoint = "/api/events/verify-ticket"; 
+            bodyData = { selectedEventId: selectedEvent, ticketData: identifier };
+        } else {
+            // It's manual text (RegNo/Email)! Send to adminController raw string matcher
+            endpoint = "/api/admin/verify-entry";
+            bodyData = { eventId: selectedEvent, identifier };
+        }
+
         try {
-            const res = await api("/api/admin/verify-entry", {
+            const res = await api(endpoint, {
                 method: "POST",
-                body: JSON.stringify({ eventId: selectedEvent, identifier })
+                body: JSON.stringify(bodyData)
             });
             
             const data = await res.json();
 
-            if (res.ok) {
-                // Play Success Sound (Optional but highly recommended)
+            if (res.ok && data.valid) {
+                // SUCCESS
                 try { new Audio('/success-beep.mp3').play(); } catch(e){}
-                setScanResult({ type: 'success', message: data.message, details: `${data.attendee.name} (${data.attendee.regNo || 'No Reg No'})` });
+                
+                // Unify response format slightly depending on which endpoint answered
+                const userName = data.attendee ? data.attendee.name : data.user;
+                const regDetails = data.attendee ? data.attendee.regNo : "Verified";
+                
+                setScanResult({ 
+                    type: 'success', 
+                    message: "ENTRY GRANTED", 
+                    details: `${userName} - ${regDetails}` 
+                });
                 setManualId(""); 
             } else {
-                // Play Error Sound
+                // FAILURE (Already scanned, not found, wrong event)
                 try { new Audio('/error-buzz.mp3').play(); } catch(e){}
-                setScanResult({ type: 'error', message: "Access Denied", details: data.error });
+                setScanResult({ 
+                    type: 'error', 
+                    message: data.alreadyScanned ? "ALREADY SCANNED" : "ACCESS DENIED", 
+                    details: data.error 
+                });
             }
         } catch (err) {
-            setScanResult({ type: 'error', message: "System Error", details: "Could not reach verification servers." });
+            setScanResult({ type: 'error', message: "SYSTEM ERROR", details: "Server timeout. Check connection." });
         } finally {
             setIsVerifying(false);
         }
@@ -148,108 +178,163 @@ export default function TicketScanner() {
     };
 
     return (
-        <div className="w-full max-w-2xl mx-auto bg-[#1A0B2E] border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl">
+        <div className="w-full max-w-xl mx-auto bg-[#13072E] border border-[#E4BD8D]/30 rounded-3xl p-6 md:p-8 shadow-[0_0_50px_rgba(157,1,233,0.15)] relative overflow-hidden">
             
-            <h2 className="text-3xl font-bold text-white mb-6" style={{ fontFamily: "'Playfair Display', serif" }}>
-                Entry Portal
-            </h2>
+            {/* Background aesthetic */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-[#C53099] rounded-full blur-[100px] opacity-20 pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#22D3EE] rounded-full blur-[100px] opacity-10 pointer-events-none" />
 
-            {/* Context Selectors */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-                {/* Event Dropdown */}
-                <div>
-                    <label className="block text-xs font-bold uppercase tracking-widest text-[#E4BD8D] mb-2">Active Event</label>
-                    <select 
-                        value={selectedEvent}
-                        onChange={(e) => { setSelectedEvent(e.target.value); setScanResult(null); }}
-                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-[#22D3EE] outline-none appearance-none"
-                    >
-                        {events.map(ev => (
-                            <option key={ev.id} value={ev.id} className="bg-[#1A0B2E]">{ev.title}</option>
-                        ))}
-                    </select>
+            <div className="relative z-10">
+                <div className="flex items-center gap-3 mb-8 border-b border-white/10 pb-4">
+                    <div className="p-3 bg-[#E4BD8D]/20 rounded-xl text-[#E4BD8D]">
+                        <ScanLine size={24} />
+                    </div>
+                    <div>
+                        <h2 className="text-2xl font-black text-white uppercase tracking-widest" style={{ fontFamily: "'Playfair Display', serif" }}>
+                            Entry Portal
+                        </h2>
+                        <p className="text-[10px] text-white/40 uppercase tracking-[0.2em] font-bold">Access Verification Node</p>
+                    </div>
                 </div>
 
-                {/* Camera Dropdown (Only show if in scan mode) */}
-                {mode === "scan" && (
+                {/* Context Selectors */}
+                <div className="space-y-4 mb-8">
+                    {/* Event Dropdown */}
                     <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest text-[#22D3EE] mb-2 flex items-center gap-2">
-                            <CameraIcon className="w-3.5 h-3.5" /> Camera Source
-                        </label>
+                        <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-[#E4BD8D] mb-2 pl-1">Target Event</label>
                         <select 
-                            value={selectedCamera}
-                            onChange={(e) => { setSelectedCamera(e.target.value); setScanResult(null); }}
-                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-[#22D3EE] outline-none appearance-none"
-                            disabled={cameras.length === 0}
+                            value={selectedEvent}
+                            onChange={(e) => { setSelectedEvent(e.target.value); setScanResult(null); }}
+                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3.5 text-sm font-bold text-white focus:border-[#E4BD8D] outline-none appearance-none transition-colors"
                         >
-                            {cameras.length === 0 ? (
-                                <option value="">Detecting Cameras...</option>
-                            ) : (
-                                cameras.map(cam => (
-                                    <option key={cam.id} value={cam.id} className="bg-[#1A0B2E]">{cam.label || `Camera ${cam.id.substring(0,5)}`}</option>
-                                ))
-                            )}
+                            {events.length === 0 && <option value="">No Events Assigned</option>}
+                            {events.map(ev => (
+                                <option key={ev.id} value={ev.id} className="bg-[#13072E]">{ev.title}</option>
+                            ))}
                         </select>
                     </div>
-                )}
-            </div>
 
-            {/* Mode Toggles */}
-            <div className="flex bg-white/5 rounded-lg p-1 mb-8">
-                <button 
-                    onClick={() => { setMode("scan"); setScanResult(null); }}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-md text-sm font-bold uppercase tracking-widest transition-all ${mode === "scan" ? 'bg-[#22D3EE] text-[#13072E]' : 'text-white/50 hover:text-white'}`}
-                >
-                    <QrCode className="w-4 h-4" /> Scanner
-                </button>
-                <button 
-                    onClick={() => { setMode("manual"); setScanResult(null); }}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-md text-sm font-bold uppercase tracking-widest transition-all ${mode === "manual" ? 'bg-[#22D3EE] text-[#13072E]' : 'text-white/50 hover:text-white'}`}
-                >
-                    <Keyboard className="w-4 h-4" /> Manual Entry
-                </button>
-            </div>
-
-            {/* Scan Result Feedback Banner */}
-            {scanResult && (
-                <div className={`p-4 rounded-xl mb-8 flex items-start gap-4 ${scanResult.type === 'success' ? 'bg-green-500/10 border border-green-500/30' : 'bg-red-500/10 border border-red-500/30'}`}>
-                    {scanResult.type === 'success' ? <CheckCircle className="w-6 h-6 text-green-500 shrink-0" /> : <AlertTriangle className="w-6 h-6 text-red-500 shrink-0" />}
-                    <div>
-                        <h4 className={`text-lg font-bold ${scanResult.type === 'success' ? 'text-green-500' : 'text-red-500'}`}>{scanResult.message}</h4>
-                        <p className="text-white/70 text-sm mt-1">{scanResult.details}</p>
-                    </div>
+                    {/* Camera Dropdown (Only show if in scan mode) */}
+                    {mode === "scan" && (
+                        <AnimatePresence>
+                            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
+                                <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-[#22D3EE] mb-2 pl-1 flex items-center gap-1.5">
+                                    <CameraIcon className="w-3 h-3" /> Camera Source
+                                </label>
+                                <select 
+                                    value={selectedCamera}
+                                    onChange={(e) => { setSelectedCamera(e.target.value); setScanResult(null); }}
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-[#22D3EE] outline-none appearance-none transition-colors"
+                                    disabled={cameras.length === 0}
+                                >
+                                    {cameras.length === 0 ? (
+                                        <option value="">Detecting Cameras...</option>
+                                    ) : (
+                                        cameras.map(cam => (
+                                            <option key={cam.id} value={cam.id} className="bg-[#13072E]">{cam.label || `Camera ${cam.id.substring(0,5)}`}</option>
+                                        ))
+                                    )}
+                                </select>
+                            </motion.div>
+                        </AnimatePresence>
+                    )}
                 </div>
-            )}
 
-            {/* The Active Interface */}
-            {mode === "scan" ? (
-                <div className="overflow-hidden rounded-2xl border border-white/10 bg-black relative">
-                    {/* The div where html5-qrcode injects the video stream */}
-                    <div id="qr-reader" className="w-full min-h-[300px] flex items-center justify-center text-white/30" />
-                </div>
-            ) : (
-                <form onSubmit={handleManualSubmit} className="space-y-4">
-                    <div>
-                        <label className="block text-xs font-bold uppercase tracking-widest text-white/50 mb-2">User ID or Register Number</label>
-                        <input 
-                            type="text" 
-                            value={manualId}
-                            onChange={(e) => setManualId(e.target.value)}
-                            placeholder="e.g. RA26110..." 
-                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-[#C53099] outline-none"
-                            autoFocus
-                        />
-                    </div>
+                {/* Mode Toggles */}
+                <div className="flex bg-black/40 rounded-xl p-1.5 mb-8 border border-white/5">
                     <button 
-                        type="submit" 
-                        disabled={isVerifying || !manualId}
-                        className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[#C53099] to-[#9D01E9] text-white py-4 rounded-xl font-bold uppercase tracking-widest disabled:opacity-50"
+                        onClick={() => { setMode("scan"); setScanResult(null); }}
+                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${mode === "scan" ? 'bg-[#22D3EE]/20 text-[#22D3EE] border border-[#22D3EE]/30 shadow-[0_0_15px_rgba(34,211,238,0.2)]' : 'text-white/40 hover:text-white/80 border border-transparent'}`}
                     >
-                        {isVerifying ? <Loader2 className="w-5 h-5 animate-spin" /> : "Verify Identity"}
+                        <QrCode className="w-4 h-4" /> QR Scan
                     </button>
-                </form>
-            )}
+                    <button 
+                        onClick={() => { setMode("manual"); setScanResult(null); }}
+                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${mode === "manual" ? 'bg-[#C53099]/20 text-[#C53099] border border-[#C53099]/30 shadow-[0_0_15px_rgba(197,48,153,0.2)]' : 'text-white/40 hover:text-white/80 border border-transparent'}`}
+                    >
+                        <Keyboard className="w-4 h-4" /> Manual
+                    </button>
+                </div>
 
+                {/* The Active Interface */}
+                <div className="relative min-h-[320px]">
+                    
+                    {/* Scan Result Feedback Banner (Overlays the scanner when triggered) */}
+                    <AnimatePresence>
+                        {scanResult && (
+                            <motion.div 
+                                initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9, y: 10 }}
+                                className={`absolute inset-0 z-50 flex items-center justify-center p-6 backdrop-blur-sm rounded-2xl ${scanResult.type === 'success' ? 'bg-green-500/20' : 'bg-red-500/20'}`}
+                            >
+                                <div className={`w-full p-6 rounded-2xl text-center shadow-2xl border ${scanResult.type === 'success' ? 'bg-[#0A1A10] border-green-500/50 shadow-green-500/20' : 'bg-[#1A0A0A] border-red-500/50 shadow-red-500/20'}`}>
+                                    <div className="flex justify-center mb-4">
+                                        {scanResult.type === 'success' ? (
+                                            <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center text-green-400 border-2 border-green-400">
+                                                <CheckCircle size={32} />
+                                            </div>
+                                        ) : (
+                                            <div className="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center text-red-400 border-2 border-red-400">
+                                                {scanResult.message === "ALREADY SCANNED" ? <AlertTriangle size={32} /> : <XCircle size={32} />}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <h4 className={`text-2xl font-black uppercase tracking-widest mb-2 ${scanResult.type === 'success' ? 'text-green-400' : 'text-red-400'}`}>
+                                        {scanResult.message}
+                                    </h4>
+                                    <p className="text-white/80 font-mono text-sm">{scanResult.details}</p>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    {mode === "scan" ? (
+                        <div className="overflow-hidden rounded-2xl border-2 border-[#22D3EE]/30 bg-black relative shadow-[0_0_30px_rgba(34,211,238,0.1)]">
+                            {/* Decorative Cyberpunk Scanner Corners */}
+                            <div className="absolute top-4 left-4 w-8 h-8 border-t-4 border-l-4 border-[#22D3EE] z-10 pointer-events-none rounded-tl-lg" />
+                            <div className="absolute top-4 right-4 w-8 h-8 border-t-4 border-r-4 border-[#22D3EE] z-10 pointer-events-none rounded-tr-lg" />
+                            <div className="absolute bottom-4 left-4 w-8 h-8 border-b-4 border-l-4 border-[#22D3EE] z-10 pointer-events-none rounded-bl-lg" />
+                            <div className="absolute bottom-4 right-4 w-8 h-8 border-b-4 border-r-4 border-[#22D3EE] z-10 pointer-events-none rounded-br-lg" />
+                            
+                            {/* Target reticle crosshair */}
+                            <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none opacity-20">
+                                <div className="w-[70%] h-[70%] border border-[#22D3EE] rounded-3xl" />
+                                <div className="absolute w-full h-[1px] bg-[#22D3EE]" />
+                                <div className="absolute h-full w-[1px] bg-[#22D3EE]" />
+                            </div>
+
+                            {/* The div where html5-qrcode injects the video stream */}
+                            <div id="qr-reader" className="w-full h-[320px] flex items-center justify-center text-white/30 font-mono text-sm" />
+                        </div>
+                    ) : (
+                        <form onSubmit={handleManualSubmit} className="space-y-6 bg-black/20 p-6 rounded-2xl border border-white/5 h-[320px] flex flex-col justify-center">
+                            <div className="text-center mb-4">
+                                <Keyboard className="w-12 h-12 text-[#C53099]/40 mx-auto mb-2" />
+                                <p className="text-[10px] text-white/50 uppercase tracking-widest font-bold">Direct Database Query</p>
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-[#C53099] mb-2 pl-1">Identifier (Reg No / Email)</label>
+                                <input 
+                                    type="text" 
+                                    value={manualId}
+                                    onChange={(e) => setManualId(e.target.value)}
+                                    placeholder="e.g. RA26110..." 
+                                    className="w-full bg-black/60 border border-white/10 rounded-xl px-5 py-4 text-white font-mono focus:border-[#C53099] outline-none transition-colors"
+                                    autoFocus
+                                />
+                            </div>
+                            <button 
+                                type="submit" 
+                                disabled={isVerifying || !manualId}
+                                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[#C53099] to-[#9D01E9] text-white py-4 rounded-xl text-xs font-black uppercase tracking-[0.2em] disabled:opacity-50 hover:shadow-[0_0_20px_rgba(197,48,153,0.4)] transition-all"
+                            >
+                                {isVerifying ? <Loader2 className="w-5 h-5 animate-spin" /> : "Verify Identity"}
+                            </button>
+                        </form>
+                    )}
+                </div>
+            </div>
         </div>
     );
 }

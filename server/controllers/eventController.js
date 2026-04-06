@@ -1,8 +1,46 @@
 import QRCode from 'qrcode';
 import jwt from 'jsonwebtoken';
+import { createCanvas, loadImage } from 'canvas'; // <-- Added for logo embedding
+import path from 'path'; // <-- Added for resolving logo file path
 import logger from '../utils/logger.js';
 import prisma from '../db.js'; // H-1 FIX: Shared Prisma singleton
+
 const TICKET_SECRET = process.env.TICKET_SECRET || 'super_secret_festival_key';
+
+// ─── HELPER FUNCTION TO GENERATE QR WITH LOGO ───
+const generateQRWithLogo = async (payload, width = 400) => {
+    // 1. Generate base QR on a canvas
+    const canvas = createCanvas(width, width);
+    await QRCode.toCanvas(canvas, payload, {
+        width: width,
+        margin: 2,
+        color: {
+            dark: '#000000',
+            light: '#ffffff'
+        }
+    });
+
+    const ctx = canvas.getContext('2d');
+    const logoSize = width * 0.25; // Logo takes up 25% of the QR code
+    const center = (width - logoSize) / 2;
+
+    try {
+        // 2. Draw a white square with rounded corners behind the logo so the QR code lines don't clash
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.roundRect(center - 5, center - 5, logoSize + 10, logoSize + 10, 10); 
+        ctx.fill();
+
+        // 3. Load and draw your logo (Assumes logo.png is in a 'public' folder in your backend root)
+        const logoPath = path.resolve(process.cwd(), 'public', 'SRM_Logo.jpeg'); 
+        const logo = await loadImage(logoPath);
+        ctx.drawImage(logo, center, center, logoSize, logoSize);
+    } catch (err) {
+        logger.warn(`Could not load logo for QR generation. Defaulting to standard QR.`, { error: err.message });
+    }
+
+    return canvas.toBuffer('image/png');
+};
 
 export const getEvents = async (req, res) => {
     try {
@@ -22,7 +60,6 @@ export const registerForEvent = async (req, res) => {
     const { eventId } = req.body;
     const userId = req.user.id;
 
-    // CR-2 FIX: Validate eventId exists and is a non-empty string before touching the DB
     if (!eventId || typeof eventId !== 'string' || eventId.trim() === '') {
         logger.warn(`Registration rejected: missing or invalid eventId`, { userId, requestId: req.requestId });
         return res.status(400).json({ error: 'A valid eventId is required' });
@@ -30,43 +67,33 @@ export const registerForEvent = async (req, res) => {
 
     logger.info(`User ${userId} attempting to register for event ${eventId}`, { requestId: req.requestId });
     try {
-        // 1. Verify Event Exists
         const event = await prisma.event.findUnique({ where: { id: eventId } });
         if (!event) {
             logger.warn(`Registration failed: Event ${eventId} not found`, { requestId: req.requestId });
             return res.status(404).json({ error: 'Event not found' });
         }
         
-        // 🛡️ SECURITY SHIELD: Verify registrations are still open
         if (event.isRegistrationClosed) {
             logger.warn(`Registration blocked: Event ${eventId} is closed`, { userId, requestId: req.requestId });
             return res.status(403).json({ error: 'Registrations for this mission have concluded.' });
         }
 
-        // CR-1 FIX: Collapsed the duplicate-check + create into one atomic operation.
-        // We skip the pre-check findUnique entirely and rely on the DB's @@unique([userId, eventId])
-        // constraint to reject duplicates. This eliminates the race-condition window where two
-        // concurrent requests could both pass the check before either creates a record.
         const registration = await prisma.registration.create({
             data: { userId, eventId }
         });
 
         logger.info(`Registration SUCCESS for user ${userId} / event ${eventId}`, { registrationId: registration.id, requestId: req.requestId });
-        // M-2 FIX: Return only the fields the frontend needs — not the full internal record
         res.status(201).json({ success: true, message: 'Pass reserved successfully!', registrationId: registration.id });
 
     } catch (err) {
-        // CR-1 FIX: Prisma error code P2002 = unique constraint violation = already registered
         if (err.code === 'P2002') {
             logger.warn(`Registration conflict: User ${userId} already registered for ${eventId}`, { requestId: req.requestId });
             return res.status(400).json({ error: 'Already registered for this event' });
         }
-        // H-2 FIX: Don't leak DB error internals to the client; log them server-side only
         logger.error(`Registration critical failure`, { userId, eventId, error: err.message, requestId: req.requestId });
         res.status(500).json({ error: 'Registration failed. Please try again.' });
     }
 };
-
 
 // ==========================================
 // 2. SECURE TICKET GENERATION
@@ -84,7 +111,6 @@ export const getUserRegistrations = async (req, res) => {
         
         // Generate Signed Individual Tickets
         const individualTickets = await Promise.all(registrations.map(async (reg) => {
-            // H-6 FIX: Tickets now expire after 48 hours — screenshots from weeks ago won't work
             const signedPayload = jwt.sign({ r: reg.id, u: reg.userId, e: reg.eventId, type: 'individual' }, TICKET_SECRET, { expiresIn: '48h' });
             const qrImage = await QRCode.toDataURL(signedPayload);
             return { ...reg, qrImage };
@@ -132,7 +158,6 @@ export const verifyTicket = async (req, res) => {
         const { ticketData } = req.body;
         let qrPayload;
         
-        // Decrypt and Verify the Signature
         try { 
             qrPayload = jwt.verify(ticketData, TICKET_SECRET);
         } catch(e) { 
@@ -144,7 +169,6 @@ export const verifyTicket = async (req, res) => {
         if (qrPayload.type === 'master') {
             const { u: userId, d: date } = qrPayload;
             
-            // Volunteer is scanning the master pass for the first time
             if (!selectedEventId) {
                 const regs = await prisma.registration.findMany({
                     where: { userId, event: { date: date } },
@@ -165,7 +189,6 @@ export const verifyTicket = async (req, res) => {
                 });
             }
 
-            // Volunteer selected the specific event from the master list
             const reg = await prisma.registration.findUnique({
                 where: { userId_eventId: { userId, eventId: selectedEventId } },
                 include: { event: true }
@@ -237,7 +260,9 @@ export const downloadIndividualTicket = async (req, res) => {
         }
         
         const signedPayload = jwt.sign({ r: reg.id, u: reg.userId, e: reg.eventId, type: 'individual' }, TICKET_SECRET, { expiresIn: '48h' });
-        const buffer = await QRCode.toBuffer(signedPayload, { width: 300 });
+        
+        // Use custom generator with logo
+        const buffer = await generateQRWithLogo(signedPayload, 400); 
         
         logger.info(`Ticket PNG sent successfully for event "${reg.event.title}"`, { requestId: req.requestId });
         res.type('image/png');
@@ -252,8 +277,6 @@ export const downloadIndividualTicket = async (req, res) => {
 export const downloadMasterTicket = async (req, res) => {
     const { date } = req.params;
     try {
-        // M-3 FIX: Verify the user has at least one registration on this date
-        // before issuing a signed master pass — prevents signing tokens for zero-registration dates
         const count = await prisma.registration.count({
             where: { userId: req.user.id, event: { date } }
         });
@@ -263,7 +286,9 @@ export const downloadMasterTicket = async (req, res) => {
         }
 
         const signedPayload = jwt.sign({ u: req.user.id, d: date, type: 'master' }, TICKET_SECRET, { expiresIn: '48h' });
-        const buffer = await QRCode.toBuffer(signedPayload, { width: 400 });
+        
+        // Use custom generator with logo
+        const buffer = await generateQRWithLogo(signedPayload, 400); 
         
         logger.info(`Master pass PNG sent successfully for date ${date}`, { requestId: req.requestId });
         res.type('image/png');

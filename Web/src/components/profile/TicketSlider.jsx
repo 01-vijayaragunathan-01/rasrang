@@ -1,89 +1,105 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import html2canvas from "html2canvas";
-import multiavatar from '@multiavatar/multiavatar/esm';
 import { APP_THEME } from "../../constants/theme";
-import { X, Filter, Download, CalendarDays, Ticket, Shield, ChevronRight, Loader2 } from "lucide-react";
+import { X, Download, CalendarDays, Ticket, Shield, ChevronRight, Loader2 } from "lucide-react";
 
 // ─── OFFLINE PRINTABLE ID CARD TEMPLATE (Hidden from view) ───
 function PrintableBadge({ data, user }) {
-    const avatarSvg = useMemo(() => multiavatar(user?.avatarSeed || user?.email || "guest"), [user]);
-    
     if (!data) return null;
 
     const isMaster = data.type === 'master';
     const title = isMaster ? "Master VIP Pass" : data.ticket.event.title;
     const date = isMaster ? data.ticket.date : data.ticket.event.date;
+    const time = !isMaster && data.ticket.event.time ? data.ticket.event.time : "";
 
     return (
         <div 
             id="printable-id-card" 
-            className="fixed top-0 left-0 w-[450px] h-[750px] bg-[#13072E] flex flex-col items-center p-6 overflow-hidden -z-50 opacity-0 pointer-events-none"
-            style={{ fontFamily: "'Inter', sans-serif" }}
+            className="fixed top-0 left-0 w-[900px] h-[320px] flex overflow-hidden -z-50 opacity-0 pointer-events-none"
+            style={{ fontFamily: "'Inter', system-ui, sans-serif" }}
         >
-            {/* Artistic Background Patterns */}
-            <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(#E4BD8D 2px, transparent 2px)', backgroundSize: '30px 30px' }} />
-            <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-[#C53099] rounded-full blur-[120px] opacity-40" />
-            <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[#E4BD8D] rounded-full blur-[120px] opacity-30" />
-
-            {/* Cultural Double Border */}
-            <div className="absolute inset-4 border-2 border-[#E4BD8D]/80 rounded-3xl" />
-            <div className="absolute inset-6 border border-dashed border-[#E4BD8D]/40 rounded-2xl" />
-
-            {/* Content */}
-            <div className="relative z-10 flex flex-col items-center w-full h-full justify-between py-8">
+            {/* ── LEFT SIDE: MAIN TICKET STUB (Dark Theme) ── */}
+            <div className="w-[70%] h-full bg-[#0A0A0A] text-white p-8 relative flex flex-col justify-between border-r-2 border-dashed border-white/20">
                 
-                {/* Header */}
-                <div className="text-center w-full">
-                    <h1 className="text-4xl font-black text-[#E4BD8D] tracking-widest uppercase mb-1" style={{ fontFamily: "'Playfair Display', serif" }}>
-                        RasRang '26
-                    </h1>
-                    <div className="w-full flex items-center justify-center gap-2 mb-2">
-                        <div className="h-px w-12 bg-[#E4BD8D]/50" />
-                        <span className="text-[10px] text-white tracking-[0.4em] uppercase font-bold">Official Entry Pass</span>
-                        <div className="h-px w-12 bg-[#E4BD8D]/50" />
-                    </div>
+                {/* 1. Rotated Edge Text */}
+                <div className="absolute left-4 bottom-10 origin-bottom-left -rotate-90 text-[10px] font-bold tracking-[0.4em] text-white/30 uppercase whitespace-nowrap">
+                    ENTRADA "H" • RASRANG 2K26
                 </div>
 
-                {/* Avatar & User Info */}
-                <div className="flex flex-col items-center w-full">
-                    <div className="w-32 h-32 rounded-full p-1 border-4 border-[#C53099] shadow-[0_0_30px_rgba(197,48,153,0.4)] mb-4 bg-[#0A0A0A]">
-                        <div className="w-full h-full rounded-full overflow-hidden" dangerouslySetInnerHTML={{ __html: avatarSvg }} />
-                    </div>
-                    
-                    <h2 className="text-3xl font-black text-white uppercase tracking-tight text-center leading-tight mb-1">
-                        {user?.name || "Guest Attendee"}
-                    </h2>
-                    <p className="text-[#22D3EE] font-bold tracking-[0.2em] uppercase text-sm mb-4">
-                        {user?.regNo || "NO REG NO"}
+                {/* 2. Main Event Details */}
+                <div className="ml-10 z-10 relative">
+                    <p className="text-[#E4BD8D] text-xs font-black tracking-[0.3em] mb-2 uppercase">
+                        {isMaster ? "ALL-ACCESS DAY PASS" : "OFFICIAL EVENT TICKET"}
                     </p>
+                    <h1 className="text-4xl font-black uppercase tracking-tight mb-8 leading-none w-[90%] truncate">
+                        {title}
+                    </h1>
 
-                    <div className="bg-white/10 backdrop-blur-md border border-[#E4BD8D]/30 rounded-xl px-6 py-3 text-center w-3/4">
-                        <p className="text-[10px] uppercase text-[#E4BD8D] tracking-widest font-bold mb-1">Pass Type</p>
-                        <p className="text-sm text-white font-black uppercase truncate">{title}</p>
+                    <div className="space-y-1">
+                        <p className="text-2xl font-bold uppercase tracking-widest">{user?.name || "GUEST ATTENDEE"}</p>
+                        <p className="text-sm font-mono text-white/70 tracking-widest">{user?.regNo || "NO REG NO"}</p>
+                        <p className="text-xs font-bold text-white/40 uppercase tracking-widest mt-1">{user?.clgName || "SRM TRICHY"}</p>
                     </div>
                 </div>
 
-                {/* QR Code & Footer */}
-                <div className="flex flex-col items-center">
-                    <div className="bg-white p-3 rounded-2xl shadow-[0_0_40px_rgba(228,189,141,0.3)] mb-4 relative">
-                        {/* Decorative Corners for QR */}
-                        <div className="absolute -top-2 -left-2 w-4 h-4 border-t-2 border-l-2 border-[#E4BD8D]" />
-                        <div className="absolute -top-2 -right-2 w-4 h-4 border-t-2 border-r-2 border-[#E4BD8D]" />
-                        <div className="absolute -bottom-2 -left-2 w-4 h-4 border-b-2 border-l-2 border-[#E4BD8D]" />
-                        <div className="absolute -bottom-2 -right-2 w-4 h-4 border-b-2 border-r-2 border-[#E4BD8D]" />
-                        
+                {/* 3. Central Background Logo (Watermark) */}
+                <div className="absolute top-1/2 right-10 -translate-y-1/2 opacity-10 pointer-events-none mix-blend-overlay">
+                    {/* Place your logo in the public folder as logo.png */}
+                    <img 
+                        src="/rasrang.png" 
+                        alt="Background Logo" 
+                        className="w-48 h-48 object-contain grayscale"
+                        onError={(e) => e.target.style.display = 'none'} // Hides if logo.png is missing
+                    />
+                </div>
+
+                {/* 4. Footer Fine Print */}
+                <div className="ml-10 text-[8px] font-mono text-white/30 uppercase tracking-[0.2em]">
+                    NOS RESERVAMOS EL DERECHO DE ADMISIÓN / RIGHT OF ADMISSION RESERVED
+                </div>
+            </div>
+
+            {/* ── RIGHT SIDE: TEAR-OFF QR STUB (Light Theme) ── */}
+            <div className="w-[30%] h-full bg-white text-black flex flex-col items-center justify-between p-6 relative">
+                
+                {/* Top Date & Time */}
+                <div className="w-full text-right">
+                    <p className="text-sm font-black uppercase tracking-widest">{date}</p>
+                    {time && <p className="text-xs font-bold tracking-widest text-black/60">{time}</p>}
+                </div>
+                
+                {/* Center QR Code with Embedded Logo */}
+                <div className="relative flex items-center justify-center -mt-4">
+                    <img 
+                        src={data.ticket.qrImage} 
+                        alt="QR Code" 
+                        crossOrigin="anonymous" 
+                        className="w-44 h-44 object-contain mix-blend-multiply" 
+                    />
+                    
+                    {/* Mini Logo inside QR (Similar to the reference image) */}
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full flex items-center justify-center p-1.5 shadow-[0_2px_10px_rgba(0,0,0,0.2)] border-2 border-black">
                         <img 
-                            src={isMaster ? data.ticket.qrImage : data.ticket.qrImage} 
-                            alt="QR Code" 
-                            crossOrigin="anonymous" 
-                            className="w-40 h-40 object-contain" 
+                            src="/rasrang.png" 
+                            alt="Logo" 
+                            className="w-full h-full object-contain"
+                            onError={(e) => {
+                                // Fallback icon if logo.png is missing
+                                e.target.onerror = null; 
+                                e.target.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 22h20L12 2z"/></svg>';
+                            }}
                         />
                     </div>
+                </div>
 
-                    <div className="flex items-center justify-between w-full px-8 text-white/50 text-[10px] font-mono">
-                        <span>DATE: {date}</span>
-                        <span>ID: {(user?.id || "N/A").substring(0, 8).toUpperCase()}</span>
+                {/* Bottom Ticket ID */}
+                <div className="w-full flex justify-between items-end">
+                    <div className="origin-bottom-left -rotate-90 text-[8px] font-black tracking-widest text-black/40 uppercase absolute bottom-6 left-4 whitespace-nowrap">
+                        CLUB DE LEONES
+                    </div>
+                    <div className="text-[10px] font-mono text-black/60 tracking-[0.2em] uppercase ml-auto">
+                        ID: {(user?.id || "N/A").substring(0, 8)}
                     </div>
                 </div>
             </div>
@@ -93,7 +109,6 @@ function PrintableBadge({ data, user }) {
 
 // ─── MASTER PASS MODAL (On Screen) ───
 function MasterPassModal({ master, onClose, onDownload, isDownloading }) {
-    const { colors } = APP_THEME;
     const [filter, setFilter] = useState("");
 
     const filteredEvents = master.events.filter(ev =>
@@ -161,7 +176,6 @@ function MasterPassModal({ master, onClose, onDownload, isDownloading }) {
 // ─── MAIN SLIDER COMPONENT ───
 export default function TicketSlider({ tickets, user }) {
     const { masterTickets, individualTickets } = tickets;
-    const { colors } = APP_THEME;
     const [selectedMaster, setSelectedMaster] = useState(null);
     
     // Download State
@@ -171,7 +185,7 @@ export default function TicketSlider({ tickets, user }) {
     // ── IMAGE GENERATOR LOGIC ──
     const handleDownload = async (ticketData) => {
         setIsDownloading(true);
-        setPrintData(ticketData); // Mount the hidden component with data
+        setPrintData(ticketData); 
 
         // Wait a tiny bit for the React DOM to render the hidden component
         setTimeout(async () => {
@@ -179,16 +193,20 @@ export default function TicketSlider({ tickets, user }) {
             if (printElement) {
                 try {
                     const canvas = await html2canvas(printElement, {
-                        scale: 2, // High resolution
+                        scale: 3, // Very high resolution for perfect printing
                         useCORS: true,
-                        backgroundColor: '#13072E',
+                        backgroundColor: '#0A0A0A',
                         logging: false
                     });
                     
                     const dataUrl = canvas.toDataURL('image/png');
                     const link = document.createElement('a');
                     const safeName = user?.name ? user.name.replace(/\s+/g, '_') : 'Guest';
-                    link.download = `RasRang26_Badge_${safeName}.png`;
+                    
+                    // Name file dynamically based on ticket type
+                    const ticketName = ticketData.type === 'master' ? 'VIP_Pass' : ticketData.ticket.event.title.replace(/\s+/g, '_');
+                    link.download = `${safeName}_${ticketName}.png`;
+                    
                     link.href = dataUrl;
                     link.click();
                 } catch (error) {
@@ -290,7 +308,7 @@ export default function TicketSlider({ tickets, user }) {
                                         disabled={isDownloading}
                                         className="w-full py-3 text-center text-[10px] font-black uppercase tracking-widest rounded-xl bg-[#22D3EE]/10 text-[#22D3EE] hover:bg-[#22D3EE] hover:text-[#13072E] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                                     >
-                                        {isDownloading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <><Download className="w-3.5 h-3.5" /> Save Badge</>}
+                                        {isDownloading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <><Download className="w-3.5 h-3.5" /> Save Ticket</>}
                                     </button>
                                 </div>
                             </motion.div>
