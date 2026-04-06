@@ -289,7 +289,7 @@ function EventModal({ event, onClose, onRegister, registering, onShare, userRegi
             </div>
 
             {/* Content Side */}
-            <div className="flex-1 p-8 sm:p-10 flex flex-col justify-between pb-12">
+            <div className="flex-1 min-w-0 p-8 sm:p-10 flex flex-col justify-between pb-12">
               <button
                 onClick={onClose}
                 className="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white/70 hover:text-white hover:bg-[#E31E6E] transition-all z-10"

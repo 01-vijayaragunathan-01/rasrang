@@ -85,16 +85,4 @@ enum Role {
   SUPER_ADMIN
 }
 
-model Contributor {
-  id          String   @id @default(uuid())
-  name        String
-  role        String
-  regNo       String?
-  clgName     String?
-  dept        String?
-  bio         String?
-  githubUrl   String?
-  linkedinUrl String?
-  order       Int      @default(0)
-  createdAt   DateTime @default(now())
-}
+
