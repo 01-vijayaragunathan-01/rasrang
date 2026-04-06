@@ -1,37 +1,31 @@
 import QRCode from 'qrcode';
 import jwt from 'jsonwebtoken';
-import { createCanvas, loadImage } from 'canvas'; // <-- Added for logo embedding
-import path from 'path'; // <-- Added for resolving logo file path
+import { createCanvas, loadImage } from 'canvas'; 
+import path from 'path'; 
 import logger from '../utils/logger.js';
-import prisma from '../db.js'; // H-1 FIX: Shared Prisma singleton
+import prisma from '../db.js'; 
 
 const TICKET_SECRET = process.env.TICKET_SECRET || 'super_secret_festival_key';
 
 // ─── HELPER FUNCTION TO GENERATE QR WITH LOGO ───
 const generateQRWithLogo = async (payload, width = 400) => {
-    // 1. Generate base QR on a canvas
     const canvas = createCanvas(width, width);
     await QRCode.toCanvas(canvas, payload, {
         width: width,
         margin: 2,
-        color: {
-            dark: '#000000',
-            light: '#ffffff'
-        }
+        color: { dark: '#000000', light: '#ffffff' }
     });
 
     const ctx = canvas.getContext('2d');
-    const logoSize = width * 0.25; // Logo takes up 25% of the QR code
+    const logoSize = width * 0.25; 
     const center = (width - logoSize) / 2;
 
     try {
-        // 2. Draw a white square with rounded corners behind the logo so the QR code lines don't clash
         ctx.fillStyle = '#ffffff';
         ctx.beginPath();
         ctx.roundRect(center - 5, center - 5, logoSize + 10, logoSize + 10, 10); 
         ctx.fill();
 
-        // 3. Load and draw your logo (Assumes logo.png is in a 'public' folder in your backend root)
         const logoPath = path.resolve(process.cwd(), 'public', 'SRM_Logo.jpeg'); 
         const logo = await loadImage(logoPath);
         ctx.drawImage(logo, center, center, logoSize, logoSize);
@@ -54,7 +48,7 @@ export const getEvents = async (req, res) => {
 };
 
 // ==========================================
-// 1. SECURE REGISTRATION (Atomic — Race-condition-safe)
+// 1. SECURE REGISTRATION (Atomic)
 // ==========================================
 export const registerForEvent = async (req, res) => {
     const { eventId } = req.body;
@@ -96,7 +90,7 @@ export const registerForEvent = async (req, res) => {
 };
 
 // ==========================================
-// 2. SECURE TICKET GENERATION
+// 2. SECURE TICKET GENERATION (Optimized for Frontend)
 // ==========================================
 export const getUserRegistrations = async (req, res) => {
     const userId = req.user.id;
@@ -107,14 +101,11 @@ export const getUserRegistrations = async (req, res) => {
             include: { event: true }
         });
 
-        logger.info(`Found ${registrations.length} registrations for user ${userId}`, { requestId: req.requestId });
-        
-        // Generate Signed Individual Tickets
-        const individualTickets = await Promise.all(registrations.map(async (reg) => {
-            const signedPayload = jwt.sign({ r: reg.id, u: reg.userId, e: reg.eventId, type: 'individual' }, TICKET_SECRET, { expiresIn: '48h' });
-            const qrImage = await QRCode.toDataURL(signedPayload);
-            return { ...reg, qrImage };
-        }));
+        // Generate Long-Lived Tokens (48h) for Offline Downloads. No more server-side QR generation here!
+        const individualTickets = registrations.map((reg) => {
+            const token = jwt.sign({ r: reg.id, u: reg.userId, e: reg.eventId, type: 'individual' }, TICKET_SECRET, { expiresIn: '48h' });
+            return { ...reg, token }; 
+        });
 
         // Build Signed Master Tickets Grouped by Date
         const registrationsByDate = {};
@@ -125,15 +116,14 @@ export const getUserRegistrations = async (req, res) => {
             registrationsByDate[r.event.date].push(r);
         });
 
-        const masterTickets = await Promise.all(Object.keys(registrationsByDate).map(async date => {
-            const signedPayload = jwt.sign({ u: userId, d: date, type: 'master' }, TICKET_SECRET, { expiresIn: '48h' });
-            const qrImage = await QRCode.toDataURL(signedPayload);
+        const masterTickets = Object.keys(registrationsByDate).map(date => {
+            const token = jwt.sign({ u: userId, d: date, type: 'master' }, TICKET_SECRET, { expiresIn: '48h' });
             return {
                 date,
                 events: registrationsByDate[date].map(r => r.event.title),
-                qrImage
+                token
             };
-        }));
+        });
 
         logger.info(`Tickets generated successfully for user ${userId}`, { 
             individualCount: individualTickets.length, 
@@ -144,6 +134,41 @@ export const getUserRegistrations = async (req, res) => {
     } catch (err) {
         logger.error(`Failed to generate tickets for user ${userId}`, { error: err.message, requestId: req.requestId });
         res.status(500).json({ error: 'Failed to fetch user registrations' });
+    }
+};
+
+// ==========================================
+// NEW: DYNAMIC LIVE TOKENS (Anti-Screenshot Logic)
+// ==========================================
+export const getLiveTokens = async (req, res) => {
+    const userId = req.user.id;
+    try {
+        const registrations = await prisma.registration.findMany({
+            where: { userId },
+            include: { event: true }
+        });
+
+        // Generate Short-Lived Tokens (1 Minute Expiry)
+        const individualTokens = {};
+        registrations.forEach(reg => {
+            individualTokens[reg.id] = jwt.sign({ r: reg.id, u: userId, e: reg.eventId, type: 'individual' }, TICKET_SECRET, { expiresIn: '1m' });
+        });
+
+        const registrationsByDate = {};
+        registrations.forEach(r => {
+            if (!registrationsByDate[r.event.date]) registrationsByDate[r.event.date] = [];
+            registrationsByDate[r.event.date].push(r);
+        });
+
+        const masterTokens = {};
+        Object.keys(registrationsByDate).forEach(date => {
+            masterTokens[date] = jwt.sign({ u: userId, d: date, type: 'master' }, TICKET_SECRET, { expiresIn: '1m' });
+        });
+
+        res.json({ individualTokens, masterTokens });
+    } catch (err) {
+        logger.error(`Failed to refresh live tokens`, { error: err.message, requestId: req.requestId });
+        res.status(500).json({ error: 'Failed to refresh live tokens' });
     }
 };
 
@@ -162,7 +187,7 @@ export const verifyTicket = async (req, res) => {
             qrPayload = jwt.verify(ticketData, TICKET_SECRET);
         } catch(e) { 
             logger.error(`FRAUD DETECTED: JWT verification failed for ticket`, { error: e.message, requestId: req.requestId });
-            return res.status(403).json({ valid: false, error: 'Fraudulent or corrupted ticket detected' }); 
+            return res.status(403).json({ valid: false, error: 'Fraudulent or expired ticket detected' }); 
         }
         
         // Handling Master Pass
@@ -245,7 +270,7 @@ export const verifyTicket = async (req, res) => {
 };
 
 // ==========================================
-// 4. SECURE TICKET DOWNLOADS
+// 4. SECURE TICKET DOWNLOADS (Direct Backend APIs)
 // ==========================================
 export const downloadIndividualTicket = async (req, res) => {
     const { regId } = req.params;
@@ -260,8 +285,6 @@ export const downloadIndividualTicket = async (req, res) => {
         }
         
         const signedPayload = jwt.sign({ r: reg.id, u: reg.userId, e: reg.eventId, type: 'individual' }, TICKET_SECRET, { expiresIn: '48h' });
-        
-        // Use custom generator with logo
         const buffer = await generateQRWithLogo(signedPayload, 400); 
         
         logger.info(`Ticket PNG sent successfully for event "${reg.event.title}"`, { requestId: req.requestId });
@@ -286,8 +309,6 @@ export const downloadMasterTicket = async (req, res) => {
         }
 
         const signedPayload = jwt.sign({ u: req.user.id, d: date, type: 'master' }, TICKET_SECRET, { expiresIn: '48h' });
-        
-        // Use custom generator with logo
         const buffer = await generateQRWithLogo(signedPayload, 400); 
         
         logger.info(`Master pass PNG sent successfully for date ${date}`, { requestId: req.requestId });

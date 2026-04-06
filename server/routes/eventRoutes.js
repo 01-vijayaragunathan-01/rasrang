@@ -1,5 +1,5 @@
 import express from 'express';
-import { getEvents, registerForEvent, getUserRegistrations, verifyTicket, downloadIndividualTicket, downloadMasterTicket } from '../controllers/eventController.js';
+import { getEvents, registerForEvent, getUserRegistrations, verifyTicket, downloadIndividualTicket, downloadMasterTicket ,getLiveTokens} from '../controllers/eventController.js';
 import { authenticateJWT, isVolunteer, ensureOnboarded } from '../middlewares/auth.js';
 
 const router = express.Router();
@@ -10,5 +10,7 @@ router.get('/my-registrations', authenticateJWT, getUserRegistrations);
 router.post('/verify-ticket', authenticateJWT, isVolunteer, verifyTicket);
 router.get('/download-ticket/:regId', authenticateJWT, downloadIndividualTicket);
 router.get('/download-master-ticket/:date', authenticateJWT, downloadMasterTicket);
+
+router.get('/live-tokens', authenticateJWT, getLiveTokens);
 
 export default router;
