@@ -27,7 +27,7 @@ export default function ProtectedRoute({ children }) {
         return <Navigate to="/login" state={{ from: location.pathname }} replace />;
     }
 
-    if (!user.isOnboarded && location.pathname !== "/onboarding") {
+    if ((!user.isOnboarded || !user.regNo) && location.pathname !== "/onboarding") {
         return <Navigate to="/onboarding" replace />;
     }
 

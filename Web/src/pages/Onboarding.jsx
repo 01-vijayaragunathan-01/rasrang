@@ -110,6 +110,25 @@ export default function Onboarding() {
                         </div>
                     </div>
 
+                    {/* 🛡️ CONDITIONALLY RENDER: INCOMPLETE PROFILE ALERT */}
+                    {user?.regNo === user?.email && (
+                        <motion.div 
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="mb-8 p-4 bg-[#E31E6E]/10 border border-[#E31E6E]/30 rounded-2xl flex items-start gap-4"
+                        >
+                            <div className="w-8 h-8 rounded-full bg-[#E31E6E]/20 flex items-center justify-center shrink-0">
+                                <span className="text-[#E31E6E] text-lg font-bold">!</span>
+                            </div>
+                            <div className="text-left">
+                                <p className="text-[#E31E6E] text-[10px] font-bold uppercase tracking-widest mb-1">Identification Alert</p>
+                                <p className="text-white/70 text-xs leading-relaxed">
+                                    You are seeing this because your registration process is incomplete. Please refine your core credentials to activate your festival vault.
+                                </p>
+                            </div>
+                        </motion.div>
+                    )}
+
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-1.5 col-span-full">

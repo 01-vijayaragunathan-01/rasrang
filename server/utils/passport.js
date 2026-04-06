@@ -18,7 +18,9 @@ passport.use(new GoogleStrategy({
                     email: profile.emails[0].value,
                     name: profile.displayName,
                     googleId: profile.id,
-                    role: 'STUDENT'
+                    regNo: profile.emails[0].value, // 🛠️ Fix: Use email as temporary RegNo to prevent NULL gap
+                    role: 'STUDENT',
+                    isOnboarded: false
                 }
             });
         }
