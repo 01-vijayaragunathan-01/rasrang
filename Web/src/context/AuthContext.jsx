@@ -102,7 +102,7 @@ export const AuthProvider = ({ children }) => {
 
         const handleKickout = () => {
             setUser(null);
-            toast.error("SESSION EXPIRED: Please log in again to continue.");
+            toast.error("🛡️ CONNECTION RE-SECURED: Your security session was out of sync. We've refreshed it—please log in once more to continue.");
             window.location.href = "/login?expired=true";
         };
 

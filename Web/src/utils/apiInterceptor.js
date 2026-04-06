@@ -12,11 +12,10 @@ export const setupApiInterceptor = () => {
     const url = typeof args[0] === 'string' ? args[0] : args[0].url;
     const response = await originalFetch(...args);
 
-    // If the request was successful, or if it wasn't a 401, return normally.
-    // Also explicitly ignore 401s from the refresh token endpoint itself to avoid infinite loops,
-    // and ignore 401s from login/register routes where 401 is expected.
+    // If a request hits a 401 (Unauthorized) or 403 (Forbidden/CSRF Mismatch), 
+    // we attempt to silently refresh the session.
     if (
-      response.status !== 401 ||
+      (response.status !== 401 && response.status !== 403) ||
       url.includes("/api/auth/refresh-token") ||
       url.includes("/api/auth/login") ||
       url.includes("/api/auth/signup") ||

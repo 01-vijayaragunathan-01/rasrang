@@ -326,6 +326,9 @@ export const StaggeredMenu = ({
   const closeMenu = useCallback(() => {
     if (openRef.current) {
       openRef.current = false;
+      // ── A11Y FIX: Return focus to the toggle button BEFORE
+      // aria-hidden is applied to the panel, preventing a focus trap.
+      toggleBtnRef.current?.focus();
       onMenuClose?.();
       playClose(() => setOpen(false));
       animateIcon(false);

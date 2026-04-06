@@ -749,11 +749,11 @@ export default function Events() {
                   )}
                 </motion.div>
               ) : (
-                <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-2 pb-10">
+                <motion.div layout className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-2 pb-10">
                   <AnimatePresence mode="popLayout">
                     {sortedDateKeys.map(dateKey => (
-                      <>
-                        <DateGroupDivider key={`divider-${dateKey}`} dateStr={dateKey} />
+                      <div key={dateKey} className="contents">
+                        <DateGroupDivider dateStr={dateKey} />
                         {groupedByDate[dateKey].map((event, i) => (
                           <EventCard
                             key={event.id}
@@ -762,7 +762,7 @@ export default function Events() {
                             onClick={() => setSelectedEvent(event)}
                           />
                         ))}
-                      </>
+                      </div>
                     ))}
                   </AnimatePresence>
                 </motion.div>

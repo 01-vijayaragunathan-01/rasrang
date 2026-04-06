@@ -1,18 +1,21 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, Suspense, lazy } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { useTheme } from "./context/ThemeContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { Monitor, X } from "lucide-react";
-import Home from "./pages/Home";
-import Events from "./pages/Events";
-import Gallery from "./pages/Gallery";
-import Contributors from "./pages/Contributors";
-import Profile from "./pages/Profile";
-import Auth from "./pages/Auth";
-import NotFound from "./pages/NotFound";
-import ContentPolicy from "./pages/ContentPolicy";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import Terms from "./pages/Terms";
+// ─── LAZY LOADED PAGES ──────────────────────────────────────────────────
+const Home = lazy(() => import("./pages/Home"));
+const Events = lazy(() => import("./pages/Events"));
+const Gallery = lazy(() => import("./pages/Gallery"));
+const Contributors = lazy(() => import("./pages/Contributors"));
+const Profile = lazy(() => import("./pages/Profile"));
+const Auth = lazy(() => import("./pages/Auth"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Onboarding = lazy(() => import("./pages/Onboarding"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const ContentPolicy = lazy(() => import("./pages/ContentPolicy"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const Terms = lazy(() => import("./pages/Terms"));
 import Particles from "./pages/home/Particles";
 import Footer from "./common/Footer";
 import StaggeredMenu from "./common/StaggeredMenu";
@@ -74,8 +77,37 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ToastProvider } from "./context/ToastContext";
 import { ToastContainer } from "./common/Toast";
 import ProtectedRoute from "./common/ProtectedRoute";
-import Dashboard from "./pages/Dashboard";
-import Onboarding from "./pages/Onboarding";
+
+/**
+ * 🛰️ GLOBAL UPLINK LOADER
+ * A high-fidelity, cinematic transition UI shown during
+ * lazy code acquisition.
+ */
+function GlobalPageLoader() {
+  const { theme } = useTheme();
+  return (
+    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#000]">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="relative"
+      >
+        {/* Shimmering Aura */}
+        <div className="absolute inset-0 rounded-full blur-[80px] opacity-20 animate-pulse" 
+             style={{ background: `radial-gradient(circle, ${theme.colors.primary}, transparent 70%)` }} />
+        
+        <div className="w-24 h-24 rounded-full border-4 border-white/5 border-t-[#C53099] animate-spin" />
+        
+        <div className="absolute inset-0 flex items-center justify-center">
+          <img src="/Assets/rasrang.png" alt="Logo" className="w-12 h-12 opacity-80 animate-pulse" />
+        </div>
+      </motion.div>
+      <p className="mt-12 text-[10px] font-black uppercase tracking-[0.8em] text-white/40 animate-pulse">
+        Synchronizing Archives...
+      </p>
+    </div>
+  );
+}
 
 function MainContent() {
   const { theme } = useTheme();
@@ -157,32 +189,34 @@ function MainContent() {
 
       {/* --- Page Routes --- */}
       <main className="relative z-10">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/events" element={<Events />} />
-          <Route path="/gallery" element={<Gallery />} />
-          <Route path="/contributors" element={<Contributors />} />
-          <Route path="/profile" element={
-            <ProtectedRoute>
-              <Profile />
-            </ProtectedRoute>
-          } />
-          <Route path="/dashboard" element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/onboarding" element={
-            <ProtectedRoute>
-              <Onboarding />
-            </ProtectedRoute>
-          } />
-          <Route path="/login" element={<Auth />} />
-          <Route path="/content-policy" element={<ContentPolicy />} />
-          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <Suspense fallback={<GlobalPageLoader />}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/events" element={<Events />} />
+            <Route path="/gallery" element={<Gallery />} />
+            <Route path="/contributors" element={<Contributors />} />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/onboarding" element={
+              <ProtectedRoute>
+                <Onboarding />
+              </ProtectedRoute>
+            } />
+            <Route path="/login" element={<Auth />} />
+            <Route path="/content-policy" element={<ContentPolicy />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
       </main>
 
       <Footer />
