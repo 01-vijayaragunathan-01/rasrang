@@ -139,7 +139,9 @@ body {
     font-style: italic;
     color: rgba(255, 255, 255, 0.6);
 }
-
+.home-container, .page-wrapper, .headline-dj-container {
+  position: relative !important;
+}
 /* ─── LENIS SMOOTH SCROLLING BASE STYLES ─── */
 html.lenis {
   height: auto;

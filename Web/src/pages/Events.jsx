@@ -260,7 +260,7 @@ function EventModal({ event, onClose, onRegister, registering, onShare, userRegi
   return (
     <AnimatePresence mode="wait">
       {event && (
-        <div className="fixed inset-0 z-[900] flex items-end sm:items-center justify-center sm:p-6 px-0 pt-[80px] sm:pt-0 overflow-hidden">
+        <div className="fixed inset-0 z-[900] flex items-end sm:items-center justify-center px-0 pb-0 pt-[80px] sm:px-6 sm:pb-6 sm:pt-[120px] overflow-hidden">
           <motion.div
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }} 
@@ -273,8 +273,9 @@ function EventModal({ event, onClose, onRegister, registering, onShare, userRegi
             animate={{ y: 0, opacity: 1 }} 
             exit={{ y: "100%", opacity: 0 }}
             transition={{ type: "spring", stiffness: 400, damping: 40 }}
-            className="relative w-full max-w-4xl bg-[#1A0B2E] border-t sm:border border-white/10 rounded-t-[3rem] sm:rounded-3xl shadow-2xl overflow-y-auto hide-scrollbar flex flex-col md:flex-row max-h-[95vh] sm:max-h-[85vh] z-10"
+            className="relative w-full max-w-4xl bg-[#1A0B2E] border-t sm:border border-white/10 rounded-t-[3rem] sm:rounded-3xl shadow-2xl overflow-y-auto hide-scrollbar flex flex-col md:flex-row max-h-[calc(100vh-80px)] sm:max-h-[calc(100vh-140px)] z-10"
             onClick={e => e.stopPropagation()}
+            data-lenis-prevent
           >
             {/* Visual Side */}
             <div className="relative w-full md:w-[45%] shrink-0 flex flex-col bg-black overflow-hidden">
@@ -381,6 +382,7 @@ function EventModal({ event, onClose, onRegister, registering, onShare, userRegi
     </AnimatePresence>
   );
 }
+
 // ─── DATE / TIME FILTER PANEL ───────────────────────────────────────────
 function FilterPanel({ events, selectedDate, setSelectedDate, selectedTime, setSelectedTime, onClear }) {
   const uniqueDates = [...new Set(events.map(e => e.date).filter(Boolean))].sort();
@@ -491,6 +493,17 @@ export default function Events() {
 
   useEffect(() => { fetchEvents(); }, []);
   useEffect(() => { if (isAuthenticated) fetchUserRegistrations(); }, [isAuthenticated]);
+
+  // 📝 SCROLL LOCK: Freeze background when modal is open
+  useEffect(() => {
+    if (selectedEvent) {
+      document.documentElement.classList.add('lenis-stopped');
+    } else {
+      document.documentElement.classList.remove('lenis-stopped');
+    }
+    // Cleanup on unmount
+    return () => document.documentElement.classList.remove('lenis-stopped');
+  }, [selectedEvent]);
 
   // ── Deep linking: auto-open event popup
   useEffect(() => {
@@ -769,7 +782,6 @@ export default function Events() {
                   </AnimatePresence>
                 </motion.div>
               )}
-            </div>
           </>
         )}
       </div>

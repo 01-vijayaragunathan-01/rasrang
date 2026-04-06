@@ -167,8 +167,13 @@ export const localLogin = (req, res, next) => {
 };
 
 export const getProfile = (req, res) => {
+    // 🛡️ SECURITY SHIELD: If user exists but lacks a mandatory regNo, 
+    // they MUST be forced back to onboarding despite any other flag.
+    const isActuallyOnboarded = req.user.isOnboarded && !!req.user.regNo;
+    
     res.json({ 
         ...req.user, 
+        isOnboarded: isActuallyOnboarded,
         csrfToken: req.csrfToken 
     });
 };

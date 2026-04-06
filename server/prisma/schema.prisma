@@ -12,7 +12,7 @@ model User {
   email               String                @unique
   password            String?
   name                String
-  regNo               String?               @unique
+  regNo               String                @unique
   role                Role                  @default(STUDENT)
   googleId            String?               @unique
   refreshToken        String?               @unique

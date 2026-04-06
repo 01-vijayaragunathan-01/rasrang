@@ -1,8 +1,21 @@
-import { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import React, { useState, useEffect, useMemo, lazy, Suspense } from "react";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import { useTheme } from "./context/ThemeContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { Monitor, X } from "lucide-react";
+import { ReactLenis } from 'lenis/react';
+
+// --- Auth & UI Contexts ---
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import { ToastProvider } from "./context/ToastContext";
+import { ToastContainer } from "./common/Toast";
+import ProtectedRoute from "./common/ProtectedRoute";
+
+// --- Components ---
+import Particles from "./pages/home/Particles";
+import Footer from "./common/Footer";
+import StaggeredMenu from "./common/StaggeredMenu";
+
 // ─── LAZY LOADED PAGES ──────────────────────────────────────────────────
 const Home = lazy(() => import("./pages/Home"));
 const Events = lazy(() => import("./pages/Events"));
@@ -16,9 +29,15 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const ContentPolicy = lazy(() => import("./pages/ContentPolicy"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const Terms = lazy(() => import("./pages/Terms"));
-import Particles from "./pages/home/Particles";
-import Footer from "./common/Footer";
-import StaggeredMenu from "./common/StaggeredMenu";
+
+// ─── UTILITY COMPONENTS ─────────────────────────────────────────────────
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+};
 
 function DesktopSuggestion({ onClose }) {
   const { theme } = useTheme();
@@ -27,7 +46,6 @@ function DesktopSuggestion({ onClose }) {
       initial={{ y: 100, opacity: 0, scale: 0.9 }}
       animate={{ y: 0, opacity: 1, scale: 1 }}
       exit={{ y: 100, opacity: 0, scale: 0.9 }}
-      transition={{ type: "spring", damping: 25, stiffness: 200 }}
       className="fixed bottom-6 left-[5%] right-[5%] z-[10000] w-[90%] md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-sm"
     >
       <div
@@ -38,12 +56,6 @@ function DesktopSuggestion({ onClose }) {
           boxShadow: `0 10px 40px -10px ${theme.colors.accent}40`,
         }}
       >
-        <motion.div
-          animate={{ opacity: [0.3, 0.6, 0.3] }}
-          transition={{ duration: 4, repeat: Infinity }}
-          className="absolute inset-0 pointer-events-none"
-          style={{ background: `radial-gradient(circle at top left, ${theme.colors.accent}15, transparent 70%)` }}
-        />
         <div className="relative z-10 flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-white/5 border border-white/10 shrink-0">
             <Monitor className="w-6 h-6" style={{ color: theme.colors.accent }} />
@@ -56,10 +68,7 @@ function DesktopSuggestion({ onClose }) {
               Switch to Desktop for the full cinematic RasRang experience.
             </p>
           </div>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-white/40 hover:text-white transition-colors"
-          >
+          <button onClick={onClose} className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-white/40 hover:text-white transition-colors">
             <X size={14} />
           </button>
         </div>
@@ -68,21 +77,14 @@ function DesktopSuggestion({ onClose }) {
   );
 }
 
-import { AuthProvider, useAuth } from "./context/AuthContext";
-import { ToastProvider } from "./context/ToastContext";
-import { ToastContainer } from "./common/Toast";
-import ProtectedRoute from "./common/ProtectedRoute";
-import Dashboard from "./pages/Dashboard";
-import Onboarding from "./pages/Onboarding";
-
+// ─── MAIN CONTENT ───────────────────────────────────────────────────────
 function MainContent() {
   const { theme } = useTheme();
   const { user, logout } = useAuth();
   const location = useLocation();
-
-  const isHome = location.pathname === "/";
-  const isStaff = user && (user.role === 'VOLUNTEER' || user.role === 'COORDINATOR' || user.role === 'SUPER_ADMIN');
   const [showDesktopSuggestion, setShowDesktopSuggestion] = useState(false);
+
+  const isStaff = user && ['VOLUNTEER', 'COORDINATOR', 'SUPER_ADMIN'].includes(user.role);
 
   useEffect(() => {
     if (window.innerWidth < 1024) {
@@ -91,7 +93,7 @@ function MainContent() {
     }
   }, []);
 
-  const navItems = [
+  const navItems = useMemo(() => [
     { label: 'Home', link: '/', ariaLabel: 'Return to headquarters' },
     { label: 'Events', link: '/events', ariaLabel: 'Explore active sectors' },
     { label: 'Gallery', link: '/gallery', ariaLabel: 'Access visual archives' },
@@ -100,103 +102,61 @@ function MainContent() {
     ...(isStaff ? [{ label: 'Dashboard', link: '/dashboard', ariaLabel: 'Command Tower access' }] : []),
     { label: 'Team', link: '/contributors', ariaLabel: 'Meet the architects' },
     ...(user ? [{ label: 'Logout', action: logout, ariaLabel: 'Terminate session' }] : [])
-  ];
+  ], [user, isStaff, logout]);
 
   const socialItems = useMemo(() => [
     { label: 'Instagram', link: 'https://instagram.com/rasrang' },
     { label: 'Twitter', link: 'https://twitter.com/rasrang' },
     { label: 'LinkedIn', link: 'https://linkedin.com' }
-  ];
+  ], []);
 
   return (
-    <div
-      className="min-h-screen relative overflow-x-hidden w-full"
-      style={{ background: '#000', color: theme.colors.textTitle }}
-    >
-      {/* ── 1. Galaxy video — lowest layer ── */}
-      <video
-        className="fixed inset-0 w-full h-full object-cover pointer-events-none"
-        style={{ zIndex: 0, opacity: 0.45 }}
-        src="/galaxy.mp4"
-        autoPlay muted loop playsInline
-      />
-
-      {/* ── 2. Particle stars ── */}
+    <div className="min-h-screen relative overflow-x-hidden w-full" style={{ background: '#000', color: theme.colors.textTitle }}>
+      
+      {/* Background Layers */}
+      <video className="fixed inset-0 w-full h-full object-cover pointer-events-none" style={{ zIndex: 0, opacity: 0.45 }} src="/galaxy.mp4" autoPlay muted loop playsInline />
       <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 1 }}>
-        <Particles
-          particleColors={["#ffffff", theme.colors.primary, theme.colors.secondary]}
-          particleCount={400}
-          particleSpread={10}
-          speed={0.1}
-          particleBaseSize={120}
-          moveParticlesOnHover
-          alphaParticles={true}
-          disableRotation={false}
-        />
+        <Particles particleColors={["#ffffff", theme.colors.primary, theme.colors.secondary]} particleCount={400} speed={0.1} />
       </div>
 
-      {/* ── 3. Fireworks — only on home, above everything, pointer-events:none ── */}
-      {/* {isHome && <FestivalBackground />} */}
-
-      {/* ── 4. Navigation ── */}
+      {/* Navigation */}
       <div className="z-[1002] fixed inset-0 pointer-events-none">
         <StaggeredMenu
           logoUrl="/Assets/rasrang.png"
           items={navItems}
           socialItems={socialItems}
-          colors={[
-            theme.colors.primary,    // #9D01E9 - Purple
-            theme.colors.secondary,  // #C53099 - Magenta
-            theme.colors.highlight,  // #E31E6E - Pink
-            "#22D3EE",               // Cyan
-            "#FACC15"                // Yellow
-          ]}
+          colors={[theme.colors.primary, theme.colors.secondary, theme.colors.highlight, "#22D3EE", "#FACC15"]}
           accentColor={theme.colors.highlight}
-          menuButtonColor="#ffffff"
-          openMenuButtonColor="#ffffff"
-          position="right"
           isFixed={true}
-          displaySocials={false}
+          position="right"
         />
       </div>
 
-      {/* --- Page Routes --- */}
+      {/* Routes with Suspense for Lazy Loading */}
       <main className="relative z-10">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/events" element={<Events />} />
-          <Route path="/gallery" element={<Gallery />} />
-          <Route path="/contributors" element={<Contributors />} />
-          <Route path="/profile" element={
-            <ProtectedRoute>
-              <Profile />
-            </ProtectedRoute>
-          } />
-          <Route path="/dashboard" element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/onboarding" element={
-            <ProtectedRoute>
-              <Onboarding />
-            </ProtectedRoute>
-          } />
-          <Route path="/login" element={<Auth />} />
-          <Route path="/content-policy" element={<ContentPolicy />} />
-          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <Suspense fallback={<div className="h-screen w-screen bg-black flex items-center justify-center text-white font-massive">Loading...</div>}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/events" element={<Events />} />
+            <Route path="/gallery" element={<Gallery />} />
+            <Route path="/contributors" element={<Contributors />} />
+            <Route path="/login" element={<Auth />} />
+            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+            <Route path="/content-policy" element={<ContentPolicy />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
       </main>
 
       <Footer />
       <ToastContainer />
 
       <AnimatePresence>
-        {showDesktopSuggestion && (
-          <DesktopSuggestion onClose={() => setShowDesktopSuggestion(false)} />
-        )}
+        {showDesktopSuggestion && <DesktopSuggestion onClose={() => setShowDesktopSuggestion(false)} />}
       </AnimatePresence>
     </div>
   );
@@ -206,7 +166,7 @@ export default function App() {
   return (
     <ToastProvider>
       <AuthProvider>
-        <ReactLenis root options={{ lerp: 0.07, duration: 1.5, smoothTouch: false }}>
+        <ReactLenis root options={{ lerp: 0.07, duration: 1.5 }}>
           <Router>
             <ScrollToTop />
             <MainContent />
