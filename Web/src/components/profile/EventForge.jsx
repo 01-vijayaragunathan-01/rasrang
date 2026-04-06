@@ -33,7 +33,8 @@ export default function EventForge() {
         timeTBA: false,
         description: "",
         venue: "",
-        isHeadliner: false
+        isHeadliner: false,
+        isRegistrationClosed: false
     });
 
     const [showConfirm, setShowConfirm] = useState(false);
@@ -134,7 +135,8 @@ export default function EventForge() {
             timeTBA: event.time === "TBA",
             description: event.description,
             venue: event.venue || "",
-            isHeadliner: event.isHeadliner
+            isHeadliner: event.isHeadliner,
+            isRegistrationClosed: event.isRegistrationClosed
         });
         setImagePreview(event.imageUrl);
         setWhatsappLink(event.whatsappLink || "");
@@ -189,6 +191,7 @@ export default function EventForge() {
                 description: eventData.description,
                 venue: eventData.venue,
                 isHeadliner: eventData.isHeadliner,
+                isRegistrationClosed: eventData.isRegistrationClosed,
             };
 
             if (finalImageUrl) payload.imageUrl = finalImageUrl;
@@ -221,7 +224,7 @@ export default function EventForge() {
     };
 
     const resetForm = () => {
-        setEventData({ title: "", category: "Main Stage", date: "", time: "", timeTBA: false, description: "", venue: "", isHeadliner: false });
+        setEventData({ title: "", category: "Main Stage", date: "", time: "", timeTBA: false, description: "", venue: "", isHeadliner: false, isRegistrationClosed: false });
         setImageFile(null);
         setImagePreview(null);
         setWhatsappLink("");
@@ -527,6 +530,25 @@ export default function EventForge() {
                                         <motion.div 
                                             animate={{ x: eventData.isHeadliner ? 28 : 0 }}
                                             className={`w-5 h-5 rounded-full shadow-lg ${eventData.isHeadliner ? 'bg-[#FACC15]' : 'bg-white/20'}`}
+                                        />
+                                    </button>
+                                </div>
+
+                                <div className="p-6 bg-white/5 rounded-2xl border border-white/10 flex items-center justify-between">
+                                    <div className="flex flex-col">
+                                        <label className="text-[10px] uppercase font-black text-[#22D3EE] tracking-[0.2em] mb-1 flex items-center gap-2">
+                                            <ShieldAlert className="w-3 h-3 text-[#22D3EE]" /> Registry Access
+                                        </label>
+                                        <p className="text-[8px] text-white/30 uppercase tracking-widest">Toggle to stop new sign-ups.</p>
+                                    </div>
+                                    <button 
+                                        type="button"
+                                        onClick={() => setEventData({ ...eventData, isRegistrationClosed: !eventData.isRegistrationClosed })}
+                                        className={`w-14 h-7 rounded-full relative transition-all duration-500 p-1 ${eventData.isRegistrationClosed ? 'bg-red-500/20 border-red-500/50' : 'bg-[#22D3EE]/20 border-[#22D3EE]/50'} border`}
+                                    >
+                                        <motion.div 
+                                            animate={{ x: eventData.isRegistrationClosed ? 28 : 0 }}
+                                            className={`w-5 h-5 rounded-full shadow-lg ${eventData.isRegistrationClosed ? 'bg-red-500' : 'bg-[#22D3EE]'}`}
                                         />
                                     </button>
                                 </div>

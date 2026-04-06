@@ -6,7 +6,7 @@ import { useToast } from "../context/ToastContext";
 import {
   Loader2, Calendar, MapPin, Clock, Ticket, Sparkles,
   ArrowRight, X, AlertTriangle, RefreshCcw, Share2,
-  ExternalLink, ChevronDown, Filter, SlidersHorizontal
+  ExternalLink, ChevronDown, Filter, SlidersHorizontal, ShieldAlert
 } from "lucide-react";
 import gsap from "gsap";
 import Particles from "../pages/home/Particles";
@@ -357,12 +357,16 @@ function EventModal({ event, onClose, onRegister, registering, onShare, userRegi
               ) : (
                 <button
                   onClick={() => onRegister(event.id)}
-                  disabled={registering || userRegistrations.includes(event.id)}
+                  disabled={registering || userRegistrations.includes(event.id) || event.isRegistrationClosed}
                   className={`w-full py-4 rounded-xl font-bold text-sm uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-3
-                  ${(registering || userRegistrations.includes(event.id)) ? 'bg-white/10 text-white/50 cursor-not-allowed' : 'bg-white text-[#13072E] hover:bg-[#E4BD8D] shadow-[0_0_20px_rgba(255,255,255,0.2)]'}`}
+                  ${(registering || userRegistrations.includes(event.id) || event.isRegistrationClosed) 
+                    ? 'bg-white/10 text-white/50 cursor-not-allowed' 
+                    : 'bg-white text-[#13072E] hover:bg-[#E4BD8D] shadow-[0_0_20px_rgba(255,255,255,0.2)]'}`}
                 >
                     {userRegistrations.includes(event.id) ? (
                         <>Mission Secured</>
+                    ) : event.isRegistrationClosed ? (
+                        <><ShieldAlert size={18} /> Registrations Closed</>
                     ) : registering ? (
                         <><Loader2 size={18} className="animate-spin" /> Securing Pass...</>
                     ) : (

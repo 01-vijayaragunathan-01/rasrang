@@ -41,6 +41,7 @@ model Event {
   time               String?
   whatsappLink       String?
   venue              String?
+  isRegistrationClosed Boolean               @default(false)
   registrations      Registration[]
   assignedVolunteers VolunteerAssignment[]
 }

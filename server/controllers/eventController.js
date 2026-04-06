@@ -36,6 +36,12 @@ export const registerForEvent = async (req, res) => {
             logger.warn(`Registration failed: Event ${eventId} not found`, { requestId: req.requestId });
             return res.status(404).json({ error: 'Event not found' });
         }
+        
+        // 🛡️ SECURITY SHIELD: Verify registrations are still open
+        if (event.isRegistrationClosed) {
+            logger.warn(`Registration blocked: Event ${eventId} is closed`, { userId, requestId: req.requestId });
+            return res.status(403).json({ error: 'Registrations for this mission have concluded.' });
+        }
 
         // CR-1 FIX: Collapsed the duplicate-check + create into one atomic operation.
         // We skip the pre-check findUnique entirely and rely on the DB's @@unique([userId, eventId])

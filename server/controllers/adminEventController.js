@@ -7,7 +7,7 @@ import prisma from '../db.js'; // H-1 FIX: Shared Prisma singleton
 // 1. CREATE EVENT (Admin Only)
 // ==========================================
 export const createEvent = async (req, res) => {
-    const { title, category, description, date, time, isHeadliner, imageUrl, whatsappLink, venue } = req.body;
+    const { title, category, description, date, time, isHeadliner, imageUrl, whatsappLink, venue, isRegistrationClosed } = req.body;
     logger.info(`Admin: Create Event initiated by ${req.user.id}`, { title, category, date, requestId: req.requestId });
     try {
         if (!title || !description || !date) {
@@ -17,6 +17,7 @@ export const createEvent = async (req, res) => {
 
         // --- Type Casting for Prisma Stability ---
         const finalIsHeadliner = isHeadliner !== undefined ? (isHeadliner === 'true' || isHeadliner === true) : false;
+        const finalIsRegistrationClosed = isRegistrationClosed !== undefined ? (isRegistrationClosed === 'true' || isRegistrationClosed === true) : false;
 
         const newEvent = await prisma.event.create({
             data: {
@@ -28,7 +29,8 @@ export const createEvent = async (req, res) => {
                 imageUrl: imageUrl || null,
                 whatsappLink: whatsappLink || null,
                 venue: venue || null,
-                isHeadliner: finalIsHeadliner
+                isHeadliner: finalIsHeadliner,
+                isRegistrationClosed: finalIsRegistrationClosed
             }
         });
 
@@ -45,7 +47,7 @@ export const createEvent = async (req, res) => {
 // ==========================================
 export const updateEvent = async (req, res) => {
     const { eventId } = req.params;
-    const { title, category, description, date, time, isHeadliner, imageUrl, whatsappLink, venue } = req.body;
+    const { title, category, description, date, time, isHeadliner, imageUrl, whatsappLink, venue, isRegistrationClosed } = req.body;
     logger.info(`Admin: Update Event requested`, { eventId, requestId: req.requestId });
 
     try {
@@ -66,6 +68,7 @@ export const updateEvent = async (req, res) => {
         
         // --- Explicit Type Consolidation ---
         const finalIsHeadliner = isHeadliner !== undefined ? (isHeadliner === 'true' || isHeadliner === true) : existingEvent.isHeadliner;
+        const finalIsRegistrationClosed = isRegistrationClosed !== undefined ? (isRegistrationClosed === 'true' || isRegistrationClosed === true) : existingEvent.isRegistrationClosed;
         
         const updateData = {
             title: title || existingEvent.title,
@@ -76,7 +79,8 @@ export const updateEvent = async (req, res) => {
             imageUrl: imageUrl !== undefined ? imageUrl : existingEvent.imageUrl,
             whatsappLink: whatsappLink !== undefined ? whatsappLink : existingEvent.whatsappLink,
             venue: venue !== undefined ? venue : existingEvent.venue,
-            isHeadliner: finalIsHeadliner
+            isHeadliner: finalIsHeadliner,
+            isRegistrationClosed: finalIsRegistrationClosed
         };
 
         const updatedEvent = await prisma.event.update({
