@@ -36,3 +36,21 @@ export function EventSkeleton({ index }) {
         </div>
     );
 }
+
+export function GalleryItemSkeleton({ ratio }) {
+    return (
+        <div className={`relative w-full ${ratio} rounded-2xl overflow-hidden bg-white/5 animate-pulse border border-white/10 shadow-2xl`}>
+            {/* Shimmer Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#E4BD8D]05 to-transparent -translate-x-full animate-[shimmer_2s_infinite]" />
+            
+            {/* Corner Accent */}
+            <div className="absolute top-4 right-4 w-12 h-2 bg-white/5 rounded-full" />
+            
+            {/* Bottom Accent */}
+            <div className="absolute bottom-8 left-8 right-8">
+                <div className="w-3/4 h-4 bg-white/5 rounded-full mb-3" />
+                <div className="w-1/2 h-2 bg-white/5 rounded-full" />
+            </div>
+        </div>
+    );
+}

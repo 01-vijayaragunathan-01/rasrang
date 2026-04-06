@@ -5,6 +5,7 @@ import { useToast } from "../context/ToastContext";
 import { Play, X, Maximize2, ChevronRight, ChevronLeft, RefreshCcw, AlertTriangle } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { GalleryItemSkeleton } from "../common/Skeleton";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -152,44 +153,12 @@ export default function Gallery() {
                         {chunkedMedia.map((column, colIndex) => (
                             <div key={colIndex} className="flex flex-col gap-6 md:gap-8 w-full">
                                 {column.map((item) => (
-                                    <motion.div
-                                        key={item.id}
-                                        initial={{ opacity: 0, y: 40 }}
-                                        whileInView={{ opacity: 1, y: 0 }}
-                                        viewport={{ once: true, margin: "-50px" }}
-                                        transition={{ duration: 0.8, ease: "easeOut" }}
-                                        onClick={() => setLightbox(item)}
-                                        className="mosaic-item group relative w-full rounded-2xl overflow-hidden cursor-pointer border border-white/10 transition-all duration-700 hover:shadow-[0_0_40px_rgba(228,189,141,0.1)] snap-start scroll-mt-32"
-                                    >
-                                        {/* Media Asset container */}
-                                        <div className={`relative w-full ${item.ratio} overflow-hidden`}>
-                                            <img 
-                                                src={item.imageUrl} 
-                                                alt={item.caption} 
-                                                className="w-full h-full object-cover object-center opacity-100 transition-transform duration-[1200ms] ease-out group-hover:scale-105"
-                                            />
-                                            
-                                            {/* Golden Hover Overlay Frame */}
-                                            <div className="absolute inset-4 border border-[#E4BD8D]/10 group-hover:border-[#E4BD8D]/30 rounded-xl transition-all duration-700 pointer-events-none z-10" />
-
-                                            {/* Info Overlay */}
-                                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-500 backdrop-blur-[2px] flex flex-col justify-end p-8">
-                                                <div className="translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
-                                                    <h3 className="text-lg font-black text-white font-massive leading-tight mb-2">
-                                                        {item.caption}
-                                                    </h3>
-                                                    <div className="flex items-center gap-2">
-                                                        <Maximize2 size={12} style={{ color: theme.colors.accent }} />
-                                                        <span className="text-[9px] tracking-[0.3em] uppercase font-bold text-white/60">Expand Frame</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        {/* Subtle Gradient Line */}
-                                        <div className="absolute bottom-0 left-0 w-0 h-[2px] group-hover:w-full transition-all duration-700"
-                                             style={{ background: `linear-gradient(90deg, transparent, ${theme.colors.accent}, transparent)` }} />
-                                    </motion.div>
+                                    <GalleryItem 
+                                        key={item.id} 
+                                        item={item} 
+                                        theme={theme} 
+                                        onExpand={() => setLightbox(item)} 
+                                    />
                                 ))}
                             </div>
                         ))}
@@ -254,5 +223,64 @@ export default function Gallery() {
             </AnimatePresence>
 
         </section>
+    );
+}
+
+/**
+ * 🖼️ SELF-MANAGING GALLERY ITEM
+ * Handles its own loading state to provide shimmering placeholders
+ * and smooth cinematic reveals.
+ */
+function GalleryItem({ item, theme, onExpand }) {
+    const [isLoaded, setIsLoaded] = useState(false);
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            onClick={onExpand}
+            className="mosaic-item group relative w-full rounded-2xl overflow-hidden cursor-pointer border border-white/10 transition-all duration-700 hover:shadow-[0_0_40px_rgba(228,189,141,0.1)] snap-start scroll-mt-32"
+        >
+            <div className={`relative w-full ${item.ratio} overflow-hidden bg-[#0D0620]`}>
+                {/* ── LOADING SKELETON ── */}
+                {!isLoaded && <GalleryItemSkeleton ratio={item.ratio} />}
+
+                {/* ── ACTUAL IMAGE ── */}
+                <motion.img 
+                    src={item.imageUrl} 
+                    alt={item.caption} 
+                    initial={{ opacity: 0, scale: 1.1 }}
+                    animate={{ 
+                        opacity: isLoaded ? 1 : 0, 
+                        scale: isLoaded ? 1 : 1.1 
+                    }}
+                    transition={{ duration: 1.2, ease: "easeOut" }}
+                    onLoad={() => setIsLoaded(true)}
+                    className="w-full h-full object-cover object-center transition-transform duration-[1200ms] ease-out group-hover:scale-105"
+                />
+                
+                {/* ── GOLDEN HOVER OVERLAY FRAME ── */}
+                <div className="absolute inset-4 border border-[#E4BD8D]/10 group-hover:border-[#E4BD8D]/30 rounded-xl transition-all duration-700 pointer-events-none z-10" />
+
+                {/* ── INFO OVERLAY ── */}
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-500 backdrop-blur-[2px] flex flex-col justify-end p-8">
+                    <div className="translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                        <h3 className="text-lg font-black text-white font-massive leading-tight mb-2">
+                            {item.caption}
+                        </h3>
+                        <div className="flex items-center gap-2">
+                            <Maximize2 size={12} style={{ color: theme.colors.accent }} />
+                            <span className="text-[9px] tracking-[0.3em] uppercase font-bold text-white/60">Expand Frame</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {/* ── SUBTLE GRADIENT LINE ── */}
+            <div className="absolute bottom-0 left-0 w-0 h-[2px] group-hover:w-full transition-all duration-700"
+                 style={{ background: `linear-gradient(90deg, transparent, ${theme.colors.accent}, transparent)` }} />
+        </motion.div>
     );
 }
