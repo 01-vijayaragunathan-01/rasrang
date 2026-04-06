@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { AsyncParser } from '@json2csv/node';
+import ExcelJS from 'exceljs';
 import logger from '../utils/logger.js';
 import prisma from '../db.js'; // H-1 FIX: Shared Prisma singleton
 import bcrypt from 'bcryptjs';
@@ -23,38 +23,60 @@ export const getEventStats = async (req, res) => {
     }
 };
 
-export const exportCsv = async (req, res) => {
+// 1. EXPORT SINGLE EVENT TO EXCEL (Styled)
+export const exportEventExcel = async (req, res) => {
     const { eventId } = req.params;
-    logger.info(`Admin CSV export initiated`, { eventId, userId: req.user.id, requestId: req.requestId });
+    logger.info(`Admin Excel export initiated`, { eventId, userId: req.user.id, requestId: req.requestId });
     try {
         const registrations = await prisma.registration.findMany({
             where: { eventId },
             include: { user: true }
         });
 
-        const csvData = registrations.map(r => ({
-            Name: r.user.name,
-            Email: r.user.email,
-            RegNo: r.user.regNo || 'N/A',
-            Role: r.user.role,
-            Scanned: r.scanned
-        }));
-
-        if (csvData.length === 0) {
-            logger.warn(`CSV export aborted: No registrations for event ${eventId}`, { requestId: req.requestId });
+        if (registrations.length === 0) {
+            logger.warn(`Excel export aborted: No registrations for event ${eventId}`, { requestId: req.requestId });
             return res.status(404).json({ error: 'No registrations found for this event' });
         }
 
-        const parser = new AsyncParser();
-        const csv = await parser.parse(csvData).promise();
+        // Initialize ExcelJS Workbook & Sheet
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Event Attendees');
 
-        logger.info(`CSV file generated successfully`, { rowCount: csvData.length, eventId, requestId: req.requestId });
-        res.header('Content-Type', 'text/csv');
-        res.attachment(`event-${eventId}-attendees.csv`);
-        res.send(csv);
+        // Define Columns with custom widths
+        worksheet.columns = [
+            { header: 'Full Name', key: 'name', width: 30 },
+            { header: 'Email Address', key: 'email', width: 35 },
+            { header: 'Register No', key: 'regNo', width: 20 },
+            { header: 'Role', key: 'role', width: 15 },
+            { header: 'Scanned', key: 'scanned', width: 12 }
+        ];
+
+        // Style the Header Row (Bold, Light Gray Background)
+        const headerRow = worksheet.getRow(1);
+        headerRow.font = { bold: true };
+        headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF3F4F6' } };
+
+        // Add Data Rows
+        registrations.forEach(r => {
+            worksheet.addRow({
+                name: r.user.name,
+                email: r.user.email,
+                regNo: r.user.regNo || 'N/A',
+                role: r.user.role,
+                scanned: r.scanned ? "Yes" : "No"
+            });
+        });
+
+        // Generate Buffer and Send
+        const excelBuffer = await workbook.xlsx.writeBuffer();
+        
+        logger.info(`Excel file generated successfully`, { rowCount: registrations.length, eventId, requestId: req.requestId });
+        res.header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.attachment(`event-${eventId}-attendees.xlsx`);
+        res.send(excelBuffer);
     } catch (err) {
-        logger.error(`CSV export failure`, { eventId, error: err.message, requestId: req.requestId });
-        res.status(500).json({ error: 'Failed to generate CSV' });
+        logger.error(`Excel export failure`, { eventId, error: err.message, requestId: req.requestId });
+        res.status(500).json({ error: 'Failed to generate Excel sheet' });
     }
 };
 
@@ -305,14 +327,21 @@ export const getAttendees = async (req, res) => {
 };
 
 // 2. EXPORT ATTENDEES TO CSV (Server-side stream)
-export const exportAttendeesCsv = async (req, res) => {
+export const exportAttendeesExcel = async (req, res) => {
     logger.info(`Master attendee export requested`, { userId: req.user.id, requestId: req.requestId });
     try {
-        const { eventId } = req.query;
+        const { eventId, sortBy } = req.query;
 
         let whereClause = { registrations: { some: {} } };
         if (eventId && eventId !== 'All') {
             whereClause.registrations.some = { eventId };
+        }
+
+        let orderBy = { name: 'asc' }; 
+        if (sortBy === 'clgName' || sortBy === 'college') { 
+            orderBy = { clgName: 'asc' }; 
+        } else if (sortBy === 'name') {
+            orderBy = { name: 'asc' };
         }
 
         const attendees = await prisma.user.findMany({
@@ -320,41 +349,63 @@ export const exportAttendeesCsv = async (req, res) => {
             include: {
                 registrations: { include: { event: true } }
             },
-            orderBy: { name: 'asc' }
+            orderBy: orderBy
         });
 
-        // Flatten data for CSV
-        const csvData = attendees.map(user => {
-            const registeredEvents = user.registrations.map(r => r.event.title).join(' | ');
-            const eventsAttended = user.registrations.filter(r => r.scanned).length;
-
-            return {
-                "Full Name": user.name,
-                "Register No": user.isOnboarded ? (user.regNo || "N/A") : "Incomplete Registration",
-                "Email Address": user.email,
-                "Phone": user.isOnboarded ? (user.phoneNo || "N/A") : "Pending Verification",
-                "Total Registrations": user.registrations.length,
-                "Events Attended": eventsAttended,
-                "Registered Events": registeredEvents
-            };
-        });
-
-        if (csvData.length === 0) {
-            logger.warn(`Master CSV export aborted: No attendees found`, { requestId: req.requestId });
+        if (attendees.length === 0) {
+            logger.warn(`Master Excel export aborted: No attendees found`, { requestId: req.requestId });
             return res.status(404).json({ error: "No attendees found for this filter." });
         }
 
-        const parser = new AsyncParser();
-        const csv = await parser.parse(csvData).promise();
+        // Initialize ExcelJS Workbook & Sheet
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Master Registry');
 
-        logger.info(`Master CSV successfully compiled`, { rowCount: csvData.length, requestId: req.requestId });
-        res.header('Content-Type', 'text/csv');
-        res.attachment(`RasRang-Attendees-${eventId && eventId !== 'All' ? eventId : 'All'}.csv`);
-        res.send(csv);
+        // Define Columns with exact widths so data isn't cut off
+        worksheet.columns = [
+            { header: 'Full Name', key: 'name', width: 30 },
+            { header: 'College', key: 'college', width: 35 },
+            { header: 'Register No', key: 'regNo', width: 20 },
+            { header: 'Email Address', key: 'email', width: 35 },
+            { header: 'Phone', key: 'phone', width: 20 },
+            { header: 'Total Registrations', key: 'totalReg', width: 20 },
+            { header: 'Events Attended', key: 'eventsAttended', width: 20 },
+            { header: 'Registered Events', key: 'registeredEvents', width: 60 } // Very wide for the list of events
+        ];
+
+        // Style the Header Row (Theme matching: Purple background, White Bold text)
+        const headerRow = worksheet.getRow(1);
+        headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } }; // White text
+        headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF9D01E9' } }; // Deep Purple Hex from your UI
+
+        // Add Data Rows
+        attendees.forEach(user => {
+            const registeredEvents = user.registrations.map(r => r.event.title).join(' | ');
+            const eventsAttended = user.registrations.filter(r => r.scanned).length;
+
+            worksheet.addRow({
+                name: user.name,
+                college: user.clgName || 'N/A',
+                regNo: user.isOnboarded ? (user.regNo || "N/A") : "Incomplete",
+                email: user.email,
+                phone: user.isOnboarded ? (user.phoneNo || "N/A") : "Pending",
+                totalReg: user.registrations.length,
+                eventsAttended: eventsAttended,
+                registeredEvents: registeredEvents
+            });
+        });
+
+        // Generate Buffer and Send
+        const excelBuffer = await workbook.xlsx.writeBuffer();
+
+        logger.info(`Master Excel successfully compiled`, { rowCount: attendees.length, requestId: req.requestId });
+        res.header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.attachment(`RasRang-Attendees-${eventId && eventId !== 'All' ? eventId : 'All'}.xlsx`);
+        res.send(excelBuffer);
 
     } catch (error) {
-        logger.error(`Master CSV export failure`, { error: error.message, requestId: req.requestId });
-        res.status(500).json({ error: "Failed to generate CSV." });
+        logger.error(`Master Excel export failure`, { error: error.message, requestId: req.requestId });
+        res.status(500).json({ error: "Failed to generate Excel sheet." });
     }
 };
 

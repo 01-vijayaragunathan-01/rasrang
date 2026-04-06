@@ -15,18 +15,15 @@ export default function AttendeeRegistry() {
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // Filters, Sorting, and Pagination State
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedEventId, setSelectedEventId] = useState("All");
-    const [sortBy, setSortBy] = useState(""); // "" | "name" | "college"
+    const [sortBy, setSortBy] = useState(""); 
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
-    const limit = 20; // Items per page
+    const limit = 20; 
 
-    // Global Stats State (ensures stats stay accurate even when viewing a single page)
     const [stats, setStats] = useState({ unique: 0, registrations: 0, verified: 0 });
 
-    // Fetch Events for the Dropdown
     useEffect(() => {
         fetch(`${import.meta.env.VITE_API_BASE_URL}/api/events`)
             .then(res => res.json())
@@ -34,7 +31,6 @@ export default function AttendeeRegistry() {
             .catch(err => console.error("Error fetching events:", err));
     }, []);
 
-    // Fetch Attendees
     const fetchAttendees = async () => {
         setLoading(true);
         try {
@@ -42,7 +38,6 @@ export default function AttendeeRegistry() {
             if (selectedEventId !== "All") queryParams.append("eventId", selectedEventId);
             if (searchQuery) queryParams.append("search", searchQuery);
             
-            // Append Pagination & Sort Params for backend (if supported)
             queryParams.append("page", currentPage);
             queryParams.append("limit", limit);
             if (sortBy) queryParams.append("sortBy", sortBy);
@@ -62,29 +57,22 @@ export default function AttendeeRegistry() {
             let calcStats = { unique: 0, registrations: 0, verified: 0 };
             let pages = 1;
 
-            // Handle both flat Array (No Backend Pagination) OR Object (Backend Pagination)
             if (Array.isArray(data)) {
-                // FALLBACK: Perform sorting and pagination on the frontend
                 let processedData = [...data];
-
-                // 1. Frontend Sort
                 if (sortBy === 'college') {
                     processedData.sort((a, b) => (a.clgName || "").localeCompare(b.clgName || ""));
                 } else if (sortBy === 'name') {
                     processedData.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
                 }
 
-                // 2. Global Stats Calculation
                 calcStats.unique = processedData.length;
                 calcStats.registrations = processedData.reduce((sum, u) => sum + (u.registrations?.length || 0), 0);
                 calcStats.verified = processedData.reduce((sum, u) => sum + (u.registrations?.filter(r => r.scanned)?.length || 0), 0);
 
-                // 3. Frontend Pagination
                 pages = Math.ceil(processedData.length / limit) || 1;
                 const startIndex = (currentPage - 1) * limit;
                 fetchedAttendees = processedData.slice(startIndex, startIndex + limit);
             } else {
-                // BACKEND SUPPORTS PAGINATION
                 fetchedAttendees = data.attendees || [];
                 pages = data.totalPages || 1;
                 calcStats = {
@@ -107,7 +95,6 @@ export default function AttendeeRegistry() {
         }
     };
 
-    // Debounce triggers fetch on any parameter change
     useEffect(() => {
         const delay = setTimeout(() => {
             fetchAttendees();
@@ -115,18 +102,22 @@ export default function AttendeeRegistry() {
         return () => clearTimeout(delay);
     }, [searchQuery, selectedEventId, sortBy, currentPage]);
 
-    // Handlers to reset to Page 1 when filters change
     const handleSearch = (e) => { setSearchQuery(e.target.value); setCurrentPage(1); };
     const handleEventFilter = (e) => { setSelectedEventId(e.target.value); setCurrentPage(1); };
     const handleSort = (e) => { setSortBy(e.target.value); setCurrentPage(1); };
 
-    // Download CSV
-    const handleDownloadCSV = () => {
+    // UPDATED EXPORT HANDLER
+    const handleDownloadExcel = () => {
         const queryParams = new URLSearchParams();
         if (selectedEventId !== "All") queryParams.append("eventId", selectedEventId);
-        if (sortBy) queryParams.append("sortBy", sortBy);
-        window.open(`${import.meta.env.VITE_API_BASE_URL}/api/admin/attendees/export?${queryParams.toString()}`, '_blank');
-        toast.success("Registry export initiated.");
+        if (sortBy === 'college') {
+            queryParams.append("sortBy", 'clgName');
+        } else if (sortBy) {
+            queryParams.append("sortBy", sortBy);
+        }
+        
+        window.open(`${import.meta.env.VITE_API_BASE_URL}/api/admin/attendees/export-excel?${queryParams.toString()}`, '_blank');
+        toast.success("Excel registry export initiated.");
     };
 
     return (
@@ -214,14 +205,14 @@ export default function AttendeeRegistry() {
                         </select>
                     </div>
 
-                    {/* Export Button */}
+                    {/* Export Button UPDATED */}
                     <button 
-                        onClick={handleDownloadCSV}
+                        onClick={handleDownloadExcel}
                         disabled={attendees.length === 0 && stats.unique === 0}
                         className="flex items-center gap-2 bg-[#E4BD8D] text-[#13072E] px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white hover:shadow-[0_0_20px_rgba(228,189,141,0.3)] transition-all disabled:opacity-30 disabled:cursor-not-allowed whitespace-nowrap"
                     >
                         <Download className="w-4 h-4" />
-                        Export CSV
+                        Export Excel
                     </button>
                 </div>
             </div>

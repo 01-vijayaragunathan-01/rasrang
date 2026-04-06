@@ -1,6 +1,23 @@
 import express from 'express';
 import multer from 'multer';
-import { getEventStats, exportCsv, getUsers, updateUserRole, updateUserDetails, resetUserPassword, deleteUser, getAttendees, exportAttendeesCsv, verifyEventEntry, getMyManagedEvents, assignVolunteerToEvent, removeVolunteerFromEvent, getVolunteerAssignments, getDashboardOverview } from '../controllers/adminController.js';
+// UPDATED IMPORTS: Swapped CSV functions for the new Excel functions
+import { 
+    getEventStats, 
+    exportEventExcel, // <-- Updated here
+    getUsers, 
+    updateUserRole, 
+    updateUserDetails, 
+    resetUserPassword, 
+    deleteUser, 
+    getAttendees, 
+    exportAttendeesExcel, // <-- Updated here
+    verifyEventEntry, 
+    getMyManagedEvents, 
+    assignVolunteerToEvent, 
+    removeVolunteerFromEvent, 
+    getVolunteerAssignments, 
+    getDashboardOverview 
+} from '../controllers/adminController.js';
 import { createEvent, updateEvent, deleteEvent } from '../controllers/adminEventController.js';
 import { uploadChunk } from '../controllers/uploadController.js';
 import { createGalleryItem, deleteGalleryItem } from '../controllers/galleryController.js';
@@ -30,7 +47,8 @@ const chunkUpload = multer({
 });
 
 router.get('/event-stats', authenticateJWT, isCoordinator, getEventStats);
-router.get('/export-csv/:eventId', authenticateJWT, isCoordinator, exportCsv);
+// UPDATED ROUTE: Changed to export-excel
+router.get('/export-excel/:eventId', authenticateJWT, isCoordinator, exportEventExcel);
 
 router.get('/users', authenticateJWT, isSuperCoordinator, getUsers);
 router.put('/role', authenticateJWT, isSuperCoordinator, updateUserRole);
@@ -54,7 +72,8 @@ router.delete('/gallery/:id', authenticateJWT, isPlatformAdmin, deleteGalleryIte
 
 // Attendee Registry (Volunteer, Coordinator & Admin)
 router.get('/attendees', authenticateJWT, isVolunteer, getAttendees);
-router.get('/attendees/export', authenticateJWT, isVolunteer, exportAttendeesCsv);
+// UPDATED ROUTE: Changed to export-excel
+router.get('/attendees/export-excel', authenticateJWT, isVolunteer, exportAttendeesExcel);
 
 // ── SCANNER RBAC MODULE ───────────────────────────────────────
 // Verify ticket entry — accessible to all scanning staff (Volunteer+)
