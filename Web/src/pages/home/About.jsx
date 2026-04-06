@@ -220,7 +220,7 @@ export default function About() {
                                 ✦ Soon ✦
                             </p>
                             <h2 className="text-5xl md:text-7xl font-black uppercase tracking-wider font-massive" style={{ color: theme.colors.textTitle }}>
-                                Incomming{' '}
+                                Uncomming{' '}
                                 <span className="text-transparent bg-clip-text" style={{ backgroundImage: `linear-gradient(90deg, #00B2FF, ${theme.colors.secondary})` }}>
                                     Stars
                                 </span>
