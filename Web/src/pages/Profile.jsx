@@ -9,9 +9,10 @@ import { useToast } from "../context/ToastContext";
 import { APP_THEME } from "../constants/theme";
 import AvatarPicker from "../components/profile/AvatarPicker";
 import { X, Fingerprint, ShieldCheck, RefreshCw } from "lucide-react";
+import { api } from "../utils/api";
 
 export default function Profile() {
-    const { user, setUser, logout, csrfToken } = useAuth();
+    const { user, setUser, logout } = useAuth();
 
     const avatarSvg = useMemo(() => {
         return multiavatar(user?.avatarSeed || user?.email || user?.name || "rasrang-guest");
@@ -37,7 +38,7 @@ export default function Profile() {
         if (!user) return;
 
         // Fetch Tickets
-        fetch(`${import.meta.env.VITE_API_BASE_URL}/api/events/my-registrations`, {credentials: "include"})
+        api("/api/events/my-registrations")
             .then(res => {
                 if (res.status === 401) throw new Error("Unauthorized");
                 return res.json();
@@ -61,17 +62,12 @@ export default function Profile() {
 
         setIsEditing(false);
         try {
-            const endpoint = user.isOnboarded ? `${import.meta.env.VITE_API_BASE_URL}/api/auth/profile` : `${import.meta.env.VITE_API_BASE_URL}/api/auth/onboard`;
+            const endpoint = user.isOnboarded ? "/api/auth/profile" : "/api/auth/onboard";
             const method = user.isOnboarded ? "PUT" : "POST";
 
-            const res = await fetch(endpoint, {
+            const res = await api(endpoint, {
                 method,
-                headers: { 
-                    "Content-Type": "application/json",
-                    "x-csrf-token": csrfToken 
-                },
                 body: JSON.stringify(user),
-                credentials: "include"
             });
             const data = await res.json();
             if (res.ok) {
@@ -89,14 +85,9 @@ export default function Profile() {
 
     const handleSaveAvatar = async () => {
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/profile`, {
+            const res = await api("/api/auth/profile", {
                 method: "PUT",
-                headers: { 
-                    "Content-Type": "application/json",
-                    "x-csrf-token": csrfToken 
-                },
                 body: JSON.stringify({ ...user, avatarSeed: tempSeed }),
-                credentials: "include"
             });
             const data = await res.json();
             if (res.ok) {
@@ -123,17 +114,12 @@ export default function Profile() {
 
         setIsUpdatingPassword(true);
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/change-password`, {
+            const res = await api("/api/auth/change-password", {
                 method: "PUT",
-                headers: { 
-                    "Content-Type": "application/json",
-                    "x-csrf-token": csrfToken 
-                },
                 body: JSON.stringify({ 
                     currentPassword: passwordData.current, 
                     newPassword: passwordData.next 
                 }),
-                credentials: "include"
             });
             const data = await res.json();
             if (res.ok) {

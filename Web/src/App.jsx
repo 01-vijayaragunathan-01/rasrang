@@ -16,6 +16,7 @@ import Terms from "./pages/Terms";
 import Particles from "./pages/home/Particles";
 import Footer from "./common/Footer";
 import StaggeredMenu from "./common/StaggeredMenu";
+import ScrollToTop from "./common/ScrollToTop";
 
 function DesktopSuggestion({ onClose }) {
   const { theme } = useTheme();
@@ -204,6 +205,7 @@ export default function App() {
       <AuthProvider>
         <ReactLenis root options={{ lerp: 0.07, duration: 1.5, smoothTouch: false }}>
           <Router>
+            <ScrollToTop />
             <MainContent />
           </Router>
         </ReactLenis>

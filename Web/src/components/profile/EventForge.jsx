@@ -8,10 +8,10 @@ import ConfirmModal from "../../common/ConfirmModal";
 import { DatePicker } from "../application/date-picker/date-picker";
 import { parseDate, getLocalTimeZone } from "@internationalized/date";
 import TimePicker from "../../common/TimePicker";
-import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
+import { api } from "../../utils/api";
 export default function EventForge() {
-    const { csrfToken } = useAuth();
+    const { user } = useAuth();
     const toast = useToast();
     const { colors } = APP_THEME;
     const [activeMode, setActiveMode] = useState("manage"); // 'manage' or 'add'
@@ -41,7 +41,7 @@ export default function EventForge() {
     // 1. Fetch Events for Registry
     const fetchEvents = async () => {
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/events`);
+            const res = await api("/api/events");
             const data = await res.json();
             setEvents(data);
         } catch (err) {
@@ -112,10 +112,8 @@ export default function EventForge() {
 
     const triggerDelete = async (id) => {
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/events/${id}`, {
+            const res = await api(`/api/admin/events/${id}`, {
                 method: "DELETE",
-                headers: { "x-csrf-token": csrfToken },
-                credentials: "include"
             });
             if (res.ok) {
                 setEvents(events.filter(e => e.id !== id));
@@ -159,11 +157,9 @@ export default function EventForge() {
             chunkForm.append("fileName", file.name);
             chunkForm.append("mimetype", file.type);
 
-            const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/upload-chunk`, {
+            const res = await api("/api/admin/upload-chunk", {
                 method: "POST",
-                headers: { "x-csrf-token": csrfToken },
                 body: chunkForm,
-                credentials: "include"
             });
             if (!res.ok) throw new Error("Chunk upload failed");
             const data = await res.json();
@@ -197,20 +193,15 @@ export default function EventForge() {
             if (finalImageUrl) payload.imageUrl = finalImageUrl;
             if (whatsappLink) payload.whatsappLink = whatsappLink;
 
-            const url = editingEventId 
-                ? `${import.meta.env.VITE_API_BASE_URL}/api/admin/events/${editingEventId}`
-                : `${import.meta.env.VITE_API_BASE_URL}/api/admin/events`;
+            const endpoint = editingEventId 
+                ? `/api/admin/events/${editingEventId}`
+                : "/api/admin/events";
             
             const method = editingEventId ? "PUT" : "POST";
 
-            const response = await fetch(url, {
+            const response = await api(endpoint, {
                 method,
-                headers: { 
-                    "x-csrf-token": csrfToken,
-                    "Content-Type": "application/json"
-                },
                 body: JSON.stringify(payload),
-                credentials: "include"
             });
 
             if (response.ok) {

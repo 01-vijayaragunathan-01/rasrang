@@ -3,9 +3,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { UserCheck, UserMinus, ChevronDown, CheckCircle2, Loader2, Users, ShieldCheck, Search } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
+import { api } from "../../utils/api";
 
 export default function VolunteerAssignment() {
-    const { csrfToken } = useAuth();
     const toast = useToast();
 
     const [data, setData] = useState({ volunteers: [], events: [] });
@@ -16,13 +16,11 @@ export default function VolunteerAssignment() {
 
     const fetchAssignments = async () => {
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/volunteer-assignments`, {
-                credentials: "include"
-            });
+            const res = await api("/api/admin/volunteer-assignments");
             const json = await res.json();
             if (res.ok) setData(json);
             else toast.error(json.error || "Failed to load assignments.");
-        } catch {
+        } catch (err) {
             toast.error("Connection error. Could not load assignments.");
         } finally {
             setLoading(false);
@@ -35,10 +33,8 @@ export default function VolunteerAssignment() {
         const key = `${volunteerId}_${eventId}`;
         setProcessing(key);
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/assign-volunteer`, {
+            const res = await api("/api/admin/assign-volunteer", {
                 method: "POST",
-                headers: { "Content-Type": "application/json", "x-csrf-token": csrfToken },
-                credentials: "include",
                 body: JSON.stringify({ volunteerId, eventId })
             });
             const json = await res.json();
@@ -48,7 +44,7 @@ export default function VolunteerAssignment() {
             } else {
                 toast.error(json.error || "Assignment failed.");
             }
-        } catch {
+        } catch (err) {
             toast.error("Network error during assignment.");
         } finally {
             setProcessing(null);
@@ -59,10 +55,8 @@ export default function VolunteerAssignment() {
         const key = `${volunteerId}_${eventId}`;
         setProcessing(key);
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/remove-assignment`, {
+            const res = await api("/api/admin/remove-assignment", {
                 method: "DELETE",
-                headers: { "Content-Type": "application/json", "x-csrf-token": csrfToken },
-                credentials: "include",
                 body: JSON.stringify({ volunteerId, eventId })
             });
             const json = await res.json();
@@ -72,7 +66,7 @@ export default function VolunteerAssignment() {
             } else {
                 toast.error(json.error || "Removal failed.");
             }
-        } catch {
+        } catch (err) {
             toast.error("Network error during removal.");
         } finally {
             setProcessing(null);

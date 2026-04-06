@@ -20,7 +20,7 @@ export const authenticateJWT = async (req, res, next) => {
         if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
             if (!csrfToken || csrfToken !== decoded.csrf) {
                 logger.warn(`Security Event: CSRF Mismatch`, { requestId: req.requestId, ip: req.ip });
-                return res.status(403).json({ error: 'CSRF token mismatch' });
+                return res.status(403).json({ error: 'Security session out of sync. Please try again.' });
             }
         }
 

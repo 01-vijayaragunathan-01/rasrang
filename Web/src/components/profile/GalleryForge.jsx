@@ -6,8 +6,9 @@ import { Camera, Image as ImageIcon, Trash2, Plus, List, Zap, AlertCircle, Spark
 import { APP_THEME } from "../../constants/theme";
 import ConfirmModal from "../../common/ConfirmModal";
 
+import { api } from "../../utils/api";
+
 export default function GalleryForge() {
-    const { csrfToken } = useAuth();
     const toast = useToast();
     const [activeMode, setActiveMode] = useState("manage"); // 'manage' or 'add'
     const [isLoading, setIsLoading] = useState(false);
@@ -28,7 +29,7 @@ export default function GalleryForge() {
     // 1. Fetch Gallery for Registry
     const fetchGallery = async () => {
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/gallery`);
+            const res = await api("/api/gallery");
             const data = await res.json();
             if (res.ok) {
                 setItems(data);
@@ -92,10 +93,8 @@ export default function GalleryForge() {
 
     const triggerDelete = async (id) => {
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/gallery/${id}`, {
+            const res = await api(`/api/admin/gallery/${id}`, {
                 method: "DELETE",
-                headers: { "x-csrf-token": csrfToken },
-                credentials: "include"
             });
             if (res.ok) {
                 setItems(items.filter(item => item.id !== id));
@@ -116,11 +115,9 @@ export default function GalleryForge() {
         data.append("galleryImage", imageFile);
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/gallery`, {
+            const response = await api("/api/admin/gallery", {
                 method: "POST",
-                headers: { "x-csrf-token": csrfToken },
                 body: data,
-                credentials: "include"
             });
 
             if (response.ok) {

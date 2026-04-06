@@ -3,10 +3,23 @@ import { useToast } from "./ToastContext";
 
 const AuthContext = createContext();
 
+// Global singleton for CSRF to allow the API utility to read it outside of React context
+let _globalCsrfToken = null;
+export const getCsrfTokenGlobal = () => _globalCsrfToken;
+
+const updateGlobalCsrf = (token) => {
+    _globalCsrfToken = token;
+};
+
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
-    const [csrfToken, setCsrfToken] = useState(null);
+    const [csrfToken, setCsrfTokenState] = useState(null);
     const [loading, setLoading] = useState(true);
+
+    const setCsrfToken = (token) => {
+        setCsrfTokenState(token);
+        updateGlobalCsrf(token);
+    };
     const toast = useToast();
 
     const checkAuth = async () => {
@@ -42,6 +55,22 @@ export const AuthProvider = ({ children }) => {
         } finally {
             toast.success("SESSION TERMINATED: You have been signed out.");
             window.location.href = "/login";
+        }
+    };
+
+    const refreshSession = async () => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/refresh-token`, { credentials: "include" });
+            if (!res.ok) throw new Error("Sync failed");
+            const data = await res.json();
+            if (data.csrfToken) {
+                setCsrfToken(data.csrfToken);
+                return data.csrfToken;
+            }
+            return null;
+        } catch (err) {
+            console.error("Session sync failure", err);
+            return null;
         }
     };
 
@@ -83,7 +112,7 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     return (
-        <AuthContext.Provider value={{ user, isAuthenticated: !!user, setUser, csrfToken, setCsrfToken, loading, checkAuth, logout }}>
+        <AuthContext.Provider value={{ user, isAuthenticated: !!user, setUser, csrfToken, setCsrfToken, refreshSession, loading, checkAuth, logout }}>
             {children}
         </AuthContext.Provider>
     );

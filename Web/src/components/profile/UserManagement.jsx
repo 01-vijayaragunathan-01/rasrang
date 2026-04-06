@@ -3,11 +3,12 @@ import { motion } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import { APP_THEME } from "../../constants/theme";
-import { Key, ShieldAlert, CheckCircle2, Copy, X, Pencil, Trash2, User } from "lucide-react";
+import { Key, ShieldAlert, CheckCircle2, Copy, X, Pencil, Trash2, User, Power } from "lucide-react";
 import ConfirmModal from "../../common/ConfirmModal";
+import { api } from "../../utils/api";
 
 export default function UserManagement({ isSuper }) {
-    const { user: currentUser, csrfToken } = useAuth();
+    const { user: currentUser } = useAuth();
     const toast = useToast();
     const { colors } = APP_THEME;
     const [users, setUsers] = useState([]);
@@ -27,7 +28,7 @@ export default function UserManagement({ isSuper }) {
 
     const fetchUsers = async () => {
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/users`, { credentials: "include" });
+            const res = await api("/api/admin/users");
             const data = await res.json();
             if (res.ok) {
                 if (Array.isArray(data)) setUsers(data);
@@ -47,14 +48,9 @@ export default function UserManagement({ isSuper }) {
 
     const handleRoleUpdate = async (userId, newRole, canManage = false) => {
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/role`, {
+            const res = await api("/api/admin/role", {
                 method: "PUT",
-                headers: { 
-                    "Content-Type": "application/json",
-                    "x-csrf-token": csrfToken
-                },
                 body: JSON.stringify({ userId, role: newRole, canManagePrivileges: canManage }),
-                credentials: "include"
             });
             const data = await res.json();
             if (res.ok) {
@@ -77,14 +73,9 @@ export default function UserManagement({ isSuper }) {
             onConfirm: async () => {
                 setIsResetting(true);
                 try {
-                    const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/reset-password`, {
+                    const res = await api("/api/admin/reset-password", {
                         method: "POST",
-                        headers: { 
-                            "Content-Type": "application/json",
-                            "x-csrf-token": csrfToken
-                        },
                         body: JSON.stringify({ userId }),
-                        credentials: "include"
                     });
                     const data = await res.json();
                     if (res.ok) {
@@ -106,14 +97,9 @@ export default function UserManagement({ isSuper }) {
         e.preventDefault();
         const { id, name, email, regNo } = editingUser;
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/users/${id}`, {
+            const res = await api(`/api/admin/users/${id}`, {
                 method: "PUT",
-                headers: { 
-                    "Content-Type": "application/json",
-                    "x-csrf-token": csrfToken
-                },
                 body: JSON.stringify({ name, email, regNo }),
-                credentials: "include"
             });
             const data = await res.json();
             if (res.ok) {
@@ -137,10 +123,8 @@ export default function UserManagement({ isSuper }) {
             onConfirm: async () => {
                 setIsDeleting(true);
                 try {
-                    const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/users/${userId}`, {
+                    const res = await api(`/api/admin/users/${userId}`, {
                         method: "DELETE",
-                        headers: { "x-csrf-token": csrfToken },
-                        credentials: "include"
                     });
                     const data = await res.json();
                     if (res.ok) {

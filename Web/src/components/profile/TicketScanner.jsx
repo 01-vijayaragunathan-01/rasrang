@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Html5Qrcode } from "html5-qrcode";
 import { QrCode, Keyboard, CheckCircle, AlertTriangle, Loader2, Camera as CameraIcon } from "lucide-react";
-import { useToast } from "../../context/ToastContext"; // Adjust path if needed
+import { useToast } from "../../context/ToastContext";
+import { api } from "../../utils/api";
 
 export default function TicketScanner() {
     const toast = useToast();
@@ -24,7 +25,7 @@ export default function TicketScanner() {
 
     // 1. Fetch Events for the dropdown
     useEffect(() => {
-        fetch(`${API_BASE}/api/events`)
+        api("/api/events")
             .then(res => res.json())
             .then(data => {
                 setEvents(data);
@@ -117,12 +118,8 @@ export default function TicketScanner() {
         setScanResult(null);
 
         try {
-            const res = await fetch(`${API_BASE}/api/admin/verify-entry`, {
+            const res = await api("/api/admin/verify-entry", {
                 method: "POST",
-                headers: { 
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${localStorage.getItem('token')}`
-                },
                 body: JSON.stringify({ eventId: selectedEvent, identifier })
             });
             

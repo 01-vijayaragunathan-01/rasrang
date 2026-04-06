@@ -7,7 +7,7 @@ export const generateTokens = (user) => {
     const accessToken = jwt.sign(
         { id: user.id, role: user.role, csrf: csrfToken }, 
         process.env.JWT_SECRET || 'fallback_secret', 
-        { expiresIn: '15m' }
+        { expiresIn: '1h' }
     );
 
     const refreshToken = jwt.sign(
@@ -35,7 +35,7 @@ export const sendTokenResponse = async (prisma, user, statusCode, res) => {
         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     };
 
-    res.cookie('accessToken', accessToken, { ...cookieOptions, maxAge: 15 * 60 * 1000 });
+    res.cookie('accessToken', accessToken, { ...cookieOptions, maxAge: 60 * 60 * 1000 });
     res.cookie('refreshToken', refreshToken, cookieOptions);
 
     res.status(statusCode).json({
