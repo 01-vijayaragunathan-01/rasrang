@@ -1,1 +1,11 @@
+# Environment Secrets
+.env
+*.env
+Web/.env
+server/.env
+
+# Local Setup
 server/.env.example
+node_modules
+dist
+.DS_Store
