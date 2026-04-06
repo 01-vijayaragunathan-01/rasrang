@@ -103,21 +103,54 @@ export default function GalleryForge() {
         } catch (err) { toast.error("TERMINATION REJECTED."); }
     };
 
-    // 3. Submit Logic
+    // 2. Chunked Ingestion Helper
+    const uploadFileInChunks = async (file) => {
+        const chunkSize = 2 * 1024 * 1024; // 2MB
+        const totalChunks = Math.ceil(file.size / chunkSize);
+        const uploadId = `upl_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+        let minioUrl = null;
+
+        for (let idx = 0; idx < totalChunks; idx++) {
+            const chunk = file.slice(idx * chunkSize, (idx + 1) * chunkSize);
+            const chunkForm = new FormData();
+            chunkForm.append("chunk", chunk);
+            chunkForm.append("uploadId", uploadId);
+            chunkForm.append("chunkIndex", idx);
+            chunkForm.append("totalChunks", totalChunks);
+            chunkForm.append("fileName", file.name);
+            chunkForm.append("mimetype", file.type);
+
+            const res = await api("/api/admin/upload-chunk", {
+                method: "POST",
+                body: chunkForm,
+            });
+            if (!res.ok) throw new Error("Chunk upload failed");
+            const data = await res.json();
+            if (data.complete) minioUrl = data.url;
+        }
+        return minioUrl;
+    };
+
+    // 3. Submit Logic (Final Commitment)
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!imageFile) return toast.error("IMAGE INJECTION REQUIRED.");
         setIsLoading(true);
 
-        const data = new FormData();
-        data.append("caption", formData.caption);
-        data.append("category", formData.category);
-        data.append("galleryImage", imageFile);
-
         try {
+            // First, ingest visuals in fragments to bypass payload limits
+            const finalImageUrl = await uploadFileInChunks(imageFile);
+
+            if (!finalImageUrl) throw new Error("Ingestion protocol incomplete.");
+
+            // Final Commitment to Central Archives
             const response = await api("/api/admin/gallery", {
                 method: "POST",
-                body: data,
+                body: JSON.stringify({
+                    caption: formData.caption,
+                    category: formData.category,
+                    imageUrl: finalImageUrl // Send the URL from Minio/S3 directly
+                }),
             });
 
             if (response.ok) {
@@ -129,7 +162,8 @@ export default function GalleryForge() {
                 toast.error(`FORGE ERROR: ${err.error}`);
             }
         } catch (error) {
-            toast.error("CONNECTION COLLAPSE.");
+            console.error("Archive failure:", error);
+            toast.error(error.message || "CONNECTION COLLAPSE.");
         } finally {
             setIsLoading(false);
         }

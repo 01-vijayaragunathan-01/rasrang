@@ -23,20 +23,26 @@ export const getGallery = async (req, res) => {
 // 2. ADD GALLERY ITEM (Admin Only)
 // ==========================================
 export const createGalleryItem = async (req, res) => {
-    const { caption, category } = req.body;
+    const { caption, category, imageUrl: bodyImageUrl } = req.body;
     logger.info(`Admin: Adding gallery item`, { caption, category, requestId: req.requestId });
     try {
-        if (!req.file) {
-            logger.warn(`Gallery upload failed: No file provided`, { requestId: req.requestId });
-            return res.status(400).json({ error: "Missing image file" });
+        let imageUrl = bodyImageUrl;
+
+        // If a file was uploaded directly (fallback for non-chunked clients)
+        if (!imageUrl && req.file) {
+            logger.info(`Gallery: Pushing direct asset to MinIO`, { fileName: req.file.originalname, requestId: req.requestId });
+            imageUrl = await uploadFile(
+                req.file.buffer, 
+                req.file.originalname, 
+                req.file.mimetype
+            );
         }
 
-        logger.info(`Gallery: Pushing asset to MinIO`, { fileName: req.file.originalname, requestId: req.requestId });
-        const imageUrl = await uploadFile(
-            req.file.buffer, 
-            req.file.originalname, 
-            req.file.mimetype
-        );
+        if (!imageUrl) {
+            logger.warn(`Gallery upload failed: No asset provided (file or URL)`, { requestId: req.requestId });
+            return res.status(400).json({ error: "Missing image asset" });
+        }
+
         logger.info(`Gallery: Asset verified at ${imageUrl}`, { requestId: req.requestId });
 
         const newItem = await prisma.gallery.create({
