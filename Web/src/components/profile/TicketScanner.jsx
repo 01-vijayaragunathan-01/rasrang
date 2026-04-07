@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Html5Qrcode } from "html5-qrcode";
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from "html5-qrcode"; 
 import { QrCode, Keyboard, CheckCircle, AlertTriangle, Loader2, Camera as CameraIcon, ScanLine, XCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "../../context/ToastContext";
@@ -11,7 +11,7 @@ export default function TicketScanner() {
     // Core State
     const [events, setEvents] = useState([]);
     const [selectedEvent, setSelectedEvent] = useState("");
-    const [mode, setMode] = useState("scan"); // "scan" or "manual"
+    const [mode, setMode] = useState("scan"); 
     const [manualId, setManualId] = useState("");
     
     // Camera State
@@ -22,9 +22,8 @@ export default function TicketScanner() {
     const [isVerifying, setIsVerifying] = useState(false);
     const [scanResult, setScanResult] = useState(null); 
 
-    // 1. Fetch Managed Events for this specific volunteer
+    // 1. Fetch Managed Events
     useEffect(() => {
-        // Fetch events this volunteer is assigned to manage
         api("/api/admin/my-managed-events")
             .then(res => res.json())
             .then(data => {
@@ -42,7 +41,6 @@ export default function TicketScanner() {
             if (devices && devices.length > 0) {
                 setCameras(devices);
                 
-                // Smart auto-selection: Look for "back", "environment" (rear camera) first for mobile scanning
                 const rearCamera = devices.find(d => 
                     d.label.toLowerCase().includes('back') || 
                     d.label.toLowerCase().includes('environment')
@@ -69,37 +67,35 @@ export default function TicketScanner() {
                 selectedCamera,
                 { 
                     fps: 10, 
-                    qrbox: { width: 250, height: 250 },
-                    aspectRatio: 1.0 
+                    // FIX 1: Provide a single number to force a perfect square natively
+                    qrbox: 250, 
+                    formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ] 
                 },
                 (decodedText) => {
-                    // Prevent overlapping scans
                     if (isScanning) {
                         isScanning = false;
                         html5QrCode.pause();
                         
                         verifyTicket(decodedText).finally(() => {
                             setTimeout(() => {
-                                // Resume scanning after 2.5 seconds
-                                if (html5QrCode.getState() === 3) { // 3 = PAUSED
+                                if (html5QrCode.getState() === 3) { 
                                     isScanning = true;
-                                    setScanResult(null); // Clear previous result
+                                    setScanResult(null); 
                                     html5QrCode.resume();
                                 }
                             }, 2500);
                         });
                     }
                 },
-                (error) => { /* Ignore constant background read errors */ }
+                (error) => { /* Ignore background read errors */ }
             ).catch(err => console.error("Scanner start error:", err));
         }
 
-        // Robust Cleanup Function
         return () => {
             isScanning = false;
             if (html5QrCode) {
                 try {
-                    if (html5QrCode.getState() !== 1) { // 1 = UNKNOWN/STOPPED
+                    if (html5QrCode.getState() !== 1) { 
                         html5QrCode.stop().then(() => html5QrCode.clear()).catch(() => {});
                     }
                 } catch (e) {
@@ -109,7 +105,7 @@ export default function TicketScanner() {
         };
     }, [mode, selectedCamera, selectedEvent]);
 
-    // 4. Smart Verification Logic (Handles both JWTs and Manual Strings)
+    // 4. Smart Verification Logic
     const verifyTicket = async (identifier) => {
         if (!selectedEvent) return toast.error("Please select an event first.");
         if (!identifier) return;
@@ -117,19 +113,14 @@ export default function TicketScanner() {
         setIsVerifying(true);
         setScanResult(null);
 
-        // ── SMART ROUTING ──
-        // QR Codes generate JWTs (which always start with "eyJ")
         const isJWT = identifier.startsWith("eyJ");
-        
         let endpoint = "";
         let bodyData = {};
 
         if (isJWT) {
-            // It's a QR code! Send to the eventController JWT decoder
             endpoint = "/api/events/verify-ticket"; 
             bodyData = { selectedEventId: selectedEvent, ticketData: identifier };
         } else {
-            // It's manual text (RegNo/Email)! Send to adminController raw string matcher
             endpoint = "/api/admin/verify-entry";
             bodyData = { eventId: selectedEvent, identifier };
         }
@@ -143,10 +134,8 @@ export default function TicketScanner() {
             const data = await res.json();
 
             if (res.ok && data.valid) {
-                // SUCCESS
                 try { new Audio('/success-beep.mp3').play(); } catch(e){}
                 
-                // Unify response format slightly depending on which endpoint answered
                 const userName = data.attendee ? data.attendee.name : data.user;
                 const regDetails = data.attendee ? data.attendee.regNo : "Verified";
                 
@@ -157,7 +146,6 @@ export default function TicketScanner() {
                 });
                 setManualId(""); 
             } else {
-                // FAILURE (Already scanned, not found, wrong event)
                 try { new Audio('/error-buzz.mp3').play(); } catch(e){}
                 setScanResult({ 
                     type: 'error', 
@@ -180,7 +168,6 @@ export default function TicketScanner() {
     return (
         <div className="w-full max-w-xl mx-auto bg-[#13072E] border border-[#E4BD8D]/30 rounded-3xl p-6 md:p-8 shadow-[0_0_50px_rgba(157,1,233,0.15)] relative overflow-hidden">
             
-            {/* Background aesthetic */}
             <div className="absolute top-0 right-0 w-64 h-64 bg-[#C53099] rounded-full blur-[100px] opacity-20 pointer-events-none" />
             <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#22D3EE] rounded-full blur-[100px] opacity-10 pointer-events-none" />
 
@@ -193,13 +180,11 @@ export default function TicketScanner() {
                         <h2 className="text-2xl font-black text-white uppercase tracking-widest" style={{ fontFamily: "'Playfair Display', serif" }}>
                             Entry Portal
                         </h2>
-                        <p className="text-[10px] text-white/40 uppercase tracking-[0.2em] font-bold">Access Verification Node</p>
+                        <p className="text-[10px] text-white/40 uppercase tracking-[0.2em] font-bold">QR Access Node</p>
                     </div>
                 </div>
 
-                {/* Context Selectors */}
                 <div className="space-y-4 mb-8">
-                    {/* Event Dropdown */}
                     <div>
                         <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-[#E4BD8D] mb-2 pl-1">Target Event</label>
                         <select 
@@ -214,7 +199,6 @@ export default function TicketScanner() {
                         </select>
                     </div>
 
-                    {/* Camera Dropdown (Only show if in scan mode) */}
                     {mode === "scan" && (
                         <AnimatePresence>
                             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
@@ -240,7 +224,6 @@ export default function TicketScanner() {
                     )}
                 </div>
 
-                {/* Mode Toggles */}
                 <div className="flex bg-black/40 rounded-xl p-1.5 mb-8 border border-white/5">
                     <button 
                         onClick={() => { setMode("scan"); setScanResult(null); }}
@@ -256,10 +239,7 @@ export default function TicketScanner() {
                     </button>
                 </div>
 
-                {/* The Active Interface */}
                 <div className="relative min-h-[320px]">
-                    
-                    {/* Scan Result Feedback Banner (Overlays the scanner when triggered) */}
                     <AnimatePresence>
                         {scanResult && (
                             <motion.div 
@@ -291,20 +271,18 @@ export default function TicketScanner() {
 
                     {mode === "scan" ? (
                         <div className="overflow-hidden rounded-2xl border-2 border-[#22D3EE]/30 bg-black relative shadow-[0_0_30px_rgba(34,211,238,0.1)]">
-                            {/* Decorative Cyberpunk Scanner Corners */}
                             <div className="absolute top-4 left-4 w-8 h-8 border-t-4 border-l-4 border-[#22D3EE] z-10 pointer-events-none rounded-tl-lg" />
                             <div className="absolute top-4 right-4 w-8 h-8 border-t-4 border-r-4 border-[#22D3EE] z-10 pointer-events-none rounded-tr-lg" />
                             <div className="absolute bottom-4 left-4 w-8 h-8 border-b-4 border-l-4 border-[#22D3EE] z-10 pointer-events-none rounded-bl-lg" />
                             <div className="absolute bottom-4 right-4 w-8 h-8 border-b-4 border-r-4 border-[#22D3EE] z-10 pointer-events-none rounded-br-lg" />
                             
-                            {/* Target reticle crosshair */}
+                            {/* FIX 2: Ensure the custom decorative reticle is also a perfect square (250x250) to match the internal scanner box */}
                             <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none opacity-20">
-                                <div className="w-[70%] h-[70%] border border-[#22D3EE] rounded-3xl" />
-                                <div className="absolute w-full h-[1px] bg-[#22D3EE]" />
-                                <div className="absolute h-full w-[1px] bg-[#22D3EE]" />
+                                <div className="w-[250px] h-[250px] border border-[#22D3EE] rounded-3xl" />
+                                <div className="absolute w-[250px] h-[1px] bg-[#22D3EE]" />
+                                <div className="absolute h-[250px] w-[1px] bg-[#22D3EE]" />
                             </div>
 
-                            {/* The div where html5-qrcode injects the video stream */}
                             <div id="qr-reader" className="w-full h-[320px] flex items-center justify-center text-white/30 font-mono text-sm" />
                         </div>
                     ) : (

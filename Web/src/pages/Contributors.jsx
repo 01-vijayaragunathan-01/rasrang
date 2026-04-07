@@ -78,7 +78,7 @@ const FEATURED = [
     },
     {
         id: 2,
-        name: "Jafrin Sultana",
+        name: "Jafrin Sam J",
         role: "RA2311030050016",
         team: "Developers",
         image: "/Assets/jafrin.jpeg",
