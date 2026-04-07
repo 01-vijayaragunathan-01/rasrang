@@ -1,10 +1,19 @@
-import { useState, useEffect } from "react";
-import { motion, useMotionValue, useTransform, useMotionTemplate } from "framer-motion";
+import React, { useState, useEffect, useRef } from "react";
+import { motion, useMotionValue, useTransform, useScroll } from "framer-motion";
 import { useTheme } from "../../context/ThemeContext";
 import PixelCard from "../../components/home/PixelCard";
+import { Mic2, Music, Zap, Heart, MessageCircle, Share2, Flame, Pointer } from "lucide-react"; 
 
 export default function About() {
     const { theme } = useTheme();
+
+    // --- 0. NATIVE SMOOTH SCROLLING ---
+    useEffect(() => {
+        document.documentElement.style.scrollBehavior = "smooth";
+        return () => {
+            document.documentElement.style.scrollBehavior = "auto";
+        };
+    }, []);
 
     // --- 1. COUNTDOWN LOGIC ---
     const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
@@ -34,7 +43,6 @@ export default function About() {
     const rotateX = useTransform(ticketY, [-200, 200], [20, -20]);
     const rotateY = useTransform(ticketX, [-200, 200], [-20, 20]);
 
-    // Holographic glare effect for the ticket
     const glareX = useTransform(ticketX, [-200, 200], ["-100%", "200%"]);
     const glareY = useTransform(ticketY, [-200, 200], ["-100%", "200%"]);
 
@@ -48,17 +56,48 @@ export default function About() {
         ticketY.set(0);
     }
 
-    // --- 3. CONSTELLATION MAP DATA ---
-    const colleges = [
-        { name: "Engineering & Tech", x: "15%", y: "40%" },
-        { name: "Medical & Health", x: "35%", y: "70%" },
-        { name: "Arts & Science", x: "50%", y: "20%" },
-        { name: "Management", x: "70%", y: "60%" },
-        { name: "Hotel Management", x: "85%", y: "35%" },
+    const [activeCard, setActiveCard] = useState(null);
+
+    // --- 3. BENNY DAYAL INTERACTIVE 3D IMAGE STACK LOGIC ---
+    const [bennyIndex, setBennyIndex] = useState(0);
+    
+    // Replace these paths with actual 5 images of Benny Dayal
+    const bennyImages = [
+        "/Assets/benny/benny1.jpg",
+        "/Assets/benny/benny2.jpg",
+        "/Assets/benny/benny3.jpg",
+        "/Assets/benny/benny4.jpg",
+        "/Assets/benny/benny5.jpg"
     ];
 
-    // --- 4. MOBILE INTERACTION STATE ---
-    const [activeCard, setActiveCard] = useState(null);
+    const handleNextBennyImage = () => {
+        setBennyIndex((prevIndex) => (prevIndex + 1) % bennyImages.length);
+    };
+
+    // Staggered Text Animations for the Banner
+    const textContainerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: { staggerChildren: 0.15, delayChildren: 0.1 }
+        }
+    };
+
+    const textItemVariants = {
+        hidden: { opacity: 0, y: 30 },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } }
+    };
+
+    // --- 4. PARALLAX SCROLL FOR BENNY SECTION ---
+    const bennyRef = useRef(null);
+    const { scrollYProgress: bennyScroll } = useScroll({
+        target: bennyRef,
+        offset: ["start end", "end start"]
+    });
+    
+    const textY = useTransform(bennyScroll, [0, 1], [80, -80]); // Text moves up faster
+    const imgY = useTransform(bennyScroll, [0, 1], [-40, 40]);  // Image moves down slower
+    const bgRotate = useTransform(bennyScroll, [0, 1], [-3, 3]); // Background slightly rotates
 
     return (
         <section id="about" className="relative w-full py-24 overflow-hidden" style={{ backgroundColor: "transparent" }}>
@@ -74,9 +113,8 @@ export default function About() {
                         backgroundImage: `repeating-conic-gradient(from 0deg, transparent 0deg 15deg, ${theme.colors.accent}10 15deg 30deg)`
                     }}
                 />
-                {/* Flowing Silk Glows */}
-                <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-b from-transparent via-[#E31E6E] to-transparent opacity-10 blur-[150px]" />
-                <div className="absolute bottom-0 left-0 w-1/2 h-full bg-gradient-to-t from-transparent via-[#E4BD8D] to-transparent opacity-10 blur-[150px]" />
+                <div className="absolute top-0 right-0 w-1/2 h-full opacity-10 blur-[150px]" style={{ backgroundImage: `linear-gradient(to bottom, transparent, ${theme.colors.highlight}, transparent)` }} />
+                <div className="absolute bottom-0 left-0 w-1/2 h-full opacity-10 blur-[150px]" style={{ backgroundImage: `linear-gradient(to top, transparent, ${theme.colors.accent}, transparent)` }} />
             </div>
 
             <div className="max-w-7xl mx-auto px-6 relative z-10 space-y-32">
@@ -85,7 +123,6 @@ export default function About() {
                     PART 1: INTRO & 3D FESTIVAL TICKET
                 ========================================== */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-                    {/* Left: Text Context */}
                     <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="flex flex-col gap-6">
                         <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full border bg-white/5 w-fit font-accent" style={{ borderColor: `${theme.colors.primary}50` }}>
                             <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: theme.colors.glow }} />
@@ -104,7 +141,6 @@ export default function About() {
                         </p>
                     </motion.div>
 
-                    {/* Right: 3D Holographic Festival Ticket */}
                     <div className="flex justify-center perspective-1000" onMouseMove={handleTicketMove} onMouseLeave={handleTicketLeave}>
                         <motion.div
                             style={{ rotateX, rotateY, z: 50 }}
@@ -112,10 +148,8 @@ export default function About() {
                             whileHover={{ scale: 1.05 }}
                             transition={{ type: "spring", stiffness: 300, damping: 20 }}
                         >
-                            {/* Ticket Background */}
                             <div className="absolute inset-0 bg-gradient-to-br from-[#0A0A0A] to-[#0A0520] border border-white/20 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)]" />
 
-                            {/* Ticket Content */}
                             <div className="relative z-10 w-full h-full p-6 flex flex-col justify-between">
                                 <div className="flex justify-between items-start">
                                     <div>
@@ -123,7 +157,6 @@ export default function About() {
                                         <p className="text-[10px] tracking-[0.3em] uppercase mt-1 opacity-80" style={{ color: theme.colors.textTitle }}>Official Festival Entry</p>
                                     </div>
                                     <div className="w-10 h-10 border border-white/30 rounded-full flex items-center justify-center transform rotate-12" style={{ borderColor: theme.colors.accent }}>
-                                        {/* Music Note Icon */}
                                         <svg className="w-4 h-4" style={{ color: theme.colors.accent }} fill="currentColor" viewBox="0 0 24 24">
                                             <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
                                         </svg>
@@ -132,7 +165,7 @@ export default function About() {
 
                                 <div className="flex justify-between items-end border-t border-white/10 pt-4 mt-2">
                                     <div className="flex flex-col gap-1">
-                                        <p className="text-[6px] tracking-[0.3em] font-black text-cyan-400 opacity-60 uppercase mb-1">Auth Clearance: Lvl 4</p>
+                                        <p className="text-[6px] tracking-[0.3em] font-black text-cyan-400 opacity-60 uppercase mb-1" style={{ color: theme.colors.primary }}>Auth Clearance: Lvl 4</p>
                                         <div className="flex gap-4">
                                             <div>
                                                 <p className="text-[8px] uppercase tracking-widest text-white/50 mb-1">Dates</p>
@@ -151,7 +184,6 @@ export default function About() {
                                 </div>
                             </div>
 
-                            {/* Holographic Shimmer Effect */}
                             <motion.div
                                 className="absolute inset-0 z-20 pointer-events-none mix-blend-color-dodge opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                                 style={{
@@ -165,7 +197,7 @@ export default function About() {
                 </div>
 
                 {/* =========================================
-                    PART 2: COUNTDOWN & MYSTERY LINEUP
+                    PART 2: COUNTDOWN 
                 ========================================== */}
                 <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center">
 
@@ -173,55 +205,35 @@ export default function About() {
                         The Curtains Open In
                     </h3>
 
-                    {/* Timer */}
                     <div className="flex justify-center gap-4 md:gap-8 mb-12">
                         {Object.entries(timeLeft).map(([label, value]) => (
                             <div key={label} className="flex flex-col items-center">
-                                <div className="w-16 h-16 md:w-24 md:h-24 bg-[#0A0A0A]/80 backdrop-blur-md border border-white/10 rounded-lg flex items-center justify-center shadow-[0_0_30px_rgba(157,1,233,0.1)]">
-                                    <span className="text-2xl md:text-4xl font-black text-white font-massive">{value.toString().padStart(2, '0')}</span>
+                                <div className="w-16 h-16 md:w-24 md:h-24 bg-[#0A0A0A]/80 backdrop-blur-md border border-white/10 rounded-lg flex items-center justify-center" style={{ boxShadow: `0 0 30px ${theme.colors.primary}1A` }}>
+                                    <span className="text-2xl md:text-4xl font-black font-massive" style={{ color: theme.colors.textTitle }}>{value.toString().padStart(2, '0')}</span>
                                 </div>
                                 <span className="text-[10px] md:text-xs uppercase tracking-[0.2em] mt-3 font-accent" style={{ color: theme.colors.accent }}>{label}</span>
                             </div>
                         ))}
                     </div>
-
-                    {/* Mystery Lineup Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-                        {[1, 2, 3].map((item) => (
-                            <div key={item} className="h-40 bg-[#0A0A0A]/40 border border-white/5 rounded-xl flex flex-col items-center justify-center relative overflow-hidden group">
-                                <div className="absolute inset-0 backdrop-blur-xl z-10" />
-                                {/* Fake blurred content behind */}
-                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full blur-2xl opacity-40 group-hover:opacity-80 transition-opacity duration-500" />
-
-                                <div className="relative z-20 flex flex-col items-center">
-                                    {/* Star / Stage Icon */}
-                                    <svg className="w-8 h-8 opacity-80 mb-2" style={{ color: theme.colors.accent }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                                    </svg>
-                                    <p className="text-xs uppercase tracking-widest text-white/90 font-bold font-massive" style={{ color: theme.colors.textTitle }}>Main Stage Act</p>
-                                    <p className="text-[9px] uppercase tracking-widest text-white/50 mt-1">Unlocks in {item * 5} Days</p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
                 </motion.div>
 
-  
-                <div className="relative w-full py-16">
+                {/* =========================================
+                    PART 3: UPCOMING STARS (SURPRISE ACTS)
+                ========================================== */}
+                <div className="relative w-full pb-16">
                     <div className="text-center mb-12">
-
                         <motion.div
                             initial={{ opacity: 0, y: 30 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
-                            className="text-center mb-24"
+                            className="text-center mb-16"
                         >
                             <p className="text-xs tracking-[0.5em] uppercase mb-4 font-bold font-accent" style={{ color: theme.colors.accent }}>
                                 ✦ Soon ✦
                             </p>
                             <h2 className="text-5xl md:text-7xl font-black uppercase tracking-wider font-massive" style={{ color: theme.colors.textTitle }}>
                                 Upcomming{' '}
-                                <span className="text-transparent bg-clip-text" style={{ backgroundImage: `linear-gradient(90deg, #00B2FF, ${theme.colors.secondary})` }}>
+                                <span className="text-transparent bg-clip-text" style={{ backgroundImage: `linear-gradient(90deg, ${theme.colors.highlight}, ${theme.colors.secondary})` }}>
                                     Stars
                                 </span>
                             </h2>
@@ -243,94 +255,334 @@ export default function About() {
                         {[
                             {
                                 id: 1,
-                                code: "ACT-01",
+                                code: "DAY 1 • ACT 02",
                                 role: "CLASSIFIED",
-                                intel: "Identity withheld for tactical suspense.",
-                                img: "https://images.unsplash.com/photo-1525362081669-2b476bb628c3?q=80&w=600"
+                                intel: "Co-Headliner identity withheld. Brace for impact.",
                             },
                             {
                                 id: 2,
-                                code: "ACT-02",
+                                code: "DAY 2 • EVENTS",
                                 role: "CLASSIFIED",
-                                intel: "Signal encrypted. Reveal imminent.",
-                                img: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?q=80&w=600"
+                                intel: "Day 2 Surprise events are currently heavily encrypted.",
                             }
                         ].map((celeb) => (
                             <PixelCard
                                 key={celeb.id}
                                 variant="pink"
-                                className={`w-full sm:w-[280px] aspect-[10/14] rounded-2xl cursor-pointer group transition-all duration-500 ${activeCard === celeb.id ? 'ring-2 ring-cyan-500/50 scale-[1.02] shadow-[0_0_30px_rgba(34,211,238,0.2)]' : ''}`}
+                                className={`w-full sm:w-[280px] aspect-[10/14] rounded-2xl cursor-pointer group transition-all duration-500 ${activeCard === celeb.id ? 'ring-2 scale-[1.02]' : ''}`}
+                                style={{ 
+                                    borderColor: activeCard === celeb.id ? `${theme.colors.primary}80` : 'transparent',
+                                    boxShadow: activeCard === celeb.id ? `0 0 30px ${theme.colors.primary}33` : 'none' 
+                                }}
                                 onClick={() => setActiveCard(activeCard === celeb.id ? null : celeb.id)}
                             >
-                                {/* 1. THE DARK MYSTERY OVERLAY WITH DIGITAL NOISE */}
                                 <div className={`absolute inset-0 z-10 bg-[#0a0a0a]/85 backdrop-blur-md transition-all duration-700 overflow-hidden pointer-events-none ${activeCard === celeb.id ? 'opacity-0' : 'group-hover:opacity-0'}`}>
-                                    {/* Suspense Particles */}
                                     {[...Array(6)].map((_, i) => (
                                         <motion.div 
                                             key={i}
-                                            animate={{ 
-                                                y: [-20, 20, -20], 
-                                                x: [-20, 20, -20],
-                                                opacity: [0.2, 0.5, 0.2]
-                                            }}
-                                            transition={{ 
-                                                duration: 3 + i, 
-                                                repeat: Infinity, 
-                                                delay: i * 0.5 
-                                            }}
+                                            animate={{ y: [-20, 20, -20], x: [-20, 20, -20], opacity: [0.2, 0.5, 0.2] }}
+                                            transition={{ duration: 3 + i, repeat: Infinity, delay: i * 0.5 }}
                                             className="absolute w-1 h-1 bg-white/20 rounded-full"
-                                            style={{ 
-                                                top: `${Math.random() * 100}%`, 
-                                                left: `${Math.random() * 100}%` 
-                                            }}
+                                            style={{ top: `${Math.random() * 100}%`, left: `${Math.random() * 100}%` }}
                                         />
                                     ))}
-
                                     <div className="absolute inset-0 flex items-center justify-center">
-                                        <motion.span 
-                                            className="text-4xl font-black text-white/5 tracking-tighter italic select-none"
-                                        >
+                                        <motion.span className="text-4xl font-black text-white/5 tracking-tighter italic select-none">
                                             SURPRISE
                                         </motion.span>
                                     </div>
                                 </div>
 
-                                {/* 2. PREMIUM CONTENT STYLING */}
-                                <div className={`absolute inset-0 z-20 p-6 flex flex-col justify-between border border-white/5 rounded-2xl transition-all duration-500 pointer-events-none ${activeCard === celeb.id ? 'border-cyan-500/50 bg-cyan-500/[0.03]' : 'group-hover:border-cyan-500/50'}`}>
+                                <div className={`absolute inset-0 z-20 p-6 flex flex-col justify-between border border-white/5 rounded-2xl transition-all duration-500 pointer-events-none ${activeCard === celeb.id ? 'bg-[#000000]/10' : ''}`} style={{ borderColor: activeCard === celeb.id ? `${theme.colors.primary}80` : 'rgba(255,255,255,0.05)' }}>
                                     <div className="flex justify-between items-start">
-                                        <span className="text-[10px] font-mono text-cyan-400 font-bold bg-cyan-400/10 px-2 py-0.5 rounded-md">
+                                        <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md" style={{ color: theme.colors.primary, backgroundColor: `${theme.colors.primary}1A` }}>
                                             {celeb.code}
                                         </span>
-                                        <div className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse shadow-[0_0_10px_red]" />
+                                        <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: theme.colors.highlight, boxShadow: `0 0 10px ${theme.colors.highlight}` }} />
                                     </div>
 
                                     <div className="space-y-3 text-center sm:text-left">
                                         <div className="space-y-1">
-                                            <h4 className={`text-xl font-black italic uppercase transition-colors duration-500 ${activeCard === celeb.id ? 'text-cyan-300' : 'text-white group-hover:text-cyan-300'}`}>
+                                            <h4 className={`text-xl font-black italic uppercase transition-colors duration-500 ${activeCard === celeb.id ? '' : 'text-white'}`} style={{ color: activeCard === celeb.id ? theme.colors.primary : 'white' }}>
                                                 {celeb.role}
                                             </h4>
-                                            <p className="text-[9px] leading-relaxed text-gray-500 font-bold uppercase tracking-widest">
+                                            <p className="text-[9px] leading-relaxed font-bold uppercase tracking-widest" style={{ color: theme.colors.textMuted }}>
                                                 {celeb.intel}
                                             </p>
                                         </div>
-
-                                        {/* Interactive Status Bar */}
                                         <div className="w-full h-[2px] bg-white/5 relative overflow-hidden">
-                                            <motion.div
-                                                animate={{ x: ['-100%', '100%'] }}
-                                                transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
-                                                className="absolute inset-0 w-1/3 bg-gradient-to-r from-transparent via-cyan-400 to-transparent"
-                                            />
+                                            <motion.div animate={{ x: ['-100%', '100%'] }} transition={{ repeat: Infinity, duration: 2, ease: "linear" }} className="absolute inset-0 w-1/3" style={{ backgroundImage: `linear-gradient(to right, transparent, ${theme.colors.primary}, transparent)` }} />
                                         </div>
                                     </div>
                                 </div>
-
-                                {/* 3. CUSTOM "SIGHT" CURSOR (Visible on hover or active) */}
-                                <div className={`absolute inset-0 z-30 transition-all duration-500 pointer-events-none ${activeCard === celeb.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
-                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 border border-cyan-400/50 rounded-full animate-ping" />
-                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-1 bg-cyan-400 rounded-full shadow-[0_0_15px_cyan]" />
-                                </div>
                             </PixelCard>
+                        ))}
+                    </motion.div>
+                </div>
+            </div>
+
+            {/* =========================================
+                PART 4: PRO SHOWS REVEALED (BENNY DAYAL)
+            ========================================== */}
+            <div className="relative w-full z-10 pt-10 pb-24">
+                
+                {/* Header */}
+                <div className="text-center mb-10 max-w-7xl mx-auto px-6">
+                    <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+                        <p className="text-xs tracking-[0.5em] uppercase mb-4 font-bold font-accent drop-shadow-md" style={{ color: theme.colors.accent }}>
+                            ✦ The Main Event ✦
+                        </p>
+                        <h2 className="text-5xl md:text-7xl font-black uppercase tracking-wider font-massive" style={{ color: theme.colors.textTitle }}>
+                            Pro Shows <span className="text-transparent bg-clip-text" style={{ backgroundImage: `linear-gradient(to right, ${theme.colors.highlight}, ${theme.colors.primary})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Revealed</span>
+                        </h2>
+                        <div className="flex items-center justify-center gap-4 mt-6">
+                            <div className="h-px w-20" style={{ background: `linear-gradient(to right, transparent, ${theme.colors.primary}60)` }} />
+                            <div className="w-2 h-2 rotate-45" style={{ backgroundColor: `${theme.colors.accent}60` }} />
+                            <div className="h-px w-20" style={{ background: `linear-gradient(to left, transparent, ${theme.colors.primary}60)` }} />
+                        </div>
+                    </motion.div>
+                </div>
+
+                {/* --- DAY 1: BENNY DAYAL MEGA BANNER --- */}
+                <div ref={bennyRef} className="w-full relative z-20 overflow-hidden py-16 md:py-24 border-y bg-black/5 backdrop-blur-md" style={{ borderColor: `${theme.colors.primary}33`, boxShadow: `0 0 50px ${theme.colors.primary}1A` }}>
+                    
+                    {/* 🎞️ Scanline Overlay - UNIFIED HUD VIBE */}
+                    <div className="absolute inset-0 pointer-events-none z-50 opacity-[0.03] overflow-hidden">
+                        <div className="absolute inset-0 w-full h-full bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%]" />
+                    </div>
+
+                    {/* Cinematic Radial Core Glow - Adapted to App Theme */}
+                    <motion.div 
+                        style={{ rotate: bgRotate }}
+                        className="absolute inset-0 z-0 opacity-10 mix-blend-screen pointer-events-none"
+                    >
+                        <img src="https://images.unsplash.com/photo-1459749411175-04bf5292ceea?q=80&w=2000" className="w-full h-full object-cover filter contrast-125 saturate-200" alt="Concert Crowd" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#000000] via-transparent to-[#000000]" />
+                        <div className="absolute inset-0 bg-gradient-to-r from-[#000000] via-transparent to-[#000000]" />
+                    </motion.div>
+
+                    {/* HUD CORNER BRACKETS */}
+                    <div className="absolute top-8 left-8 w-8 h-8 border-t-2 border-l-2 opacity-20" style={{ borderColor: theme.colors.accent }} />
+                    <div className="absolute top-8 right-8 w-8 h-8 border-t-2 border-r-2 opacity-20" style={{ borderColor: theme.colors.accent }} />
+                    <div className="absolute bottom-8 left-8 w-8 h-8 border-b-2 border-l-2 opacity-20" style={{ borderColor: theme.colors.accent }} />
+                    <div className="absolute bottom-8 right-8 w-8 h-8 border-b-2 border-r-2 opacity-20" style={{ borderColor: theme.colors.accent }} />
+
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vw] sm:w-[600px] sm:h-[600px] rounded-full blur-[120px] pointer-events-none z-0" style={{ background: `linear-gradient(to top right, ${theme.colors.highlight}26, ${theme.colors.primary}1A)` }} />
+
+                    <div className="max-w-7xl mx-auto px-6 relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                        
+                        {/* Left Side: Staggered Hype Typography */}
+                        <motion.div 
+                            style={{ y: textY }}
+                            variants={textContainerVariants}
+                            initial="hidden"
+                            whileInView="visible"
+                            viewport={{ once: true, margin: "-100px" }}
+                            className="transform-gpu antialiased z-20 relative" 
+                        >
+                            {/* HUD Connector Graphic */}
+                            <div className="absolute -left-6 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-white/10 to-transparent hidden lg:block" />
+
+                            <motion.div variants={textItemVariants} className="flex items-center gap-4 mb-6">
+                                <div className="h-[2px] w-12" style={{ backgroundColor: theme.colors.accent }} />
+                                <p className="text-xs font-black uppercase tracking-[0.4em] animate-pulse drop-shadow-md" style={{ color: theme.colors.accent }}>
+                                    <Flame className="inline-block w-3 h-3 mr-1" /> Day 1 Kickoff • Apr 09
+                                </p>
+                            </motion.div>
+                            
+                            <motion.h2 variants={textItemVariants} className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black uppercase leading-[1.0] mb-2 font-massive transform-gpu tracking-tighter italic drop-shadow-2xl" style={{ color: theme.colors.textTitle }}>
+                                The Badtameez <br/>
+                                <span className="inline-block pb-2 transform-gpu hover:translate-x-3 transition-transform duration-500" style={{ color: theme.colors.highlight, filter: `drop-shadow(0 0 15px ${theme.colors.highlight}40)` }}>
+                                    Night
+                                </span>
+                            </motion.h2>
+                            
+                            <motion.div variants={textItemVariants} className="flex flex-wrap items-center gap-4 mb-6">
+                                <h3 className="text-3xl sm:text-4xl md:text-5xl font-black font-massive tracking-widest transform-gpu" style={{ color: theme.colors.textTitle, textShadow: `0 5px 15px ${theme.colors.primary}40` }}>
+                                    BENNY DAYAL
+                                </h3>
+                                {/* AUDIO PULSE UI (Music Vibe) */}
+                                <div className="flex gap-1 items-end h-6 sm:h-8">
+                                    {[...Array(5)].map((_, i) => (
+                                        <motion.div
+                                            key={i}
+                                            animate={{ height: ["20%", "100%", "20%"] }}
+                                            transition={{ repeat: Infinity, duration: 0.8, delay: i * 0.15, ease: "easeInOut" }}
+                                            className="w-1.5 sm:w-2 rounded-t-sm"
+                                            style={{ backgroundImage: `linear-gradient(to top, ${theme.colors.highlight}, ${theme.colors.secondary})` }}
+                                        />
+                                    ))}
+                                </div>
+                            </motion.div>
+                            
+                            <motion.div variants={textItemVariants} className="inline-flex items-center gap-3 border px-4 py-2 rounded-lg mb-6 backdrop-blur-md shadow-lg" style={{ backgroundColor: `${theme.colors.primary}1A`, borderColor: `${theme.colors.primary}4D` }}>
+                                <div className="w-2 h-2 rounded-full animate-ping" style={{ backgroundColor: theme.colors.highlight }} />
+                                <p className="font-bold tracking-[0.2em] uppercase text-[10px] md:text-xs" style={{ color: theme.colors.accent }}>Campus Legend to Global Pop Icon</p>
+                            </motion.div>
+
+                            <motion.p variants={textItemVariants} className="text-base sm:text-lg leading-relaxed max-w-lg mb-6 font-body border-l-2 pl-6 transform-gpu italic" style={{ color: theme.colors.textDescription, borderColor: `${theme.colors.primary}4D` }}>
+                                From tearing up the inter-college circuit as MCC's Cultural Convenor to being discovered by A.R. Rahman, Benny Dayal is the ultimate musical phenomenon. He's bringing his powerhouse live band, <strong style={{ color: theme.colors.highlight }}>FunktuaTion</strong>, to turn the arena into Tamil Nadu's biggest dance floor.
+                            </motion.p>
+
+                            {/* Instagram Link */}
+                            <motion.a 
+                                variants={textItemVariants}
+                                href="https://www.instagram.com/bennydayalofficial/" 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-2 mb-8 text-xs font-bold uppercase tracking-widest group transition-colors"
+                                style={{ color: theme.colors.textMuted }}
+                            >
+                                <svg 
+                                    xmlns="http://www.w3.org/2000/svg" 
+                                    width="16" 
+                                    height="16" 
+                                    viewBox="0 0 24 24" 
+                                    fill="none" 
+                                    stroke="currentColor" 
+                                    strokeWidth="2" 
+                                    strokeLinecap="round" 
+                                    strokeLinejoin="round"
+                                    className="group-hover:scale-110 transition-transform"
+                                    style={{ color: theme.colors.primary }}
+                                >
+                                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                                </svg>
+                                <span className="group-hover:text-white transition-colors">@bennydayalofficial</span>
+                            </motion.a>
+
+                            {/* Feature Tags */}
+                            <motion.div variants={textItemVariants} className="flex flex-wrap gap-3 mb-8">
+                                <span className="bg-black/40 backdrop-blur-xl border px-5 py-2.5 rounded-xl text-[10px] font-black text-white tracking-widest uppercase flex items-center gap-2 hover:border-white/20 transition-all shadow-lg" style={{ borderColor: `${theme.colors.primary}4D` }}>
+                                    <Mic2 className="w-4 h-4" style={{ color: theme.colors.primary }} /> Multilingual Maestro
+                                </span>
+                                <span className="bg-black/40 backdrop-blur-xl border px-5 py-2.5 rounded-xl text-[10px] font-black text-white tracking-widest uppercase flex items-center gap-2 hover:border-white/20 transition-all shadow-lg" style={{ borderColor: `${theme.colors.highlight}4D` }}>
+                                    <Zap className="w-4 h-4" style={{ color: theme.colors.highlight }} /> FunktuaTion Live
+                                </span>
+                            </motion.div>
+
+                        </motion.div>
+
+                        {/* Right Side: Interactive 3D Image Fan */}
+                        <motion.div 
+                            style={{ y: imgY }}
+                            initial={{ opacity: 0, scale: 0.95 }} 
+                            whileInView={{ opacity: 1, scale: 1 }} 
+                            viewport={{ once: true }} 
+                            transition={{ duration: 1 }} 
+                            className="relative h-[450px] sm:h-[550px] md:h-[650px] flex justify-center items-center mt-10 lg:mt-0 perspective-1000 z-20"
+                        >
+                            {/* Instruction Tag */}
+                            <div className="absolute -top-6 sm:-top-10 z-50 bg-black/60 border px-3 py-1 rounded-full tracking-widest font-bold flex items-center gap-2 animate-bounce shadow-xl" style={{ borderColor: `${theme.colors.highlight}4D`, color: theme.colors.highlight }}>
+                                <Pointer className="w-3 h-3" /> TAP TO EXPLORE
+                            </div>
+
+                            {/* Map through the 5 images to create a 3D Card Stack */}
+                            {bennyImages.map((src, i) => {
+                                const relativeIndex = (i - bennyIndex + bennyImages.length) % bennyImages.length;
+                                
+                                let styles = {};
+                                if (relativeIndex === 0) {
+                                    styles = { zIndex: 50, scale: 1, x: 0, y: 0, rotate: 0, opacity: 1 };
+                                } else if (relativeIndex === 1) {
+                                    styles = { zIndex: 40, scale: 0.9, x: 30, y: -20, rotate: 5, opacity: 0.8 };
+                                } else if (relativeIndex === 2) {
+                                    styles = { zIndex: 30, scale: 0.8, x: 60, y: -40, rotate: 10, opacity: 0.6 };
+                                } else if (relativeIndex === 3) {
+                                    styles = { zIndex: 20, scale: 0.8, x: -60, y: -40, rotate: -10, opacity: 0.6 };
+                                } else if (relativeIndex === 4) {
+                                    styles = { zIndex: 40, scale: 0.9, x: -30, y: -20, rotate: -5, opacity: 0.8 };
+                                }
+
+                                return (
+                                    <motion.div
+                                        key={i}
+                                        animate={{ 
+                                            scale: styles.scale, 
+                                            x: styles.x, 
+                                            y: styles.y, 
+                                            rotate: styles.rotate, 
+                                            opacity: styles.opacity 
+                                        }}
+                                        transition={{ duration: 0.6, type: "spring", stiffness: 200, damping: 20 }}
+                                        onClick={handleNextBennyImage}
+                                        className={`absolute aspect-[3/4] w-[70%] sm:w-[65%] rounded-3xl overflow-hidden border-4 cursor-pointer shadow-2xl transition-colors duration-300`}
+                                        style={{ 
+                                            zIndex: styles.zIndex,
+                                            borderColor: relativeIndex === 0 ? theme.colors.highlight : 'rgba(255,255,255,0.1)',
+                                            boxShadow: relativeIndex === 0 ? `0 0 80px ${theme.colors.highlight}33` : 'none'
+                                        }}
+                                    >
+                                        <div className={`absolute inset-0 z-10 transition-all duration-500 ${relativeIndex === 0 ? 'bg-gradient-to-t from-black via-black/20 to-transparent opacity-90' : 'bg-black/60'}`} />
+                                        <img 
+                                            src={src} 
+                                            alt={`Benny Dayal ${i + 1}`} 
+                                            className="w-full h-full object-cover object-center bg-gray-900 pointer-events-none" 
+                                        />
+                                        
+                                        {/* Show overlay only on the active front card */}
+                                        {relativeIndex === 0 && (
+                                            <motion.div 
+                                                initial={{ opacity: 0 }}
+                                                animate={{ opacity: 1 }}
+                                                transition={{ delay: 0.3 }}
+                                                className="absolute bottom-6 left-6 right-6 z-20 flex justify-between items-end pointer-events-none"
+                                            >
+                                                <div>
+                                                    <p className="font-black tracking-[0.2em] text-3xl italic drop-shadow-[0_2px_10px_rgba(0,0,0,1)] mb-1" style={{ color: theme.colors.highlight }}>LIVE</p>
+                                                    <p className="text-xs font-bold uppercase tracking-[0.3em] flex items-center gap-2" style={{ color: theme.colors.textTitle }}>
+                                                        <span className="w-4 h-px bg-white/50" /> With FunktuaTion
+                                                    </p>
+                                                </div>
+
+                                                {/* Social Interaction Icons */}
+                                                <div className="flex flex-col gap-3 pb-2 pointer-events-auto">
+                                                    <div className="w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white drop-shadow-lg cursor-pointer hover:scale-110 transition-transform">
+                                                        <Heart className="w-4 h-4" style={{ fill: theme.colors.highlight, color: theme.colors.highlight }} />
+                                                    </div>
+                                                    <div className="w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white drop-shadow-lg cursor-pointer hover:scale-110 transition-transform">
+                                                        <MessageCircle className="w-4 h-4" />
+                                                    </div>
+                                                    <div className="w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white drop-shadow-lg cursor-pointer hover:scale-110 transition-transform">
+                                                        <Share2 className="w-4 h-4" />
+                                                    </div>
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </motion.div>
+                                );
+                            })}
+                        </motion.div>
+                    </div>
+                </div>
+
+                {/* --- SCROLLING HYPE TICKER TAPE (BENNY'S HIT LIST) --- */}
+                <div className="w-full relative z-30 backdrop-blur-lg py-5 overflow-hidden flex whitespace-nowrap -rotate-2 scale-105 origin-center mt-12 mb-16 border-y" style={{ backgroundColor: `${theme.colors.primary}1A`, borderColor: `${theme.colors.primary}4D`, boxShadow: `0 0 40px ${theme.colors.primary}26` }}>
+                    <motion.div
+                        animate={{ x: [0, -1000] }}
+                        transition={{ repeat: Infinity, duration: 25, ease: "linear" }}
+                        className="flex items-center gap-12 font-black uppercase text-xl md:text-2xl tracking-widest drop-shadow-lg"
+                        style={{ color: theme.colors.textTitle }}
+                    >
+                        {[...Array(6)].map((_, i) => (
+                            <span key={i} className="flex items-center gap-12">
+                                <span>BADTAMEEZ DIL</span>
+                                <span style={{ color: theme.colors.highlight }}>✦</span>
+                                <span>TAMIL FEVER</span>
+                                <span style={{ color: theme.colors.highlight }}>✦</span>
+                                <span>LET'S NACHO</span>
+                                <span style={{ color: theme.colors.highlight }}>✦</span>
+                                <span>KAISE MUJHE</span>
+                                <span style={{ color: theme.colors.highlight }}>✦</span>
+                                <span>THE DISCO SONG</span>
+                                <span style={{ color: theme.colors.highlight }}>✦</span>
+                                <span>BANG BANG</span>
+                                <span style={{ color: theme.colors.highlight }}>✦</span>
+                                <span>TAXI TAXI</span>
+                                <span style={{ color: theme.colors.highlight }}>✦</span>
+                            </span>
                         ))}
                     </motion.div>
                 </div>
