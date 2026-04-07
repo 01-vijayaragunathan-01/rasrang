@@ -55,8 +55,25 @@ const HeadlineDJ = () => {
     };
 
     return (
-        <div className="w-full flex flex-col bg-transparent overflow-hidden">
-
+        <div className="w-full flex flex-col bg-transparent overflow-hidden py-24">
+            {/* =========================================
+                SECTION HEADER (Consistent with Home)
+            ========================================== */}
+            <div className="text-center mb-20 max-w-7xl mx-auto px-6">
+                <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+                    <p className="text-xs tracking-[0.5em] uppercase mb-4 font-bold font-accent drop-shadow-md" style={{ color: theme.colors.accent }}>
+                        ✦ The Night Shift ✦
+                    </p>
+                    <h2 className="text-5xl md:text-7xl font-black uppercase tracking-wider font-massive" style={{ color: theme.colors.textTitle }}>
+                        Sonic <span className="text-transparent bg-clip-text" style={{ backgroundImage: `linear-gradient(to right, ${theme.colors.highlight}, ${theme.colors.primary})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Takeover</span>
+                    </h2>
+                    <div className="flex items-center justify-center gap-4 mt-6">
+                        <div className="h-px w-20" style={{ background: `linear-gradient(to right, transparent, ${theme.colors.primary}60)` }} />
+                        <div className="w-2 h-2 rotate-45" style={{ backgroundColor: `${theme.colors.accent}60` }} />
+                        <div className="h-px w-20" style={{ background: `linear-gradient(to left, transparent, ${theme.colors.primary}60)` }} />
+                    </div>
+                </motion.div>
+            </div>
             {/* =========================================
                 PART 1: DJ GOWTHAM (PARALLAX HEADER)
             ========================================== */}
@@ -292,6 +309,13 @@ const HeadlineDJ = () => {
                         >
                             <div className={`absolute inset-0 z-10 transition-colors duration-500 ${!isPortraitFront ? 'bg-transparent' : 'bg-[#C53099]/30 mix-blend-overlay'}`} />
                             <img src="/Assets/dj/476791203_1092228746249888_4266235184123349982_n.jpg" alt="DJ Deepika Live" className="w-full h-full object-cover scale-110 group-hover:scale-125 transition-transform duration-[2000ms]" />
+                            <div className={`absolute bottom-8 left-8 right-8 z-20 transition-all duration-700 ${!isPortraitFront ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+                                <h4 className="text-white font-black tracking-tight text-4xl sm:text-5xl uppercase drop-shadow-2xl mb-4 italic">Deepika</h4>
+                                <div className="flex items-center gap-4">
+                                    <span className="px-3 py-1 bg-[#E4BD8D]/20 border border-[#E4BD8D]/40 rounded-full text-[9px] font-black tracking-widest text-[#E4BD8D] uppercase">Day 2</span>
+                                    <span className="text-white/70 text-[9px] font-bold uppercase tracking-widest flex items-center gap-2">Main Stage</span>
+                                </div>
+                            </div>
                         </motion.div>
 
                         {/* PORTRAIT CARD */}
@@ -307,6 +331,13 @@ const HeadlineDJ = () => {
                         >
                             <div className={`absolute inset-0 z-10 transition-all duration-500 ${isPortraitFront ? 'bg-gradient-to-t from-black via-black/20 to-transparent opacity-100' : 'bg-black/60'}`} />
                             <img src="/Assets/dj/UBK5734-1-scaled.jpg" alt="DJ Deepika Portrait" className="w-full h-full object-cover object-top transition-transform duration-[3000ms] group-hover:scale-110" />
+                            <div className={`absolute bottom-8 left-8 right-8 z-20 transition-all duration-700 ${isPortraitFront ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+                                <h4 className="text-white font-black tracking-tight text-4xl sm:text-5xl uppercase drop-shadow-2xl mb-4 italic">Deepika</h4>
+                                <div className="flex items-center gap-4">
+                                    <span className="px-3 py-1 bg-[#E4BD8D]/20 border border-[#E4BD8D]/40 rounded-full text-[9px] font-black tracking-widest text-[#E4BD8D] uppercase">Day 2</span>
+                                    <span className="text-white/70 text-[9px] font-bold uppercase tracking-widest flex items-center gap-2">Main Stage</span>
+                                </div>
+                            </div>
                         </motion.div>
                     </motion.div>
                 </div>
