@@ -308,7 +308,7 @@ const HeadlineDJ = () => {
                                 }`}
                         >
                             <div className={`absolute inset-0 z-10 transition-colors duration-500 ${!isPortraitFront ? 'bg-transparent' : 'bg-[#C53099]/30 mix-blend-overlay'}`} />
-                            <img src="/Assets/dj/476791203_1092228746249888_4266235184123349982_n.jpg" alt="DJ Deepika Live" className="w-full h-full object-cover scale-110 group-hover:scale-125 transition-transform duration-[2000ms]" />
+                            <img src="/Assets/dj/476791203_1092228746249888_4266235184123349982_n.jpeg" alt="DJ Deepika Live" className="w-full h-full object-cover scale-110 group-hover:scale-125 transition-transform duration-[2000ms]" />
                             <div className={`absolute bottom-8 left-8 right-8 z-20 transition-all duration-700 ${!isPortraitFront ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
                                 <h4 className="text-white font-black tracking-tight text-4xl sm:text-5xl uppercase drop-shadow-2xl mb-4 italic">Deepika</h4>
                                 <div className="flex items-center gap-4">

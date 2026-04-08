@@ -330,8 +330,12 @@ export default function Footer() {
             </div>
 
             <div className="flex gap-3 mt-8">
-              {["Instagram", "YouTube", "Twitter"].map((s) => (
-                <a key={s} href="#"
+              {[
+                { label: "Instagram", href: "https://www.instagram.com/srm_org/" },
+                { label: "LinkedIn", href: "https://www.linkedin.com/company/srmorg/" },
+                { label: "Facebook", href: "https://www.facebook.com/srmorg/" }
+              ].map((s) => (
+                <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer"
                   className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-black transition-all duration-300 border"
                   style={{ 
                     borderColor: `${theme.colors.primary}40`, 
@@ -347,9 +351,9 @@ export default function Footer() {
                     e.currentTarget.style.color = theme.colors.textMuted;
                     e.currentTarget.style.boxShadow = 'none';
                   }}
-                  title={s}
+                  title={s.label}
                 >
-                  {s[0]}
+                  {s.label[0]}
                 </a>
               ))}
             </div>

@@ -105,9 +105,9 @@ function MainContent() {
   ], [user, isStaff, logout]);
 
   const socialItems = useMemo(() => [
-    { label: 'Instagram', link: 'https://instagram.com/rasrang' },
-    { label: 'Twitter', link: 'https://twitter.com/rasrang' },
-    { label: 'LinkedIn', link: 'https://linkedin.com' }
+    { label: 'Instagram', link: 'https://www.instagram.com/srm_org/' },
+    { label: 'LinkedIn', link: 'https://www.linkedin.com/company/srmorg/' },
+    { label: 'Facebook', link: 'https://www.facebook.com/srmorg/' }
   ], []);
 
   return (

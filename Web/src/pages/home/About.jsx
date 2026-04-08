@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion, useMotionValue, useTransform, useScroll } from "framer-motion";
 import { useTheme } from "../../context/ThemeContext";
 import PixelCard from "../../components/home/PixelCard"; 
-import MoviePromo from "./MoviePromo"; // <-- Imported the new component
+import MoviePromo from "./MoviePromo"; 
+import ShwetaPromo from "./ShwetaPromo"; // <-- Imported the new Shweta component
 import { Mic2, Zap, Heart, MessageCircle, Share2, Flame, Pointer } from "lucide-react"; 
 
 export default function About() {
@@ -216,13 +217,23 @@ export default function About() {
                 </motion.div>
 
                 {/* =========================================
-                    PART 3: SILVER SCREEN SPOTLIGHT (LIK MOVIE)
+                    PART 3: SILVER SCREEN SPOTLIGHT (LIK MOVIE - DAY 1 ACT 2)
                 ========================================== */}
-                {/* MOUNTING THE NEWLY SEPARATED COMPONENT HERE */}
                 <MoviePromo />
 
+            </div> {/* END OF MAIN MAX-W-7XL CONTAINER */}
+
+            {/* =========================================
+                PART 4: THE ETHEREAL SYMPHONY (SHWETA MOHAN - DAY 2 ACT 1)
+            ========================================== */}
+            <div className="mt-32 pb-12">
+                <ShwetaPromo />
+            </div>
+
+            <div className="max-w-7xl mx-auto px-6 relative z-10 space-y-32">
+
                 {/* =========================================
-                    PART 4: CLASSIFIED INTEL (APR 10 SURPRISE)
+                    PART 5: CLASSIFIED INTEL (DAY 2 ACT 02 SURPRISE)
                 ========================================== */}
                 <div className="relative w-full z-10 pt-16 pb-16">
                     <div className="text-center mb-12 max-w-7xl mx-auto px-6">
@@ -275,9 +286,11 @@ export default function About() {
                             </div>
 
                             <div className={`absolute inset-0 z-20 p-6 flex flex-col justify-between border border-white/5 rounded-2xl transition-all duration-500 pointer-events-none ${activeCard === 'day2-surprise' ? 'bg-[#000000]/10' : ''}`} style={{ borderColor: activeCard === 'day2-surprise' ? `${theme.colors.primary}80` : 'rgba(255,255,255,0.05)' }}>
+                                
+                                {/* UPDATED THIS SECTION TO REFLECT DAY 2 ACT 02 */}
                                 <div className="flex justify-between items-start">
                                     <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md" style={{ color: theme.colors.primary, backgroundColor: `${theme.colors.primary}1A` }}>
-                                        APR 10 • MEGA EVENT
+                                        DAY 2 • ACT 02
                                     </span>
                                     <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: theme.colors.highlight, boxShadow: `0 0 10px ${theme.colors.highlight}` }} />
                                 </div>
@@ -288,7 +301,7 @@ export default function About() {
                                             CLASSIFIED
                                         </h4>
                                         <p className="text-[10px] leading-relaxed font-bold uppercase tracking-widest" style={{ color: theme.colors.textMuted }}>
-                                            Day 2 Main Event is heavily encrypted. Brace for impact.
+                                            Day 2 Act 02 is heavily encrypted and yet to be revealed. Brace for impact.
                                         </p>
                                     </div>
                                     <div className="w-full h-[2px] bg-white/5 relative overflow-hidden">
@@ -302,7 +315,7 @@ export default function About() {
             </div>
 
             {/* =========================================
-                PART 5: PRO SHOWS REVEALED (BENNY DAYAL)
+                PART 6: PRO SHOWS REVEALED (BENNY DAYAL - DAY 1 ACT 1)
             ========================================== */}
             <div className="relative w-full z-10 pb-24">
                 
