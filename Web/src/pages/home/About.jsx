@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, useMotionValue, useTransform, useScroll } from "framer-motion";
 import { useTheme } from "../../context/ThemeContext";
-import PixelCard from "../../components/home/PixelCard";
-import { Mic2, Music, Zap, Heart, MessageCircle, Share2, Flame, Pointer } from "lucide-react"; 
+import PixelCard from "../../components/home/PixelCard"; 
+import MoviePromo from "./MoviePromo"; // <-- Imported the new component
+import { Mic2, Zap, Heart, MessageCircle, Share2, Flame, Pointer } from "lucide-react"; 
 
 export default function About() {
     const { theme } = useTheme();
@@ -56,12 +57,10 @@ export default function About() {
         ticketY.set(0);
     }
 
+    // --- 3. INTERACTIVE STATES ---
     const [activeCard, setActiveCard] = useState(null);
-
-    // --- 3. BENNY DAYAL INTERACTIVE 3D IMAGE STACK LOGIC ---
     const [bennyIndex, setBennyIndex] = useState(0);
     
-    // Replace these paths with actual 5 images of Benny Dayal
     const bennyImages = [
         "/Assets/benny/benny1.jpg",
         "/Assets/benny/benny2.jpg",
@@ -74,7 +73,6 @@ export default function About() {
         setBennyIndex((prevIndex) => (prevIndex + 1) % bennyImages.length);
     };
 
-    // Staggered Text Animations for the Banner
     const textContainerVariants = {
         hidden: { opacity: 0 },
         visible: {
@@ -95,9 +93,9 @@ export default function About() {
         offset: ["start end", "end start"]
     });
     
-    const textY = useTransform(bennyScroll, [0, 1], [80, -80]); // Text moves up faster
-    const imgY = useTransform(bennyScroll, [0, 1], [-40, 40]);  // Image moves down slower
-    const bgRotate = useTransform(bennyScroll, [0, 1], [-3, 3]); // Background slightly rotates
+    const textY = useTransform(bennyScroll, [0, 1], [80, -80]); 
+    const imgY = useTransform(bennyScroll, [0, 1], [-40, 40]);  
+    const bgRotate = useTransform(bennyScroll, [0, 1], [-3, 3]); 
 
     return (
         <section id="about" className="relative w-full py-24 overflow-hidden" style={{ backgroundColor: "transparent" }}>
@@ -218,24 +216,22 @@ export default function About() {
                 </motion.div>
 
                 {/* =========================================
-                    PART 3: UPCOMING STARS (SURPRISE ACTS)
+                    PART 3: SILVER SCREEN SPOTLIGHT (LIK MOVIE)
                 ========================================== */}
-                <div className="relative w-full pb-16">
-                    <div className="text-center mb-12">
-                        <motion.div
-                            initial={{ opacity: 0, y: 30 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            className="text-center mb-16"
-                        >
-                            <p className="text-xs tracking-[0.5em] uppercase mb-4 font-bold font-accent" style={{ color: theme.colors.accent }}>
-                                ✦ Soon ✦
+                {/* MOUNTING THE NEWLY SEPARATED COMPONENT HERE */}
+                <MoviePromo />
+
+                {/* =========================================
+                    PART 4: CLASSIFIED INTEL (APR 10 SURPRISE)
+                ========================================== */}
+                <div className="relative w-full z-10 pt-16 pb-16">
+                    <div className="text-center mb-12 max-w-7xl mx-auto px-6">
+                        <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+                            <p className="text-xs tracking-[0.5em] uppercase mb-4 font-bold font-accent drop-shadow-md" style={{ color: theme.colors.accent }}>
+                                ✦ More to Come ✦
                             </p>
                             <h2 className="text-5xl md:text-7xl font-black uppercase tracking-wider font-massive" style={{ color: theme.colors.textTitle }}>
-                                Upcomming{' '}
-                                <span className="text-transparent bg-clip-text" style={{ backgroundImage: `linear-gradient(90deg, ${theme.colors.highlight}, ${theme.colors.secondary})` }}>
-                                    Stars
-                                </span>
+                                Classified <span className="text-transparent bg-clip-text" style={{ backgroundImage: `linear-gradient(to right, ${theme.colors.highlight}, ${theme.colors.primary})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Intel</span>
                             </h2>
                             <div className="flex items-center justify-center gap-4 mt-6">
                                 <div className="h-px w-20" style={{ background: `linear-gradient(to right, transparent, ${theme.colors.primary}60)` }} />
@@ -252,79 +248,63 @@ export default function About() {
                         transition={{ duration: 1, delay: 0.2 }}
                         className="flex flex-wrap justify-center gap-8 max-w-5xl mx-auto px-6"
                     >
-                        {[
-                            {
-                                id: 1,
-                                code: "DAY 1 • ACT 02",
-                                role: "CLASSIFIED",
-                                intel: "Co-Headliner identity withheld. Brace for impact.",
-                            },
-                            {
-                                id: 2,
-                                code: "DAY 2 • EVENTS",
-                                role: "CLASSIFIED",
-                                intel: "Day 2 Surprise events are currently heavily encrypted.",
-                            }
-                        ].map((celeb) => (
-                            <PixelCard
-                                key={celeb.id}
-                                variant="pink"
-                                className={`w-full sm:w-[280px] aspect-[10/14] rounded-2xl cursor-pointer group transition-all duration-500 ${activeCard === celeb.id ? 'ring-2 scale-[1.02]' : ''}`}
-                                style={{ 
-                                    borderColor: activeCard === celeb.id ? `${theme.colors.primary}80` : 'transparent',
-                                    boxShadow: activeCard === celeb.id ? `0 0 30px ${theme.colors.primary}33` : 'none' 
-                                }}
-                                onClick={() => setActiveCard(activeCard === celeb.id ? null : celeb.id)}
-                            >
-                                <div className={`absolute inset-0 z-10 bg-[#0a0a0a]/85 backdrop-blur-md transition-all duration-700 overflow-hidden pointer-events-none ${activeCard === celeb.id ? 'opacity-0' : 'group-hover:opacity-0'}`}>
-                                    {[...Array(6)].map((_, i) => (
-                                        <motion.div 
-                                            key={i}
-                                            animate={{ y: [-20, 20, -20], x: [-20, 20, -20], opacity: [0.2, 0.5, 0.2] }}
-                                            transition={{ duration: 3 + i, repeat: Infinity, delay: i * 0.5 }}
-                                            className="absolute w-1 h-1 bg-white/20 rounded-full"
-                                            style={{ top: `${Math.random() * 100}%`, left: `${Math.random() * 100}%` }}
-                                        />
-                                    ))}
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                        <motion.span className="text-4xl font-black text-white/5 tracking-tighter italic select-none">
-                                            SURPRISE
-                                        </motion.span>
-                                    </div>
+                        <PixelCard
+                            variant="pink"
+                            className={`w-full sm:w-[320px] aspect-[10/14] rounded-2xl cursor-pointer group transition-all duration-500 ${activeCard === 'day2-surprise' ? 'ring-2 scale-[1.02]' : ''}`}
+                            style={{ 
+                                borderColor: activeCard === 'day2-surprise' ? `${theme.colors.primary}80` : 'transparent',
+                                boxShadow: activeCard === 'day2-surprise' ? `0 0 30px ${theme.colors.primary}33` : 'none' 
+                            }}
+                            onClick={() => setActiveCard(activeCard === 'day2-surprise' ? null : 'day2-surprise')}
+                        >
+                            <div className={`absolute inset-0 z-10 bg-[#0a0a0a]/85 backdrop-blur-md transition-all duration-700 overflow-hidden pointer-events-none ${activeCard === 'day2-surprise' ? 'opacity-0' : 'group-hover:opacity-0'}`}>
+                                {[...Array(6)].map((_, i) => (
+                                    <motion.div 
+                                        key={i}
+                                        animate={{ y: [-20, 20, -20], x: [-20, 20, -20], opacity: [0.2, 0.5, 0.2] }}
+                                        transition={{ duration: 3 + i, repeat: Infinity, delay: i * 0.5 }}
+                                        className="absolute w-1 h-1 bg-white/20 rounded-full"
+                                        style={{ top: `${Math.random() * 100}%`, left: `${Math.random() * 100}%` }}
+                                    />
+                                ))}
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <motion.span className="text-4xl font-black text-white/5 tracking-tighter italic select-none">
+                                        SURPRISE
+                                    </motion.span>
+                                </div>
+                            </div>
+
+                            <div className={`absolute inset-0 z-20 p-6 flex flex-col justify-between border border-white/5 rounded-2xl transition-all duration-500 pointer-events-none ${activeCard === 'day2-surprise' ? 'bg-[#000000]/10' : ''}`} style={{ borderColor: activeCard === 'day2-surprise' ? `${theme.colors.primary}80` : 'rgba(255,255,255,0.05)' }}>
+                                <div className="flex justify-between items-start">
+                                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md" style={{ color: theme.colors.primary, backgroundColor: `${theme.colors.primary}1A` }}>
+                                        APR 10 • MEGA EVENT
+                                    </span>
+                                    <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: theme.colors.highlight, boxShadow: `0 0 10px ${theme.colors.highlight}` }} />
                                 </div>
 
-                                <div className={`absolute inset-0 z-20 p-6 flex flex-col justify-between border border-white/5 rounded-2xl transition-all duration-500 pointer-events-none ${activeCard === celeb.id ? 'bg-[#000000]/10' : ''}`} style={{ borderColor: activeCard === celeb.id ? `${theme.colors.primary}80` : 'rgba(255,255,255,0.05)' }}>
-                                    <div className="flex justify-between items-start">
-                                        <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md" style={{ color: theme.colors.primary, backgroundColor: `${theme.colors.primary}1A` }}>
-                                            {celeb.code}
-                                        </span>
-                                        <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: theme.colors.highlight, boxShadow: `0 0 10px ${theme.colors.highlight}` }} />
+                                <div className="space-y-3 text-center sm:text-left">
+                                    <div className="space-y-1">
+                                        <h4 className={`text-2xl font-black italic uppercase transition-colors duration-500 ${activeCard === 'day2-surprise' ? '' : 'text-white'}`} style={{ color: activeCard === 'day2-surprise' ? theme.colors.primary : 'white' }}>
+                                            CLASSIFIED
+                                        </h4>
+                                        <p className="text-[10px] leading-relaxed font-bold uppercase tracking-widest" style={{ color: theme.colors.textMuted }}>
+                                            Day 2 Main Event is heavily encrypted. Brace for impact.
+                                        </p>
                                     </div>
-
-                                    <div className="space-y-3 text-center sm:text-left">
-                                        <div className="space-y-1">
-                                            <h4 className={`text-xl font-black italic uppercase transition-colors duration-500 ${activeCard === celeb.id ? '' : 'text-white'}`} style={{ color: activeCard === celeb.id ? theme.colors.primary : 'white' }}>
-                                                {celeb.role}
-                                            </h4>
-                                            <p className="text-[9px] leading-relaxed font-bold uppercase tracking-widest" style={{ color: theme.colors.textMuted }}>
-                                                {celeb.intel}
-                                            </p>
-                                        </div>
-                                        <div className="w-full h-[2px] bg-white/5 relative overflow-hidden">
-                                            <motion.div animate={{ x: ['-100%', '100%'] }} transition={{ repeat: Infinity, duration: 2, ease: "linear" }} className="absolute inset-0 w-1/3" style={{ backgroundImage: `linear-gradient(to right, transparent, ${theme.colors.primary}, transparent)` }} />
-                                        </div>
+                                    <div className="w-full h-[2px] bg-white/5 relative overflow-hidden">
+                                        <motion.div animate={{ x: ['-100%', '100%'] }} transition={{ repeat: Infinity, duration: 2, ease: "linear" }} className="absolute inset-0 w-1/3" style={{ backgroundImage: `linear-gradient(to right, transparent, ${theme.colors.primary}, transparent)` }} />
                                     </div>
                                 </div>
-                            </PixelCard>
-                        ))}
+                            </div>
+                        </PixelCard>
                     </motion.div>
                 </div>
             </div>
 
             {/* =========================================
-                PART 4: PRO SHOWS REVEALED (BENNY DAYAL)
+                PART 5: PRO SHOWS REVEALED (BENNY DAYAL)
             ========================================== */}
-            <div className="relative w-full z-10 pt-10 pb-24">
+            <div className="relative w-full z-10 pb-24">
                 
                 {/* Header */}
                 <div className="text-center mb-10 max-w-7xl mx-auto px-6">
