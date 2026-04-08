@@ -203,8 +203,16 @@ export default function MoviePromo() {
                         </p>
                         
                         {/* CHANGED TO: The Stars of LIK */}
-                        <h2 className="text-5xl md:text-7xl lg:text-8xl font-black uppercase tracking-tighter font-massive text-white drop-shadow-2xl leading-[0.9]">
-                            The Stars <br/> of <span className="italic pr-2" style={{ color: theme.colors.highlight }}>LIK</span>
+                        <h2 className="text-5xl md:text-7xl lg:text-8xl font-black uppercase tracking-tighter font-massive text-white drop-shadow-2xl leading-[0.9] flex flex-col items-center lg:items-start gap-2">
+                            <span>The Stars</span>
+                            <span className="flex items-center gap-4">
+                                <span>of</span>
+                                <img 
+                                    src="/Assets/hero/lik_logo.png" 
+                                    alt="LIK" 
+                                    className="h-[0.8em] md:h-[0.9em] w-auto inline-block drop-shadow-[0_0_15px_rgba(227,30,110,0.4)]" 
+                                />
+                            </span>
                         </h2>
                         
                         {/* HIGHLIGHTED DATE SECTION */}
