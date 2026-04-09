@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
-import { motion, useMotionValue, useTransform, useScroll } from "framer-motion";
+import { motion, useMotionValue, useTransform, useScroll, AnimatePresence } from "framer-motion";
 import { useTheme } from "../../context/ThemeContext";
 import PixelCard from "../../components/home/PixelCard"; 
 import MoviePromo from "./MoviePromo"; 
-import ShwetaPromo from "./ShwetaPromo"; // <-- Imported the new Shweta component
-import { Mic2, Zap, Heart, MessageCircle, Share2, Flame, Pointer } from "lucide-react"; 
+import ShwetaPromo from "./ShwetaPromo"; 
+import { Mic2, Zap, Heart, MessageCircle, Share2, Flame, Pointer, Radio } from "lucide-react"; 
 
 export default function About() {
     const { theme } = useTheme();
@@ -37,6 +37,79 @@ export default function About() {
             }
         }, 1000);
         return () => clearInterval(interval);
+    }, []);
+
+    // --- 1.5 DYNAMIC LIVE ANNOUNCEMENTS LOGIC ---
+    const [activeAnnouncements, setActiveAnnouncements] = useState([]);
+    
+    const announcements = [
+    // DAY 1 (April 9)
+    { 
+        id: 1, date: 9, startHour: 0, endHour: 13, 
+        title: "🎭 THE CURTAINS RISE", 
+        message: "RasRang Day One is LIVE! The campus is buzzing, the stages are roaring, and the madness has begun. Step in and make your story legendary." 
+    },
+    { 
+        id: 2, date: 9, startHour: 13, endHour: 17, 
+        title: "🔥 AFTERNOON TAKEOVER", 
+        message: "The heat is real and so is the hype! Events are in full swing—grab your squad, own the spotlight, and make some noise!" 
+    },
+    { 
+        id: 3, date: 9, startHour: 17, endHour: 22, 
+        title: "🌌 NIGHTFALL PROTOCOL", 
+        message: "Lights on. Bass up. Energy max. The night is ours—dance, scream, and lose yourself in the biggest vibe of the fest!" 
+    },
+    { 
+        id: 7, date: 9, startHour: 22, endHour: 24, 
+        title: "🌙 DAY ONE COMPLETE", 
+        message: "What a night! The vibes were unmatched 🔥 Rest up, recharge, and get ready… tomorrow is going to be even bigger." 
+    },
+
+    // DAY 2 (April 10)
+    { 
+        id: 4, date: 10, startHour: 0, endHour: 13, 
+        title: "⚡ ROUND TWO: IGNITION", 
+        message: "Day Two is here! If yesterday was wild, today will be unforgettable. Step back in and level up the energy!" 
+    },
+    { 
+        id: 5, date: 10, startHour: 13, endHour: 17, 
+        title: "⏳ FINAL BUILD-UP", 
+        message: "The countdown has begun. The biggest moments are just ahead—don’t miss your chance to be part of the legend." 
+    },
+    { 
+        id: 6, date: 10, startHour: 17, endHour: 22, 
+        title: "🎆 THE GRAND FINALE", 
+        message: "This is the moment. The lights, the music, the crowd—everything comes together for one unforgettable ending. Make it count!" 
+    },
+    { 
+        id: 8, date: 10, startHour: 22, endHour: 24, 
+        title: "🌙 SEE YOU NEXT YEAR", 
+        message: "RasRang 2K26 comes to an end ❤️ What a journey! Until next time—stay loud, stay wild, stay unforgettable." 
+    }
+];
+
+    useEffect(() => {
+        // ENV Variable Override (Check if VITE_SHOW_ALL_CARDS is true)
+        const showAllCards = import.meta.env.VITE_SHOW_ALL_CARDS === 'true';
+
+        if (showAllCards) {
+            setActiveAnnouncements(announcements);
+        } else {
+            const now = new Date();
+            const currentMonth = now.getMonth(); // April is index 3
+            const currentDate = now.getDate();
+            const currentHour = now.getHours();
+
+            // Only trigger if it is April 2026
+            if (currentMonth === 3 && now.getFullYear() === 2026) {
+                const current = announcements.filter(a => 
+                    a.date === currentDate && 
+                    currentHour >= a.startHour && 
+                    currentHour < a.endHour
+                );
+                setActiveAnnouncements(current);
+            }
+        }
     }, []);
 
     // --- 2. 3D TICKET PHYSICS ---
@@ -116,7 +189,7 @@ export default function About() {
                 <div className="absolute bottom-0 left-0 w-1/2 h-full opacity-10 blur-[150px]" style={{ backgroundImage: `linear-gradient(to top, transparent, ${theme.colors.accent}, transparent)` }} />
             </div>
 
-            <div className="max-w-7xl mx-auto px-6 relative z-10 space-y-32">
+            <div className="max-w-7xl mx-auto px-6 relative z-10 space-y-24">
 
                 {/* =========================================
                     PART 1: INTRO & 3D FESTIVAL TICKET
@@ -198,13 +271,13 @@ export default function About() {
                 {/* =========================================
                     PART 2: COUNTDOWN 
                 ========================================== */}
-                <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center">
+                <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center pb-8">
 
                     <h3 className="text-2xl font-black uppercase tracking-[0.3em] mb-8 font-massive" style={{ color: theme.colors.accent }}>
                         The Curtains Open In
                     </h3>
 
-                    <div className="flex justify-center gap-4 md:gap-8 mb-12">
+                    <div className="flex justify-center gap-4 md:gap-8">
                         {Object.entries(timeLeft).map(([label, value]) => (
                             <div key={label} className="flex flex-col items-center">
                                 <div className="w-16 h-16 md:w-24 md:h-24 bg-[#0A0A0A]/80 backdrop-blur-md border border-white/10 rounded-lg flex items-center justify-center" style={{ boxShadow: `0 0 30px ${theme.colors.primary}1A` }}>
@@ -215,6 +288,90 @@ export default function About() {
                         ))}
                     </div>
                 </motion.div>
+
+                {/* =========================================
+                    PART 2.5: DYNAMIC LIVE ANNOUNCEMENTS (GOLDEN VIBE UI)
+                ========================================== */}
+                {activeAnnouncements.length > 0 && (
+                    <motion.div 
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: true, margin: "-50px" }}
+                        variants={{
+                            visible: { transition: { staggerChildren: 0.2 } },
+                            hidden: {}
+                        }}
+                        className="w-full flex flex-col items-center gap-12 z-20 relative mb-24"
+                    >
+                        {activeAnnouncements.map((announcement, index) => (
+                            <motion.div 
+                                key={announcement.id}
+                                variants={{
+                                    hidden: { opacity: 0, y: 50, scale: 0.9, filter: "blur(10px)" },
+                                    visible: { opacity: 1, y: 0, scale: 1, filter: "blur(0px)", transition: { duration: 0.8, type: "spring", bounce: 0.4 } }
+                                }}
+                                whileHover={{ scale: 1.02, y: -5 }}
+                                className="relative w-full max-w-4xl p-[2px] rounded-[2rem] overflow-hidden group cursor-default shadow-2xl hover:shadow-[0_20px_50px_rgba(228,189,141,0.2)] transition-all duration-500"
+                            >
+                                {/* Animated Golden Glow Border */}
+                                <div className="absolute inset-0 bg-gradient-to-r from-[#E4BD8D]/10 via-[#E4BD8D]/80 to-[#E4BD8D]/10 opacity-50 group-hover:opacity-100 animate-[spin_4s_linear_infinite] transition-opacity duration-500" />
+                                
+                                {/* Card Body */}
+                                <div className="relative h-full bg-[#05000a]/95 backdrop-blur-3xl rounded-[1.9rem] p-8 md:p-12 flex flex-col items-center text-center overflow-hidden">
+                                    
+                                    {/* Breathing Background Glow */}
+                                    <motion.div 
+                                        animate={{ opacity: [0.1, 0.25, 0.1], scale: [1, 1.2, 1] }}
+                                        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] bg-[radial-gradient(circle_at_center,rgba(228,189,141,0.15)_0%,transparent_60%)] pointer-events-none"
+                                    />
+
+                                    {/* Live Indicator */}
+                                    <div className="absolute top-6 right-6 flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/10 border border-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.2)]">
+                                        <Radio size={14} className="text-red-500 animate-pulse" />
+                                        <span className="text-[10px] font-black tracking-widest uppercase text-red-400">Live Update</span>
+                                    </div>
+
+                                    {/* Golden Premium Title */}
+                                    <motion.h4 
+                                        initial={{ opacity: 0, y: 20 }}
+                                        whileInView={{ opacity: 1, y: 0 }}
+                                        viewport={{ once: true }}
+                                        transition={{ delay: 0.3, duration: 0.6 }}
+                                        className="text-3xl md:text-5xl lg:text-6xl font-black uppercase tracking-widest font-massive mb-6 drop-shadow-[0_0_20px_rgba(228,189,141,0.3)] relative z-10"
+                                        style={{ 
+                                            color: "transparent", 
+                                            WebkitTextStroke: "1.5px #E4BD8D" 
+                                        }}
+                                    >
+                                        {announcement.title}
+                                    </motion.h4>
+
+                                    <motion.p 
+                                        initial={{ opacity: 0 }}
+                                        whileInView={{ opacity: 1 }}
+                                        viewport={{ once: true }}
+                                        transition={{ delay: 0.5, duration: 0.8 }}
+                                        className="text-lg md:text-2xl font-serif italic text-white/90 leading-[1.8] mb-10 max-w-2xl drop-shadow-sm relative z-10"
+                                        style={{ backfaceVisibility: "hidden", transform: "translateZ(0)" }}
+                                    >
+                                        "{announcement.message}"
+                                    </motion.p>
+
+                                    {/* The Required Signature */}
+                                    <div className="w-full pt-6 border-t border-white/10 flex flex-col items-center gap-2 relative z-10">
+                                        <p className="text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] text-white/50 leading-relaxed">
+                                            <span className="text-[#E4BD8D]">By,</span> SRM Org Team, RasRang Team,
+                                        </p>
+                                        <p className="text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] text-white/50 leading-relaxed">
+                                            from all the clg in SRM Trichy Campus and Dev Team.
+                                        </p>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </motion.div>
+                )}
 
                 {/* =========================================
                     PART 3: SILVER SCREEN SPOTLIGHT (LIK MOVIE - DAY 1 ACT 2)
