@@ -261,22 +261,6 @@ export default function MoviePromo() {
                         </p>
 
                         <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-6">
-                            <a
-                                href="https://www.youtube.com/watch?v=wMiCXl8ZybQ"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="block"
-                            >
-                                <motion.button
-                                    whileHover={{ scale: 1.05, backgroundColor: theme.colors.highlight }}
-                                    whileTap={{ scale: 0.95 }}
-                                    className="group flex items-center gap-4 px-8 py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-[11px] transition-all shadow-[0_10px_30px_rgba(227,30,110,0.2)]"
-                                    style={{ backgroundColor: `${theme.colors.highlight}1A`, border: `1px solid ${theme.colors.highlight}`, color: theme.colors.highlight }}
-                                >
-                                    <Play size={16} className="fill-current group-hover:scale-110 transition-transform" />
-                                    WATCH TEASER
-                                </motion.button>
-                            </a>
 
                             <div className="flex items-center gap-3 px-4 py-2 border border-white/10 bg-white/5 rounded-xl backdrop-blur-md">
                                 <div className="w-2 h-2 rounded-full" style={{ backgroundColor: theme.colors.primary, boxShadow: `0 0 10px ${theme.colors.primary}` }} />
