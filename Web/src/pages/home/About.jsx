@@ -326,8 +326,8 @@ export default function About() {
                                         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] bg-[radial-gradient(circle_at_center,rgba(228,189,141,0.15)_0%,transparent_60%)] pointer-events-none"
                                     />
 
-                                    {/* Live Indicator */}
-                                    <div className="absolute top-6 right-6 flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/10 border border-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.2)]">
+                                    {/* Live Indicator - Responsive Positioning */}
+                                    <div className="md:absolute md:top-8 md:right-8 relative mb-6 md:mb-0 flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/10 border border-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.2)] z-20">
                                         <Radio size={14} className="text-red-500 animate-pulse" />
                                         <span className="text-[10px] font-black tracking-widest uppercase text-red-400">Live Update</span>
                                     </div>
