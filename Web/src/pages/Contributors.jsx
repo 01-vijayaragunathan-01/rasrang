@@ -83,6 +83,13 @@ const FEATURED = [
         team: "Developers",
         image: "/Assets/jafrin.jpeg",
     },
+    {
+        id: 3,
+        name: "Jayasakthi D",
+        role: "814723104060",
+        team: "Developers",
+        image: "/Assets/jayasakthi.jpeg",
+    },
    
 ];
 
