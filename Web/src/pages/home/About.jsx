@@ -311,7 +311,7 @@ export default function About() {
                                     visible: { opacity: 1, y: 0, scale: 1, filter: "blur(0px)", transition: { duration: 0.8, type: "spring", bounce: 0.4 } }
                                 }}
                                 whileHover={{ scale: 1.02, y: -5 }}
-                                className="relative w-full max-w-4xl p-[2px] rounded-[2rem] overflow-hidden group cursor-default shadow-2xl hover:shadow-[0_20px_50px_rgba(228,189,141,0.2)] transition-all duration-500"
+                                className="relative w-full max-w-4xl p-[2px] rounded-[2rem] overflow-hidden group cursor-default shadow-2xl hover:shadow-[0_20px_50px_rgba(228,189,141,0.2)] transition-all duration-500 hardware-accelerated"
                             >
                                 {/* Animated Golden Glow Border */}
                                 <div className="absolute inset-0 bg-gradient-to-r from-[#E4BD8D]/10 via-[#E4BD8D]/80 to-[#E4BD8D]/10 opacity-50 group-hover:opacity-100 animate-[spin_4s_linear_infinite] transition-opacity duration-500" />

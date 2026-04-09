@@ -185,7 +185,7 @@ export default function MoviePromo() {
             <div className="absolute top-[10%] left-0 w-full overflow-hidden opacity-[0.04] z-0 pointer-events-none select-none mix-blend-overlay">
                 <div
                     ref={bgTextRef}
-                    className="flex whitespace-nowrap font-massive text-[15rem] md:text-[25rem] leading-none uppercase italic text-white w-max"
+                    className="flex whitespace-nowrap font-massive text-[15rem] md:text-[25rem] leading-none uppercase italic text-white w-max hardware-accelerated"
                 >
                     {[...Array(5)].map((_, i) => (
                         <span key={i} className="pr-8">
@@ -301,7 +301,7 @@ export default function MoviePromo() {
                             key={cast.id}
                             ref={addToCardsRef}
                             whileHover={{ y: -15, scale: 1.02 }}
-                            className="relative group w-full max-w-[360px] aspect-[4/5.5] rounded-[3rem] border border-white/10 bg-black/60 shadow-[0_30px_60px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col justify-end p-10 cursor-pointer perspective-1000"
+                            className="relative group w-full max-w-[360px] aspect-[4/5.5] rounded-[3rem] border border-white/10 bg-black/60 shadow-[0_30px_60px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col justify-end p-10 cursor-pointer perspective-1000 hardware-accelerated"
                         >
                             {/* HUD Overlays */}
                             <div className="absolute top-8 left-8 p-1.5 bg-black/40 border border-white/10 rounded-lg text-[7px] font-black text-white/30 uppercase tracking-[0.2em] z-20">

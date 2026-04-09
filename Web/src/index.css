@@ -370,7 +370,17 @@ main.sphere-main {
   bottom: 0;
 }
 
-.dg-scroll-lock {
-  overflow: hidden !important;
+/* --- GPU HARDWARE ACCELERATION UTILITIES (Optimization for Low-End Hardware) --- */
+.hardware-accelerated {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    will-change: transform, opacity;
+}
+
+.optimize-paint {
+    contain: paint;
+    will-change: opacity;
 }
 

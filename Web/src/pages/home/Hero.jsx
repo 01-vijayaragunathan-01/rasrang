@@ -52,7 +52,7 @@ export default function Hero() {
         >
             {/* --- CINEMATIC OVERLAYS --- */}
             {/* 1. Moving Film Grain */}
-            <div className="absolute inset-0 z-[1] pointer-events-none opacity-[0.15]" 
+            <div className="absolute inset-0 z-[1] pointer-events-none opacity-[0.15] hardware-accelerated" 
                  style={{ 
                     backgroundImage: `url("https://grainy-gradients.vercel.app/noise.svg")`,
                     backgroundSize: '200px 200px',
@@ -68,7 +68,7 @@ export default function Hero() {
                     opacity: [0.1, 0.2, 0.1]
                 }}
                 transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute inset-0 z-[1] pointer-events-none blur-[120px]"
+                className="absolute inset-0 z-[1] pointer-events-none blur-[120px] hardware-accelerated"
                 style={{ 
                     background: 'radial-gradient(circle at 50% 50%, rgba(224, 94, 49, 0.15) 0%, transparent 70%)'
                 }}
@@ -95,7 +95,8 @@ export default function Hero() {
                 muted
                 loop
                 playsInline
-                className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none opacity-40"
+                preload="auto"
+                className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none opacity-40 hardware-accelerated"
                 src="/Assets/hero.MOV" // Ensure this path is correct (relative to the public folder)
             />
             <div className={`relative z-30 w-full max-w-[1600px] 2xl:max-w-[1800px] mx-auto px-6 lg:px-12 xl:px-16 transition-all duration-1000 ${loaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"}`}>
@@ -145,7 +146,7 @@ export default function Hero() {
                             damping: 20, 
                             delay: 0.1 
                         }}
-                        className="order-1 lg:order-2 lg:col-span-6 flex justify-center items-center relative perspective-1000"
+                        className="order-1 lg:order-2 lg:col-span-6 flex justify-center items-center relative perspective-1000 hardware-accelerated"
                     >
                         {/* Powerful Pulse Glow */}
                         <motion.div 

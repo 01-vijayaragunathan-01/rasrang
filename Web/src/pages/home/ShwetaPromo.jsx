@@ -75,7 +75,7 @@ export default function ShwetaPromo() {
             <div className="absolute inset-0 z-0 backdrop-blur-[120px] pointer-events-none" />
 
             {/* --- DEPTH LAYER 2: LOCALIZED PARTICLE ENGINE --- */}
-            <div className="absolute inset-0 z-[1] pointer-events-none opacity-60">
+            <div className="absolute inset-0 z-[1] pointer-events-none opacity-60 hardware-accelerated">
                 <Particles 
                     particleCount={250}
                     particleColors={["#22D3EE", "#D946EF", "#ffffff"]} 
@@ -108,7 +108,7 @@ export default function ShwetaPromo() {
                 {/* --- PREMIUM GLASS CARD --- */}
                 <div 
                     ref={cardRef}
-                    className="relative w-full min-h-[650px] lg:min-h-[700px] rounded-[2rem] md:rounded-[3.5rem] border border-white/10 bg-[#0a0514]/80 backdrop-blur-2xl overflow-hidden shadow-[0_30px_100px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.1)] flex flex-col lg:flex-row group"
+                    className="relative w-full min-h-[650px] lg:min-h-[700px] rounded-[2rem] md:rounded-[3.5rem] border border-white/10 bg-[#0a0514]/80 backdrop-blur-2xl overflow-hidden shadow-[0_30px_100px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.1)] flex flex-col lg:flex-row group hardware-accelerated"
                 >
                     {/* Animated Edge Light Sweep */}
                     <div className="absolute top-0 left-0 w-[200%] h-px bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent -translate-x-full animate-[sweep_4s_ease-in-out_Infinite]" />

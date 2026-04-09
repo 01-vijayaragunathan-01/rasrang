@@ -144,9 +144,9 @@ export default function PastEvents() {
         <section ref={containerRef} id="pre-show-events" className="relative py-32 overflow-hidden bg-transparent">
             
             {/* Background elements */}
-            <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full pointer-events-none opacity-20 blur-[130px]"
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full pointer-events-none opacity-20 blur-[130px] hardware-accelerated"
                  style={{ background: theme.colors.primary }} />
-            <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full pointer-events-none opacity-10 blur-[120px]"
+            <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full pointer-events-none opacity-10 blur-[120px] hardware-accelerated"
                  style={{ background: theme.colors.secondary }} />
 
             <div className="relative max-w-7xl mx-auto px-6 font-primary z-10">
@@ -173,7 +173,7 @@ export default function PastEvents() {
                     {preShowEvents.map((event, i) => (
                         <div
                             key={i}
-                            className="event-card group relative overflow-hidden rounded-2xl border transition-colors duration-500 cursor-pointer flex flex-col"
+                            className="event-card group relative overflow-hidden rounded-2xl border transition-colors duration-500 cursor-pointer flex flex-col hardware-accelerated"
                             style={{ 
                                 background: "rgba(10, 10, 10, 0.4)", 
                                 borderColor: `${theme.colors.primary}20`,
