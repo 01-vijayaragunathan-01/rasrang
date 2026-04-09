@@ -15,16 +15,17 @@ import ProtectedRoute from "./common/ProtectedRoute";
 import Particles from "./pages/home/Particles";
 import Footer from "./common/Footer";
 import StaggeredMenu from "./common/StaggeredMenu";
+import ThankYou from "./pages/Thankyou";
 
 // ─── LAZY LOADED PAGES ──────────────────────────────────────────────────
-const Home         = lazy(() => import("./pages/Home"));
-const Events       = lazy(() => import("./pages/Events"));
+// const Home         = lazy(() => import("./pages/Home"));
+// const Events       = lazy(() => import("./pages/Events"));
 const Gallery      = lazy(() => import("./pages/Gallery"));
 const Contributors = lazy(() => import("./pages/Contributors"));
-const Profile = lazy(() => import("./pages/Profile"));
-const Auth = lazy(() => import("./pages/Auth"));
-const Dashboard = lazy(() => import("./pages/Dashboard"));
-const Onboarding = lazy(() => import("./pages/Onboarding"));
+// const Profile = lazy(() => import("./pages/Profile"));
+// const Auth = lazy(() => import("./pages/Auth"));
+// const Dashboard = lazy(() => import("./pages/Dashboard"));
+// const Onboarding = lazy(() => import("./pages/Onboarding"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const ContentPolicy = lazy(() => import("./pages/ContentPolicy"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
@@ -95,13 +96,13 @@ function MainContent() {
 
   const navItems = useMemo(() => [
     { label: 'Home', link: '/', ariaLabel: 'Return to headquarters' },
-    { label: 'Events', link: '/events', ariaLabel: 'Explore active sectors' },
+    // { label: 'Events', link: '/events', ariaLabel: 'Explore active sectors' },
     { label: 'Gallery', link: '/gallery', ariaLabel: 'Access visual archives' },
-    user ? { label: 'Profile', link: '/profile', ariaLabel: 'Open biometric vault' } 
-         : { label: 'Login', link: '/login', ariaLabel: 'User authentication' },
-    ...(isStaff ? [{ label: 'Dashboard', link: '/dashboard', ariaLabel: 'Command Tower access' }] : []),
+    // user ? { label: 'Profile', link: '/profile', ariaLabel: 'Open biometric vault' } 
+        //  : { label: 'Login', link: '/login', ariaLabel: 'User authentication' },
+    // ...(isStaff ? [{ label: 'Dashboard', link: '/dashboard', ariaLabel: 'Command Tower access' }] : []),
     { label: 'Team', link: '/contributors', ariaLabel: 'Meet the architects' },
-    ...(user ? [{ label: 'Logout', action: logout, ariaLabel: 'Terminate session' }] : [])
+    // ...(user ? [{ label: 'Logout', action: logout, ariaLabel: 'Terminate session' }] : [])
   ], [user, isStaff, logout]);
 
   const socialItems = useMemo(() => [
@@ -136,16 +137,17 @@ function MainContent() {
       <main className="relative z-10">
         <Suspense fallback={<div className="h-screen w-screen bg-black flex items-center justify-center text-white font-massive">Loading...</div>}>
           <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/events" element={<Events />} />
+            {/* <Route path="/" element={<Home />} />
+            <Route path="/events" element={<Events />} /> */}
             <Route path="/gallery" element={<Gallery />} />
             <Route path="/contributors" element={<Contributors />} />
-            <Route path="/login" element={<Auth />} />
-            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+            {/* <Route path="/login" element={<Auth />} /> */}
+            {/* <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} /> */}
+            {/* <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} /> */}
+            {/* <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} /> */}
             <Route path="/content-policy" element={<ContentPolicy />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/" element={<ThankYou />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
@@ -153,6 +155,7 @@ function MainContent() {
       </main>
 
       <Footer />
+      
       <ToastContainer />
 
       <AnimatePresence>

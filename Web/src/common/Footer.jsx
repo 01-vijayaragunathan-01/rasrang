@@ -240,13 +240,6 @@ export default function Footer() {
           <div className="md:col-span-1">
             <div className="flex items-center gap-4 mb-6">
               <img src="/Assets/rasrang.png" alt="RasRang Logo" className="h-14 w-auto object-contain" />
-              <div>
-                <p className="text-2xl font-black tracking-[0.2em] uppercase font-massive"
-                   style={{ color: theme.colors.accent }}>RASRANG</p>
-                <p className="text-[9px] tracking-[0.4em] uppercase" style={{ color: theme.colors.textMuted }}>
-                  SRM Trichy &bull; Cultural Fest '26
-                </p>
-              </div>
             </div>
             <p className="text-sm leading-relaxed opacity-80" style={{ color: theme.colors.textMuted }}>
               Where culture meets the stars. Two electrifying nights of art, music, dance &amp; theatre — the biggest cultural phenomenon on campus.
@@ -260,10 +253,8 @@ export default function Footer() {
             <ul className="space-y-3">
               {[
                 { label: "Home", href: "/" },
-                { label: "Events", href: "/events" },
                 { label: "Gallery", href: "/gallery" },
                 { label: "Team", href: "/contributors" },
-                { label: "About", href: "/#about" },
               ].map((link) => (
                 <li key={link.label}>
                   <a
