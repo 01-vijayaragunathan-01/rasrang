@@ -18,7 +18,7 @@ export default function MoviePromo() {
     // GSAP Refs
     const bgTextRef = useRef(null);
     const introTextRef = useRef(null);
-    const detailsTextRef = useRef(null); 
+    const detailsTextRef = useRef(null);
     const cardsContainerRef = useRef(null);
     const cardsRef = useRef([]);
 
@@ -35,13 +35,13 @@ export default function MoviePromo() {
             ([entry]) => {
                 if (entry.isIntersecting && entry.intersectionRatio > 0.4 && !hasSnapped) {
                     const scrollDirection = window.scrollY > (sectionRef.current?.offsetTop || 0) ? 'up' : 'down';
-                    
+
                     if (scrollDirection === 'down') {
                         sectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
                         setHasSnapped(true);
                     }
                 }
-                
+
                 if (!entry.isIntersecting) {
                     setHasSnapped(false);
                 }
@@ -58,13 +58,13 @@ export default function MoviePromo() {
         let ctx = gsap.context(() => {
             // 1. Background Text Parallax
             gsap.to(bgTextRef.current, {
-                x: "-30%", 
+                x: "-30%",
                 ease: "none",
                 scrollTrigger: {
                     trigger: sectionRef.current,
                     start: "top bottom",
                     end: "bottom top",
-                    scrub: 1, 
+                    scrub: 1,
                 }
             });
 
@@ -72,12 +72,12 @@ export default function MoviePromo() {
             const tlLeft = gsap.timeline({
                 scrollTrigger: {
                     trigger: introTextRef.current,
-                    start: "top 80%", 
+                    start: "top 80%",
                     toggleActions: "play none none reverse"
                 }
             });
 
-            tlLeft.fromTo(introTextRef.current.children, 
+            tlLeft.fromTo(introTextRef.current.children,
                 { y: 50, opacity: 0, filter: "blur(10px)" },
                 { y: 0, opacity: 1, filter: "blur(0px)", duration: 0.8, stagger: 0.15, ease: "power3.out" }
             );
@@ -86,14 +86,14 @@ export default function MoviePromo() {
             const tlRight = gsap.timeline({
                 scrollTrigger: {
                     trigger: detailsTextRef.current,
-                    start: "top 80%", 
+                    start: "top 80%",
                     toggleActions: "play none none reverse"
                 }
             });
 
-            tlRight.fromTo(detailsTextRef.current.children, 
+            tlRight.fromTo(detailsTextRef.current.children,
                 { y: 50, opacity: 0, filter: "blur(10px)" },
-                { y: 0, opacity: 1, filter: "blur(0px)", duration: 0.8, stagger: 0.15, ease: "power3.out", delay: 0.2 } 
+                { y: 0, opacity: 1, filter: "blur(0px)", duration: 0.8, stagger: 0.15, ease: "power3.out", delay: 0.2 }
             );
 
             // 4. Staggered Cards Reveal
@@ -104,7 +104,7 @@ export default function MoviePromo() {
                     opacity: 1,
                     rotateX: 0,
                     duration: 1,
-                    stagger: 0.2, 
+                    stagger: 0.2,
                     ease: "back.out(1.7)",
                     scrollTrigger: {
                         trigger: cardsContainerRef.current,
@@ -116,7 +116,7 @@ export default function MoviePromo() {
 
         }, sectionRef);
 
-        return () => ctx.revert(); 
+        return () => ctx.revert();
     }, []);
 
     // --- LIK MOVIE CAST DATA ---
@@ -127,8 +127,8 @@ export default function MoviePromo() {
             role: "The Modern Lover",
             dossier: "DOSSIER // LIK_P_01",
             quote: ``,
-            image: "/Assets/hero/pradeep.png", 
-            glow: theme.colors.accent, 
+            image: "/Assets/hero/pradeep.png",
+            glow: theme.colors.accent,
             delay: 0.2
         },
         {
@@ -137,8 +137,8 @@ export default function MoviePromo() {
             role: "The Algorithmic Match",
             dossier: "DOSSIER // LIK_K_02",
             quote: ``,
-            image: "/Assets/hero/krithi.jpg", 
-            glow: theme.colors.highlight, 
+            image: "/Assets/hero/krithi.jpg",
+            glow: theme.colors.highlight,
             delay: 0.4
         },
         {
@@ -147,8 +147,8 @@ export default function MoviePromo() {
             role: "The Tech Tycoon",
             dossier: "DOSSIER // LIK_SJS_03",
             quote: ``,
-            image: "/Assets/hero/sjsuryah.jpeg", 
-            glow: theme.colors.primary, 
+            image: "/Assets/hero/sjsuryah.jpeg",
+            glow: theme.colors.primary,
             delay: 0.6
         }
     ];
@@ -165,7 +165,7 @@ export default function MoviePromo() {
     };
 
     return (
-        <section 
+        <section
             ref={sectionRef}
             className="relative w-full pb-32 pt-24 overflow-hidden bg-black/40 backdrop-blur-3xl border-y border-white/5 shadow-[0_0_100px_rgba(0,0,0,0.8)]"
         >
@@ -180,16 +180,16 @@ export default function MoviePromo() {
             <div className="absolute top-10 right-10 w-24 h-24 border-r border-t border-white/10 pointer-events-none z-10" />
             <div className="absolute bottom-10 left-10 w-24 h-24 border-l border-b border-white/10 pointer-events-none z-10" />
             <div className="absolute bottom-10 right-10 w-24 h-24 border-r border-b border-white/10 pointer-events-none z-10" />
-            
+
             {/* GIANT KINETIC BACKGROUND TYPOGRAPHY */}
             <div className="absolute top-[10%] left-0 w-full overflow-hidden opacity-[0.04] z-0 pointer-events-none select-none mix-blend-overlay">
-                <div 
+                <div
                     ref={bgTextRef}
                     className="flex whitespace-nowrap font-massive text-[15rem] md:text-[25rem] leading-none uppercase italic text-white w-max"
                 >
                     {[...Array(5)].map((_, i) => (
                         <span key={i} className="pr-8">
-                            LOVE INSURANCE KOMPANY • ACT 02 • IN CINEMAS APRIL 10 • DIRECTED BY VIGNESH SHIVAN • 
+                            LOVE INSURANCE KOMPANY • ACT 02 • IN CINEMAS APRIL 10 • DIRECTED BY VIGNESH SHIVAN •
                         </span>
                     ))}
                 </div>
@@ -198,9 +198,10 @@ export default function MoviePromo() {
             <div className="max-w-7xl mx-auto px-6 relative z-10">
                 {/* --- HYPE INTRO SECTION --- */}
                 <div className="flex flex-col lg:flex-row gap-12 lg:gap-24 items-center justify-between mb-20">
-                    
+
                     {/* Left: The Grand Titles */}
                     <div ref={introTextRef} className="flex-1 text-center lg:text-left flex flex-col items-center lg:items-start">
+                        {/* Cinematic Date Tag */}
                         <div className="inline-flex items-center gap-3 px-6 py-2.5 rounded-full border bg-black/40 backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] mb-8" style={{ borderColor: `${theme.colors.highlight}40` }}>
                             <div className="flex items-center gap-1.5 border-r border-white/10 pr-3 mr-1">
                                 <Terminal size={14} style={{ color: theme.colors.highlight }} />
@@ -215,28 +216,28 @@ export default function MoviePromo() {
                         <p className="text-xs md:text-sm tracking-[0.5em] uppercase font-bold mb-4 flex items-center gap-3" style={{ color: theme.colors.accent }}>
                             <Target size={14} /> ✦ The Silver Screen Spotlight ✦
                         </p>
-                        
+
                         <h2 className="text-5xl md:text-7xl lg:text-8xl font-black uppercase tracking-tighter font-massive text-white drop-shadow-2xl leading-[0.9] flex flex-col items-center lg:items-start gap-2">
                             <span>The Stars</span>
                             <span className="flex items-center gap-4">
                                 <span>of</span>
-                                <img 
-                                    src="/Assets/hero/lik_logo.png" 
-                                    alt="LIK" 
-                                    className="h-[0.8em] md:h-[0.9em] w-auto inline-block drop-shadow-[0_0_15px_rgba(227,30,110,0.4)]" 
+                                <img
+                                    src="/Assets/hero/lik_logo.png"
+                                    alt="LIK"
+                                    className="h-[0.8em] md:h-[0.9em] w-auto inline-block drop-shadow-[0_0_15px_rgba(227,30,110,0.4)]"
                                     onError={(e) => e.target.style.display = 'none'}
                                 />
                             </span>
                         </h2>
-                        
+
                         <div className="flex items-center justify-center lg:justify-start mt-6">
-                             <div className="px-5 py-2 border rounded-lg bg-black/50 backdrop-blur-md shadow-[0_0_20px_rgba(227,30,110,0.2)]" style={{ borderColor: `${theme.colors.highlight}60` }}>
+                            <div className="px-5 py-2 border rounded-lg bg-black/50 backdrop-blur-md shadow-[0_0_20px_rgba(227,30,110,0.2)]" style={{ borderColor: `${theme.colors.highlight}60` }}>
                                 <p className="text-sm font-black tracking-[0.3em] uppercase" style={{ color: theme.colors.highlight }}>
                                     LIVE ON <span className="text-white">APRIL 09</span>
                                 </p>
-                             </div>
+                            </div>
                         </div>
-                        
+
                         <div className="flex items-center gap-4 mt-8 lg:justify-start justify-center w-full">
                             <div className="h-px w-12" style={{ background: `linear-gradient(to right, transparent, ${theme.colors.highlight}80)` }} />
                             <motion.div animate={{ rotate: 360 }} transition={{ duration: 10, repeat: Infinity, ease: "linear" }}>
@@ -258,8 +259,25 @@ export default function MoviePromo() {
                         <p className="text-white/60 font-body leading-relaxed mb-10">
                             Right before they hit the big screens worldwide, the star-studded cast of the year’s most anticipated sci-fi rom-com is crashing RasRang 2K26 as our official <span style={{ color: theme.colors.highlight }} className="font-bold">Act 02</span>. Get ready for an unfiltered, massive live session. No scripts, no algorithms—just pure campus hype.
                         </p>
-                        
+
                         <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-6">
+                            <a
+                                href="https://www.youtube.com/watch?v=wMiCXl8ZybQ"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="block"
+                            >
+                                <motion.button
+                                    whileHover={{ scale: 1.05, backgroundColor: theme.colors.highlight }}
+                                    whileTap={{ scale: 0.95 }}
+                                    className="group flex items-center gap-4 px-8 py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-[11px] transition-all shadow-[0_10px_30px_rgba(227,30,110,0.2)]"
+                                    style={{ backgroundColor: `${theme.colors.highlight}1A`, border: `1px solid ${theme.colors.highlight}`, color: theme.colors.highlight }}
+                                >
+                                    <Play size={16} className="fill-current group-hover:scale-110 transition-transform" />
+                                    WATCH TEASER
+                                </motion.button>
+                            </a>
+
                             <div className="flex items-center gap-3 px-4 py-2 border border-white/10 bg-white/5 rounded-xl backdrop-blur-md">
                                 <div className="w-2 h-2 rounded-full" style={{ backgroundColor: theme.colors.primary, boxShadow: `0 0 10px ${theme.colors.primary}` }} />
                                 <span className="text-[9px] font-black text-white/60 uppercase tracking-[0.3em]">Day 01 // Act 02 // Apr 09</span>
@@ -270,18 +288,18 @@ export default function MoviePromo() {
             </div>
 
             {/* --- CINEMATIC CAST CARDS CONTAINER --- */}
-            <div ref={cardsContainerRef} className="relative w-full px-6 pb-12 flex flex-col items-center">
-                
+            <div ref={cardsContainerRef} className="relative w-full px-6 pb-20 flex flex-col items-center">
+
                 {/* Background Spotlights */}
                 <div className="absolute top-1/2 left-[15%] -translate-y-1/2 w-80 h-80 blur-[150px] opacity-20 rounded-full pointer-events-none hidden md:block" style={{ backgroundColor: theme.colors.accent }} />
                 <div className="absolute top-1/2 right-[15%] -translate-y-1/2 w-80 h-80 blur-[150px] opacity-20 rounded-full pointer-events-none hidden md:block" style={{ backgroundColor: theme.colors.primary }} />
 
                 {/* 1. THE MAIN CAST (3 Cards) */}
-                <div className="flex flex-col md:flex-row flex-wrap items-center justify-center gap-8 md:gap-10 w-full mb-16 z-10">
+                <div className="flex flex-col md:flex-row flex-wrap items-center justify-center gap-8 md:gap-10 w-full mb-10 z-10">
                     {castMembers.map((cast) => (
                         <motion.div
                             key={cast.id}
-                            ref={addToCardsRef} 
+                            ref={addToCardsRef}
                             whileHover={{ y: -15, scale: 1.02 }}
                             className="relative group w-full max-w-[360px] aspect-[4/5.5] rounded-[3rem] border border-white/10 bg-black/60 shadow-[0_30px_60px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col justify-end p-10 cursor-pointer perspective-1000"
                         >
@@ -301,10 +319,10 @@ export default function MoviePromo() {
 
                             {/* Image & Gradient */}
                             <div className="absolute inset-0 z-0 bg-gradient-to-t from-[#020202] via-[#020202]/90 to-transparent" />
-                            <img 
-                                src={cast.image} 
-                                alt={cast.name} 
-                                className="absolute inset-0 w-full h-full object-cover object-center mix-blend-luminosity opacity-40 group-hover:opacity-100 group-hover:mix-blend-normal transition-all duration-700 group-hover:scale-105" 
+                            <img
+                                src={cast.image}
+                                alt={cast.name}
+                                className="absolute inset-0 w-full h-full object-cover object-center mix-blend-luminosity opacity-40 group-hover:opacity-100 group-hover:mix-blend-normal transition-all duration-700 group-hover:scale-105"
                                 onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1516280440502-8c10508cb5f3?q=80&w=1000"; }}
                             />
 
@@ -329,16 +347,47 @@ export default function MoviePromo() {
                     ))}
                 </div>
 
-                {/* 2. THE DIRECTOR'S GRAND BANNER (RESTRICTED WIDTHS & HOVER REVEAL) */}
+                {/* 2. THE DIRECTOR'S GRAND BANNER (OPTIMIZED MOBILE & DESKTOP SPLIT) */}
                 <motion.div
                     ref={addToCardsRef}
-                    className="relative group w-full max-w-[1160px] rounded-[3rem] border border-purple-500/20 bg-[#05020a] shadow-[0_30px_80px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col md:flex-row z-10 cursor-pointer"
+                    whileHover={{ scale: 1.01 }}
+                    className="relative group w-full max-w-[1160px] min-h-[500px] md:min-h-[450px] lg:min-h-[500px] rounded-[3rem] border border-purple-500/20 bg-[#05020a] shadow-[0_30px_80px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col md:flex-row z-10 cursor-pointer"
                 >
-                    {/* Left: Content Area - Strictly limited to 60% max width to prevent overlap */}
-                    <div className="relative z-20 w-full md:w-[55%] lg:w-[60%] p-8 md:p-12 lg:p-16 flex flex-col justify-center items-center md:items-start min-h-[400px] md:min-h-[500px]">
+                    {/* Background Ambient Glow */}
+                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none mix-blend-screen z-0" style={{ background: `radial-gradient(circle at center, ${directorData.glow}20 0%, transparent 70%)` }} />
+
+                    {/* Image Layer: 
+                        Mobile -> Absolute Background spanning full card 
+                        Desktop -> Relative block placed organically on the right
+                    */}
+                    <div className="absolute inset-0 md:relative md:w-[45%] lg:w-[50%] md:ml-auto h-full z-0 overflow-hidden order-1 md:order-2">
+                        
+                        {/* Gradient Mask: 
+                            Mobile -> Bottom-to-Top to fade image under text 
+                            Desktop -> Left-to-Right to fade image into black 
+                        */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#05020a] via-[#05020a]/80 to-transparent md:bg-gradient-to-r md:from-[#05020a] md:via-[#05020a]/60 md:to-transparent z-10" />
+
+                        {/* Lens Flare Sweep (Desktop Only) */}
+                        <div className="hidden md:block absolute inset-0 w-[200%] h-full bg-gradient-to-r from-transparent via-purple-400/10 to-transparent -translate-x-full group-hover:translate-x-[100%] transition-transform duration-[2s] ease-in-out skew-x-12 pointer-events-none z-10" />
+
+                        <img
+                            src={directorData.image}
+                            alt={directorData.name}
+                            // Mobile: Fully visible, no blur. Desktop: Blurred & grayscale initially, colored on hover.
+                            className="w-full h-full object-cover object-top opacity-70 md:opacity-50 md:blur-[3px] md:grayscale transition-all duration-[1s] ease-out group-hover:opacity-100 group-hover:blur-none group-hover:grayscale-0 group-hover:scale-105"
+                            onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1516280440502-8c10508cb5f3?q=80&w=1000"; }}
+                        />
+                    </div>
+
+                    {/* Content Layer: 
+                        Mobile -> Overlays on top of the image at the bottom
+                        Desktop -> Stays perfectly framed on the left 
+                    */}
+                    <div className="absolute inset-0 md:relative z-20 w-full md:w-[55%] lg:w-[50%] p-8 md:p-12 lg:p-16 flex flex-col justify-end md:justify-center items-center md:items-start pointer-events-none order-2 md:order-1">
                         
                         {/* Director's Cut Badge */}
-                        <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full border border-purple-500/30 bg-purple-500/10 w-fit mb-6 shadow-[0_0_20px_rgba(168,85,247,0.15)] backdrop-blur-sm">
+                        <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full border border-purple-500/30 bg-purple-500/10 w-fit mb-4 md:mb-6 shadow-[0_0_20px_rgba(168,85,247,0.15)] backdrop-blur-md pointer-events-auto">
                             <Clapperboard size={14} className="text-purple-400" />
                             <span className="text-[10px] font-black uppercase tracking-widest text-purple-200">
                                 Director's Cut
@@ -346,19 +395,22 @@ export default function MoviePromo() {
                             <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse ml-2 shadow-[0_0_10px_rgba(239,68,68,0.8)]" />
                         </div>
 
-                        <div className="flex flex-col items-center md:items-start gap-2 text-center md:text-left">
+                        <div className="flex flex-col items-center md:items-start gap-1 text-center md:text-left pointer-events-auto">
                             <div className="flex items-center gap-2 mb-2">
                                 <Activity size={10} className="text-purple-400 animate-pulse" />
-                                {/* CSS Swap for hover state to avoid React re-renders */}
-                                <span className="text-[8px] font-black tracking-[0.3em] uppercase text-purple-400/60 group-hover:hidden">
-                                    ANALYZING MASTERMIND...
-                                </span>
-                                <span className="text-[8px] font-black tracking-[0.3em] uppercase text-purple-400 hidden group-hover:inline">
-                                    MASTERMIND ACCESSED
-                                </span>
+                                <div className="relative h-4 overflow-hidden w-40">
+                                    <div className="absolute flex flex-col transition-transform duration-500 group-hover:-translate-y-4">
+                                        <span className="h-4 text-[8px] font-black tracking-[0.3em] uppercase text-purple-400/60">
+                                            ANALYZING MASTERMIND...
+                                        </span>
+                                        <span className="h-4 text-[8px] font-black tracking-[0.3em] uppercase text-purple-400">
+                                            MASTERMIND ACCESSED
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
                             
-                            <p className="text-[10px] font-black tracking-[0.4em] uppercase text-purple-400 mb-2">
+                            <p className="text-[10px] md:text-xs font-black tracking-[0.4em] uppercase text-purple-400 mb-1">
                                 {directorData.role}
                             </p>
 
@@ -371,30 +423,9 @@ export default function MoviePromo() {
                             </h3>
                         </div>
                     </div>
-
-                    {/* Right: The Portrait Layer - Strictly pinned to the right edge */}
-                    <div className="relative md:absolute right-0 top-0 bottom-0 w-full md:w-[50%] lg:w-[45%] h-[400px] md:h-full z-0 overflow-hidden">
-
-                        {/* Smooth gradient fading into the image from the left (prevents hard overlap edge) */}
-                        <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-[#05020a] via-[#05020a]/60 to-transparent z-10" />
-
-                        {/* Lens Flare Sweep (Desktop Only) */}
-                        <div className="hidden md:block absolute inset-0 w-[200%] h-full bg-gradient-to-r from-transparent via-purple-400/10 to-transparent -translate-x-full group-hover:translate-x-[100%] transition-transform duration-[2s] ease-in-out skew-x-12 pointer-events-none z-10" />
-
-                        {/* Glowing Orb that ignites on hover */}
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] bg-purple-500/30 blur-[80px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000 mix-blend-screen z-0 pointer-events-none" />
-
-                        {/* Image Layer (Hover Reveal logic) */}
-                        <img
-                            src={directorData.image}
-                            alt={directorData.name}
-                            className="relative z-0 w-full h-full object-cover object-top opacity-50 blur-[3px] grayscale transition-all duration-[1s] ease-out group-hover:opacity-100 group-hover:blur-none group-hover:grayscale-0 group-hover:scale-105 active:opacity-100 active:blur-none active:grayscale-0"
-                            onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1516280440502-8c10508cb5f3?q=80&w=1000"; }}
-                        />
-                    </div>
                 </motion.div>
 
-                {/* DIRECTOR'S QUOTE: Relocated entirely BELOW the card */}
+                {/* DIRECTOR'S QUOTE: Separated beautifully below */}
                 <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     whileInView={{ opacity: 1, y: 0 }}
