@@ -25,7 +25,7 @@ const CELEB_ITEMS = [
     { image: "/Assets/celib/img (1).jpg", text: "DJ Gowtham" },
     { image: "/Assets/celib/img (2).jpg", text: "Benny Dayal" },
     { image: "/Assets/celib/img (3).webp", text: "Kriti Shetty" },
-    { image: "/Assets/celib/img (4).webp", text: "Pradeep Ranganathan" },
+    { image: "/Assets/celib/img (4).png", text: "Pradeep Ranganathan" },
     { image: "/Assets/celib/img (5).jpg", text: "Shweta Mohan" },
     { image: "/Assets/celib/img (6).jpg", text: "SJ surya" },
     { image: "/Assets/celib/img (7).jpg", text: "DJ Deepika" },
